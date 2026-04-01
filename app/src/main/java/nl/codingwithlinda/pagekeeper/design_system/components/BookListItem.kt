@@ -32,13 +32,6 @@ import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
 
-sealed interface BookListItemAction {
-    data object FavouriteClick : BookListItemAction
-    data object ReadingClick : BookListItemAction
-    data object ShareClick : BookListItemAction
-    data object DeleteClick : BookListItemAction
-}
-
 @Composable
 fun BookListItem(
     book: Book,

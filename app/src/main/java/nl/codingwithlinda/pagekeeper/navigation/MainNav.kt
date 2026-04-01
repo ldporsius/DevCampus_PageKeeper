@@ -5,14 +5,12 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailRoot
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryRoot
 
 @Composable
 fun MainNav(
-    modifier: Modifier = Modifier,
-    bookRepository: BookRepository
+    modifier: Modifier = Modifier
 ) {
 
     val backStack = rememberNavBackStack(BookListRoute)
@@ -22,7 +20,7 @@ fun MainNav(
         modifier = modifier,
         entryProvider = entryProvider {
             entry<BookListRoute> {
-                LibraryRoot(bookRepository)
+                LibraryRoot()
             }
 
             entry<BookDetailRoute> {

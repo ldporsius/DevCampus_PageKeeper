@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import nl.codingwithlinda.pagekeeper.core.di.PageKeeperApplication
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.navigation.MainNav
 
@@ -25,8 +24,7 @@ class MainActivity : ComponentActivity() {
             PageKeeperTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        MainNav(
-                            bookRepository = PageKeeperApplication.appModule.bookRepository)
+                        MainNav()
                     }
                 }
             }

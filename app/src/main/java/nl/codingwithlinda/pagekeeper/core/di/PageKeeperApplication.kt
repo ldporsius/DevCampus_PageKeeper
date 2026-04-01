@@ -6,12 +6,12 @@ class PageKeeperApplication: Application() {
 
 
     companion object{
-        lateinit var appModule: AppModule
+        lateinit var appModule: IAppModule
     }
 
     override fun onCreate() {
         super.onCreate()
 
-        appModule = AppModule()
+        appModule = AppModule(this)
     }
 }

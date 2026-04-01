@@ -8,12 +8,16 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.13.0"
 kotlin = "2.3.0"
-composeBom = "2024.09.00"
+#composeBom = "2024.09.00"
+composeBom = "2026.03.01"
 ksp = "2.3.6"
 room = "2.8.4"
 navigation3 = "1.1.0-rc01"
 kotlinxSerialization = "1.10.0"
 coil = "3.4.0"
+uiautomator = "2.3.0"
+assertK = "0.28.1"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +45,8 @@ androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+assertK = { group = "com.willowtreeapps.assertk", name = "assertk-jvm", version.ref = "assertK" }
 
 
 [plugins]
@@ -49,3 +55,12 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
+[bundles]
+android-test = [
+    "junit",
+    "androidx-junit",
+    "assertK",
+    "androidx-uiautomator",
+    "androidx-espresso-core",
+    "androidx-compose-ui-test-junit4",
+]

@@ -63,6 +63,7 @@ fun LibraryScreen(
                 items(items = state.books, key = { it.isbn }) { book ->
                     BookListItem(
                         book = book,
+                        onClick = { onAction(LibraryAction.OnBookClick(book.isbn)) },
                         onAction = { action ->
                             when (action) {
                                 is BookListItemAction.FavouriteClick ->

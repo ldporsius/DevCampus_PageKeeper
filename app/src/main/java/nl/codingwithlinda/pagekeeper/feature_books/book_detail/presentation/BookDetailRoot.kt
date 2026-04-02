@@ -2,6 +2,7 @@ package nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -38,5 +39,5 @@ fun BookDetailScreen(
     modifier: Modifier = Modifier
 ) {
     // TODO: Implement detail UI
-    Box(modifier = modifier.fillMaxSize())
+    Box(modifier = modifier.fillMaxSize().testTag("book_detail_screen"))
 }

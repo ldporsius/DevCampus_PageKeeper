@@ -7,6 +7,7 @@ import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -24,5 +25,5 @@ val appDataModule = module {
 
 val appPresentationModule = module {
     viewModelOf(::LibraryViewModel)
-    factory { (isbn: String) -> BookDetailViewModel(isbn, get()) }
+    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get()) }
 }

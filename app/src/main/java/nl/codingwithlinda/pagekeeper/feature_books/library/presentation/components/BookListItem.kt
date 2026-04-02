@@ -1,6 +1,7 @@
 package nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 fun BookListItem(
     book: BookUi,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
     onAction: (BookListItemAction) -> Unit = {}
 ) {
     val iconTint = MaterialTheme.colorScheme.onSecondary
@@ -46,6 +48,7 @@ fun BookListItem(
             .fillMaxWidth()
             .height(IntrinsicSize.Max)
             .background(MaterialTheme.colorScheme.background)
+            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(16.dp)

@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
+import nl.codingwithlinda.pagekeeper.feature_books.book_detail.navigation.BookDetailEvent
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 

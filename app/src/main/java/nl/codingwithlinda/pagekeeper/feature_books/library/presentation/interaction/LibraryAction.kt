@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.feature_books.library.presentation
+package nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction
 
 sealed interface LibraryAction {
     data object OnImportBookClick : LibraryAction

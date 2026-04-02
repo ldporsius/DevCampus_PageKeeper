@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.feature_books.library.presentation
+package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
 
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import java.text.SimpleDateFormat

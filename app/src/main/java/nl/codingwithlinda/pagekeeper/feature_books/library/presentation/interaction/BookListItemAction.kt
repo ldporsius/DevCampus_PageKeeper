@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.feature_books.library.presentation
+package nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction
 
 sealed interface BookListItemAction {
     data class FavouriteClick(val isbn: String) : BookListItemAction

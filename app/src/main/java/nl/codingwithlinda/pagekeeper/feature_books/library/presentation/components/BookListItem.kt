@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.feature_books.library.presentation
+package nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 
 @Composable
 fun BookListItem(

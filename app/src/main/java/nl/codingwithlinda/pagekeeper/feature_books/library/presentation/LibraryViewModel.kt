@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
+import nl.codingwithlinda.pagekeeper.feature_books.library.navigation.LibraryEvent
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryState
 
 class LibraryViewModel(
     private val bookRepository: BookRepository

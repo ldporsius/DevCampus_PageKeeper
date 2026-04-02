@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
-import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.toBookUi
+import nl.codingwithlinda.pagekeeper.feature_books.book_detail.navigation.BookDetailEvent
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 
 class BookDetailViewModel(
     private val isbn: String,

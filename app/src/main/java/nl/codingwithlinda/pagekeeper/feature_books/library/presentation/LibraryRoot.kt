@@ -12,6 +12,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.BookListItem
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.EmptyLibraryContent
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
+import nl.codingwithlinda.pagekeeper.feature_books.library.navigation.LibraryEvent
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryState
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -61,10 +67,13 @@ fun LibraryScreen(
                             when (action) {
                                 is BookListItemAction.FavouriteClick ->
                                     onAction(LibraryAction.OnFavouriteClick(action.isbn))
+
                                 is BookListItemAction.ReadingClick ->
                                     onAction(LibraryAction.OnReadingClick(action.isbn))
+
                                 is BookListItemAction.ShareClick ->
                                     onAction(LibraryAction.OnShareClick(action.isbn))
+
                                 is BookListItemAction.DeleteClick ->
                                     onAction(LibraryAction.OnDeleteClick(action.isbn))
                             }

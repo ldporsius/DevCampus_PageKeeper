@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.design_system.components
+package nl.codingwithlinda.pagekeeper.feature_books.library.presentation
 
 sealed interface BookListItemAction {
     data object FavouriteClick : BookListItemAction

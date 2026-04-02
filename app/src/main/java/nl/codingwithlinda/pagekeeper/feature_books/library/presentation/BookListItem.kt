@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.design_system.components
+package nl.codingwithlinda.pagekeeper.feature_books.library.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -121,7 +121,8 @@ fun BookListItem(
 @Composable
 private fun PreviewBookListItem() {
     PageKeeperTheme {
-        Box(modifier = Modifier.fillMaxSize(),
+        Box(
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             BookListItem(

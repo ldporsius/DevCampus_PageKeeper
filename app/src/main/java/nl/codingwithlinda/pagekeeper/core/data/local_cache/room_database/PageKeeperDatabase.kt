@@ -2,6 +2,8 @@ package nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.dao.BookDao
+import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.model.BookEntity
 
 @Database(
     entities = [BookEntity::class],

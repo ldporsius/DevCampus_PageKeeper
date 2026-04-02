@@ -3,7 +3,9 @@ package nl.codingwithlinda.pagekeeper.core.di
 import androidx.room.Room
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.PageKeeperDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.RoomBookRepository
+import nl.codingwithlinda.pagekeeper.core.data.remote.FN2BookParser
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
+import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import org.koin.android.ext.koin.androidContext
@@ -21,6 +23,7 @@ val appDataModule = module {
         ).fallbackToDestructiveMigration(false).build()
     }
     single { RoomBookRepository(get<PageKeeperDatabase>().bookDao()) } bind BookRepository::class
+    single { FN2BookParser(androidContext()) } bind BookParser::class
 }
 
 val appPresentationModule = module {

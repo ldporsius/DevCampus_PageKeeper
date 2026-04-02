@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">PageKeeper</string>
+    <string name="empty_library_title">Your library is empty</string>
+    <string name="empty_library_subtitle">Import your first book to start building your library</string>
+    <string name="empty_library_import_button">Import Book</string>
+    <string name="cd_empty_library_illustration">Open book illustration</string>
 </resources>

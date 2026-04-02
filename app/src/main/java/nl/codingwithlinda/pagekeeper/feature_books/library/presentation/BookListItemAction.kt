@@ -1,8 +1,8 @@
 package nl.codingwithlinda.pagekeeper.feature_books.library.presentation
 
 sealed interface BookListItemAction {
-    data object FavouriteClick : BookListItemAction
-    data object ReadingClick : BookListItemAction
-    data object ShareClick : BookListItemAction
-    data object DeleteClick : BookListItemAction
+    data class FavouriteClick(val isbn: String) : BookListItemAction
+    data class ReadingClick(val isbn: String) : BookListItemAction
+    data class ShareClick(val isbn: String) : BookListItemAction
+    data class DeleteClick(val isbn: String) : BookListItemAction
 }

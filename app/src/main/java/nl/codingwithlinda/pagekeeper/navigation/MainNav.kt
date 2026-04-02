@@ -12,7 +12,6 @@ import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryR
 fun MainNav(
     modifier: Modifier = Modifier
 ) {
-
     val backStack = rememberNavBackStack(BookListRoute)
 
     NavDisplay(
@@ -20,11 +19,16 @@ fun MainNav(
         modifier = modifier,
         entryProvider = entryProvider {
             entry<BookListRoute> {
-                LibraryRoot()
+                LibraryRoot(
+                    onNavigateToDetail = { isbn -> backStack.add(BookDetailRoute(isbn)) }
+                )
             }
 
-            entry<BookDetailRoute> {
-                BookDetailRoot()
+            entry<BookDetailRoute> { key ->
+                BookDetailRoot(
+                    isbn = key.ISBN,
+                    onNavigateBack = { backStack.removeLastOrNull() }
+                )
             }
         }
     )

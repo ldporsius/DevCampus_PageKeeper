@@ -29,12 +29,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import nl.codingwithlinda.pagekeeper.R
-import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
 
 @Composable
 fun BookListItem(
-    book: Book,
+    book: BookUi,
     modifier: Modifier = Modifier,
     onAction: (BookListItemAction) -> Unit = {}
 ) {
@@ -81,21 +80,21 @@ fun BookListItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { onAction(BookListItemAction.FavouriteClick) }) {
+                IconButton(onClick = { onAction(BookListItemAction.FavouriteClick(book.isbn)) }) {
                     Icon(
                         painter = painterResource(R.drawable.favorites),
                         contentDescription = "Favourite",
                         tint = iconTint
                     )
                 }
-                IconButton(onClick = { onAction(BookListItemAction.ReadingClick) }) {
+                IconButton(onClick = { onAction(BookListItemAction.ReadingClick(book.isbn)) }) {
                     Icon(
                         painter = painterResource(R.drawable.import_book),
                         contentDescription = "Currently reading",
                         tint = iconTint
                     )
                 }
-                IconButton(onClick = { onAction(BookListItemAction.ShareClick) }) {
+                IconButton(onClick = { onAction(BookListItemAction.ShareClick(book.isbn)) }) {
                     Icon(
                         painter = painterResource(R.drawable.share),
                         contentDescription = "Share",
@@ -105,7 +104,7 @@ fun BookListItem(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                IconButton(onClick = { onAction(BookListItemAction.DeleteClick) }) {
+                IconButton(onClick = { onAction(BookListItemAction.DeleteClick(book.isbn)) }) {
                     Icon(
                         painter = painterResource(R.drawable.delete),
                         contentDescription = "Delete",
@@ -126,12 +125,12 @@ private fun PreviewBookListItem() {
             contentAlignment = Alignment.Center
         ) {
             BookListItem(
-                book = Book(
-                    ISBN = "9780195034929",
+                book = BookUi(
+                    isbn = "9780195034929",
                     title = "The Adventures of Tom Sawyer",
                     author = "Mark Twain",
                     imgUrl = "https://covers.openlibrary.org/b/olid/OL7353617M-M.jpg",
-                    dateCreated = "2026-04-01"
+                    formattedDate = "Apr 1, 2026"
                 )
             )
         }

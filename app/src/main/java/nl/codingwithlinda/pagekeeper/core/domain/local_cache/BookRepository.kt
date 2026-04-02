@@ -7,7 +7,7 @@ interface BookRepository {
 
     val books: Flow<List<Book>>
 
-    suspend fun getBookByISBN(ISBN: String): Book
+    suspend fun getBookByISBN(ISBN: String): Book?
 
     suspend fun upsertBook(book: Book)
 

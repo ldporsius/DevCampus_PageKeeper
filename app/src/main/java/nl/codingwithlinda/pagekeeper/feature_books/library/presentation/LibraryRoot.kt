@@ -8,44 +8,68 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import nl.codingwithlinda.pagekeeper.core.domain.model.Book
+import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun LibraryRoot() {
-    val viewModel: LibraryViewModel = koinViewModel()
+fun LibraryRoot(
+    onNavigateToDetail: (String) -> Unit,
+    viewModel: LibraryViewModel = koinViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            is LibraryEvent.NavigateToDetail -> onNavigateToDetail(event.isbn)
+        }
+    }
 
     LibraryScreen(
-        books = viewModel.books.collectAsStateWithLifecycle().value,
-        onImportBook = {}
+        state = state,
+        onAction = viewModel::onAction
     )
 }
 
 @Composable
 fun LibraryScreen(
-    modifier: Modifier = Modifier,
-    books: List<Book>,
-    onImportBook: () -> Unit
+    state: LibraryState,
+    onAction: (LibraryAction) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
-            visible = books.isEmpty(),
+            visible = state.books.isEmpty(),
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            EmptyLibraryContent(onImportBook = onImportBook)
+            EmptyLibraryContent(onImportBook = { onAction(LibraryAction.OnImportBookClick) })
         }
 
         AnimatedVisibility(
-            visible = books.isNotEmpty(),
+            visible = state.books.isNotEmpty(),
             enter = fadeIn(),
             exit = fadeOut()
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(items = books, key = { it.ISBN }) { book ->
-                    BookListItem(book = book)
+                items(items = state.books, key = { it.isbn }) { book ->
+                    BookListItem(
+                        book = book,
+                        onAction = { action ->
+                            when (action) {
+                                is BookListItemAction.FavouriteClick ->
+                                    onAction(LibraryAction.OnFavouriteClick(action.isbn))
+                                is BookListItemAction.ReadingClick ->
+                                    onAction(LibraryAction.OnReadingClick(action.isbn))
+                                is BookListItemAction.ShareClick ->
+                                    onAction(LibraryAction.OnShareClick(action.isbn))
+                                is BookListItemAction.DeleteClick ->
+                                    onAction(LibraryAction.OnDeleteClick(action.isbn))
+                            }
+                        }
+                    )
                 }
             }
         }

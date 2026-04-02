@@ -5,5 +5,5 @@ data class Book(
     val title: String,
     val author: String,
     val imgUrl: String,
-    val dateCreated: String
+    val dateCreated: Long
 )

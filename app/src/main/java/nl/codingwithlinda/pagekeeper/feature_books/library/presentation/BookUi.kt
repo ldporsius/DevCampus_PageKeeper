@@ -1,0 +1,25 @@
+package nl.codingwithlinda.pagekeeper.feature_books.library.presentation
+
+import nl.codingwithlinda.pagekeeper.core.domain.model.Book
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+data class BookUi(
+    val isbn: String,
+    val title: String,
+    val author: String,
+    val imgUrl: String,
+    val formattedDate: String
+)
+
+fun Book.toBookUi(): BookUi {
+    val formatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+    return BookUi(
+        isbn = ISBN,
+        title = title,
+        author = author,
+        imgUrl = imgUrl,
+        formattedDate = formatter.format(Date(dateCreated))
+    )
+}

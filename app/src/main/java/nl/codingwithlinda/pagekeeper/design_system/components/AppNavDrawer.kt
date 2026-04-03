@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -113,8 +114,12 @@ fun AppNavDrawer(
     ) {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text("PageKeeper") },
+                CenterAlignedTopAppBar(
+                    title = { Text(
+                        items[selectedIndex].label,
+                        style = MaterialTheme.typography.titleLarge,
+                        )
+                            },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(

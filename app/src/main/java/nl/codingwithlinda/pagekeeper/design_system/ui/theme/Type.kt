@@ -8,7 +8,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import nl.codingwithlinda.pagekeeper.R
 
-private val lora = FontFamily(
+val lora = FontFamily(
     Font(R.font.lora),
 )
 private val inter = FontFamily(
@@ -38,7 +38,7 @@ val Typography = Typography(
     )
     ,
     titleLarge = TextStyle(
-        fontFamily = lora,
+        fontFamily = inter,
         fontWeight = FontWeight.Bold,
         fontSize = 22.sp,
         lineHeight = 28.sp,

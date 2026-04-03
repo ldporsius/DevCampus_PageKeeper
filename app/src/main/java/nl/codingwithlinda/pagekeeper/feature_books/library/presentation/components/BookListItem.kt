@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
+import nl.codingwithlinda.pagekeeper.design_system.ui.theme.lora
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 
@@ -41,7 +42,7 @@ fun BookListItem(
     onClick: () -> Unit = {},
     onAction: (BookListItemAction) -> Unit = {}
 ) {
-    val iconTint = MaterialTheme.colorScheme.onSecondary
+    val iconTint = MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(
         modifier = modifier
@@ -69,14 +70,15 @@ fun BookListItem(
         ) {
             Text(
                 text = book.title,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
+                fontFamily = lora,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = book.author,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.weight(1f))

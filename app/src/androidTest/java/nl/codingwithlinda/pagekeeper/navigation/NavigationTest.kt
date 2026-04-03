@@ -8,9 +8,13 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
+import nl.codingwithlinda.pagekeeper.core.domain.FakeBookParser
 import nl.codingwithlinda.pagekeeper.core.domain.FakeBookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
+import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
@@ -23,6 +27,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -49,7 +54,9 @@ class NavigationTest {
             modules(
                 module {
                     single<BookRepository> { FakeBookRepository(listOf(testBook)) } bind BookRepository::class
+                    single<BookParser> { FakeBookParser() } bind BookParser::class
                     viewModelOf(::LibraryViewModel)
+                    viewModel(qualifier = named(BookFilter.All)) { BookListViewModel(get(), BookFilter.All) }
                     viewModel { (isbn: String) -> BookDetailViewModel(isbn, get()) }
                 }
             )

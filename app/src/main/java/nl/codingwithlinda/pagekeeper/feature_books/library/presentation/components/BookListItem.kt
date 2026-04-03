@@ -87,11 +87,12 @@ fun BookListItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val icon = if(book.isFavorite) R.drawable.menu_favorites_active else R.drawable.menu_favorites_deactive
                 IconButton(onClick = { onAction(BookListItemAction.FavouriteClick(book.isbn)) }) {
                     Icon(
-                        painter = painterResource(R.drawable.favorites),
+                        painter = painterResource(icon),
                         contentDescription = "Favourite",
-                        tint = iconTint
+                        tint = if (book.isFavorite) MaterialTheme.colorScheme.primary else iconTint
                     )
                 }
                 IconButton(onClick = { onAction(BookListItemAction.ReadingClick(book.isbn)) }) {

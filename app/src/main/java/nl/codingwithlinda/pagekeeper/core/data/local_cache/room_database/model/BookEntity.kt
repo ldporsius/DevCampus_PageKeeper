@@ -11,7 +11,9 @@ data class BookEntity(
     val title: String,
     val author: String,
     val imgUrl: String,
-    val dateCreated: Long
+    val dateCreated: Long,
+    val isFavorite: Boolean = false,
+    val isFinished: Boolean = false
 )
 
 fun BookEntity.toDomain(): Book = Book(
@@ -19,7 +21,9 @@ fun BookEntity.toDomain(): Book = Book(
     title = title,
     author = author,
     imgUrl = imgUrl,
-    dateCreated = dateCreated
+    dateCreated = dateCreated,
+    isFavorite = isFavorite,
+    isFinished = isFinished
 )
 
 fun Book.toEntity(): BookEntity = BookEntity(
@@ -27,5 +31,7 @@ fun Book.toEntity(): BookEntity = BookEntity(
     title = title,
     author = author,
     imgUrl = imgUrl,
-    dateCreated = dateCreated
+    dateCreated = dateCreated,
+    isFavorite = isFavorite,
+    isFinished = isFinished
 )

@@ -8,6 +8,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailRoot
+import nl.codingwithlinda.pagekeeper.feature_books.favorites.presentation.FavoritesRoot
+import nl.codingwithlinda.pagekeeper.feature_books.finished.presentation.FinishedRoot
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryRoot
 
 @Composable
@@ -33,6 +35,14 @@ fun MainNav(
                     isbn = key.ISBN,
                     onNavigateBack = { backStack.removeLastOrNull() }
                 )
+            }
+
+            entry<FavoritesRoute> {
+                FavoritesRoot()
+            }
+
+            entry<FinishedRoute> {
+                FinishedRoot()
             }
         }
     )

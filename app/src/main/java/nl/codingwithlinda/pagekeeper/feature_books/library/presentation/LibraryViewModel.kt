@@ -49,7 +49,12 @@ class LibraryViewModel(
                     }
                 }
             }
-            is LibraryAction.OnFavouriteClick -> Unit  // TODO
+            is LibraryAction.OnFavouriteClick ->
+                viewModelScope.launch {
+                    bookRepository.getBookByISBN(action.isbn)?.let { book ->
+                        bookRepository.upsertBook(book.copy(isFavorite = !book.isFavorite))
+                    }
+                }
             is LibraryAction.OnReadingClick -> Unit    // TODO
             is LibraryAction.OnShareClick -> Unit      // TODO
         }

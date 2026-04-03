@@ -9,3 +9,9 @@ data object BookListRoute: NavKey
 @Serializable
 data class BookDetailRoute(val ISBN: String): NavKey
 
+@Serializable
+data object FavoritesRoute: NavKey
+
+@Serializable
+data object FinishedRoute: NavKey
+

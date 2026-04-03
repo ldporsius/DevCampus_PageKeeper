@@ -10,7 +10,9 @@ data class BookUi(
     val title: String,
     val author: String,
     val imgUrl: String,
-    val formattedDate: String
+    val formattedDate: String,
+    val isFavorite: Boolean = false,
+    val isFinished: Boolean = false
 )
 
 fun Book.toBookUi(): BookUi {
@@ -20,6 +22,8 @@ fun Book.toBookUi(): BookUi {
         title = title,
         author = author,
         imgUrl = imgUrl,
-        formattedDate = formatter.format(Date(dateCreated))
+        formattedDate = formatter.format(Date(dateCreated)),
+        isFavorite = isFavorite,
+        isFinished = isFinished
     )
 }

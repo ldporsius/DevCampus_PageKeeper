@@ -7,7 +7,7 @@ import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.model.B
 
 @Database(
     entities = [BookEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 internal abstract class PageKeeperDatabase : RoomDatabase() {

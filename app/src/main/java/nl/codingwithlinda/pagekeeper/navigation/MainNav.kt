@@ -16,7 +16,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryR
 fun MainNav(
     onImportBook: () -> Unit,
     modifier: Modifier = Modifier,
-    backStack: NavBackStack<NavKey> = rememberNavBackStack()
+    backStack: NavBackStack<NavKey> = rememberNavBackStack(BookListRoute)
 ) {
 
     NavDisplay(

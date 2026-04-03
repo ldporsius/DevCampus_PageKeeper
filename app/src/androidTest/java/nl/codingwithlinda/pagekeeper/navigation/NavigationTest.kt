@@ -65,7 +65,9 @@ class NavigationTest {
     fun tappingBookRow_navigatesToDetail_backButton_returnsToList() {
         composeRule.setContent {
             PageKeeperTheme {
-                MainNav()
+                MainNav(
+                    onImportBook = {}
+                )
             }
         }
 

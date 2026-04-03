@@ -34,10 +34,10 @@ class MainActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             val libraryViewModel: LibraryViewModel = koinViewModel()
             val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { content ->
-                content?.path?.let {
+                content?.let {
                     println("--- FILE PICKER CONTENT: $content, ${content.path}")
 
-                    libraryViewModel.onAction(LibraryAction.OnImportBookClick(it))
+                    libraryViewModel.onAction(LibraryAction.OnImportBookClick(it.toString()))
 
                 }
             }

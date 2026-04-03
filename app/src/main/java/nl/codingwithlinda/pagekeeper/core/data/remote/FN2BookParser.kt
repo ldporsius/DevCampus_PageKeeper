@@ -24,67 +24,69 @@ class FN2BookParser(
     suspend fun fromAssets(): Book? {
         return withContext(Dispatchers.IO) {
             context.assets.open("book.fb2").use { stream ->
-                val size = stream.available()
-                val buffer = ByteArray(size)
-                stream.read(buffer)
-
-                val split = buffer.decodeToString().split("</body>")
-                val body = split[0] + "</body></FictionBook>"
-
-                val metaData = docBuilder(inputStream = body.byteInputStream())
-
-
-                val images = split[1].split("</binary>").map {
-                    "$it</binary>"
-                }
-
-                images.asSequence().forEach{ string ->
-                    if ("<binary" !in string) return@forEach
-
-                    println("string: $string")
-                    val (imgRef, imgData) = extractImageString(string)
-
-                    if (imgRef == 0) {
-                        val bm = parseImage(imgData)
-
-                        bm?.compress(
-                            Bitmap.CompressFormat.PNG,
-                            100,
-                            File(context.filesDir, "img$imgRef.png").outputStream()
-                        )
-
-                        return@forEach
-                    }
-                }
-
-                val imgUrl = File(context.filesDir, "img0.png").toUri().toString()
-
-                Book(
-                    ISBN = "1235",
-                    title = metaData.title,
-                    author = metaData.firstName + " " + metaData.lastName,
-                    imgUrl = imgUrl,
-                    dateCreated = System.currentTimeMillis()
-                )
+                parseContent(stream.readBytes().decodeToString())
             }
         }
     }
+
     override suspend fun fetch(uri: String): Book? {
-        return try {
-            context.contentResolver?.openInputStream(uri.toUri())?.use {
-                val size = it.read()
-                val outputArray = ByteArray(size)
-                it.read(outputArray)
-
-                val file = File(context.filesDir, "book.xml")
-                file.writeText(outputArray.decodeToString())
-
-                fromAssets()
+        println("FN2BookParser.fetch: $uri")
+        return withContext(Dispatchers.IO) {
+            try {
+                context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
+                    val content = stream.readBytes().decodeToString()
+                    if (!isValidFb2(content)) return@withContext null
+                    parseContent(content)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
             }
-        }catch (e: Exception){
-            e.printStackTrace()
-            fromAssets()
         }
+    }
+
+    // Validates that content has the same structural markers our parsing logic requires,
+    // as established by the assets dummy book.fb2.
+    private fun isValidFb2(content: String): Boolean {
+        val requiredMarkers = listOf("<FictionBook", "<title-info>", "<book-title>", "</body>")
+        if (requiredMarkers.any { it !in content }) return false
+        if (content.split("</body>").size < 2) return false
+        return try {
+            val descriptionXml = content.split("</body>")[0] + "</body></FictionBook>"
+            DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(descriptionXml.byteInputStream())
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun parseContent(content: String): Book? {
+        val split = content.split("</body>")
+        val body = split[0] + "</body></FictionBook>"
+        val metaData = docBuilder(inputStream = body.byteInputStream(), bodyText = split[1])
+
+        split[1].split("</binary>").map { "$it</binary>" }.asSequence().forEach { string ->
+            if ("<binary" !in string) return@forEach
+
+            val (imgRef, imgData) = extractImageString(string)
+            if (imgRef == 0) {
+                parseImage(imgData)?.compress(
+                    Bitmap.CompressFormat.PNG,
+                    100,
+                    File(context.filesDir, "img$imgRef.png").outputStream()
+                )
+                return@forEach
+            }
+        }
+
+        val imgUrl = File(context.filesDir, "img0.png").toUri().toString()
+        return Book(
+            ISBN = metaData.isbn,
+            title = metaData.title,
+            author = metaData.authors.joinToString(", "),
+            imgUrl = imgUrl,
+            dateCreated = System.currentTimeMillis()
+        )
     }
 
     fun parse(data: String){
@@ -153,7 +155,7 @@ class FN2BookParser(
         }
     }
 
-    private fun docBuilder(inputStream: InputStream): Fb2Metadata {
+    private fun docBuilder(inputStream: InputStream, bodyText: String = ""): Fb2Metadata {
         val factory = DocumentBuilderFactory.newInstance()
         val builder = factory.newDocumentBuilder()
         val doc = builder.parse(inputStream)
@@ -164,20 +166,48 @@ class FN2BookParser(
             ?.textContent
             ?.trim()
 
-        val firstName = getText("first-name")
-        val lastName  = getText("last-name")
-        val title     = getText("book-title")
+        // Extract authors from title-info only (not document-info)
+        val authors = mutableListOf<String>()
+        val titleInfoNode = doc.getElementsByTagName("title-info").item(0)
+        if (titleInfoNode is org.w3c.dom.Element) {
+            val authorNodes = titleInfoNode.getElementsByTagName("author")
+            for (i in 0 until authorNodes.length) {
+                val authorEl = authorNodes.item(i) as? org.w3c.dom.Element ?: continue
+                val first = authorEl.getElementsByTagName("first-name").item(0)?.textContent?.trim() ?: ""
+                val last  = authorEl.getElementsByTagName("last-name").item(0)?.textContent?.trim() ?: ""
+                val fullName = "$first $last".trim()
+                if (fullName.isNotEmpty()) authors.add(fullName)
+            }
+        }
+
+        val title     = getText("book-title") ?: ""
+        val genre     = getText("genre") ?: ""
+        val lang      = getText("lang") ?: ""
+        val year      = getText("year") ?: ""
+        val publisher = getText("publisher") ?: ""
+
+        // ISBN is not in FB2 metadata tags — extract from body text
+        val isbn = Regex("""ISBN[:\s]*([\d\-X]+)""", RegexOption.IGNORE_CASE)
+            .find(bodyText)?.groupValues?.getOrElse(1) { "" } ?: ""
 
         return Fb2Metadata(
-            firstName = firstName ?: "",
-            lastName = lastName ?: "",
-            title = title ?: ""
+            authors = authors,
+            title = title,
+            isbn = isbn,
+            genre = genre,
+            lang = lang,
+            year = year,
+            publisher = publisher
         )
     }
 }
 
 data class Fb2Metadata(
-    val firstName: String,
-    val lastName: String,
-    val title: String
+    val authors: List<String>,
+    val title: String,
+    val isbn: String,
+    val genre: String,
+    val lang: String,
+    val year: String,
+    val publisher: String
 )

@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components
+package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,14 +33,13 @@ import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.lora
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 
 @Composable
 fun BookListItem(
     book: BookUi,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
-    onAction: (BookListItemAction) -> Unit = {}
+    onAction: (BookListItemAction) -> Unit
 ) {
     val iconTint = MaterialTheme.colorScheme.onSurfaceVariant
 
@@ -139,7 +138,8 @@ private fun PreviewBookListItem() {
                     author = "Mark Twain",
                     imgUrl = "https://covers.openlibrary.org/b/olid/OL7353617M-M.jpg",
                     formattedDate = "Apr 1, 2026"
-                )
+                ),
+                onAction = {}
             )
         }
     }

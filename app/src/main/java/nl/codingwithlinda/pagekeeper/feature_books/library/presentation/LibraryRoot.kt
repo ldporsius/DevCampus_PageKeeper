@@ -12,20 +12,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
-import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.BookListItem
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListItem
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
+import nl.codingwithlinda.pagekeeper.feature_books.library.navigation.LibraryEvent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.EmptyLibraryContent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
-import nl.codingwithlinda.pagekeeper.feature_books.library.navigation.LibraryEvent
-import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryState
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.qualifier.named
 
 @Composable
 fun LibraryRoot(
     onNavigateToDetail: (String) -> Unit,
-    viewModel: LibraryViewModel = koinViewModel()
+    viewModel: LibraryViewModel = koinViewModel(),
+    bookListViewModel: BookListViewModel = koinViewModel(qualifier = named(BookFilter.All))
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val books by bookListViewModel.books.collectAsStateWithLifecycle()
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
@@ -34,20 +38,22 @@ fun LibraryRoot(
     }
 
     LibraryScreen(
-        state = state,
-        onAction = viewModel::onAction
+        books = books,
+        onAction = viewModel::onAction,
+        onItemAction = bookListViewModel::onAction
     )
 }
 
 @Composable
 fun LibraryScreen(
-    state: LibraryState,
+    books: List<BookUi>,
     onAction: (LibraryAction) -> Unit,
+    onItemAction: (BookListItemAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
-            visible = state.books.isEmpty(),
+            visible = books.isEmpty(),
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -55,30 +61,16 @@ fun LibraryScreen(
         }
 
         AnimatedVisibility(
-            visible = state.books.isNotEmpty(),
+            visible = books.isNotEmpty(),
             enter = fadeIn(),
             exit = fadeOut()
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(items = state.books, key = { it.isbn }) { book ->
+                items(items = books, key = { it.isbn }) { book ->
                     BookListItem(
                         book = book,
                         onClick = { onAction(LibraryAction.OnBookClick(book.isbn)) },
-                        onAction = { action ->
-                            when (action) {
-                                is BookListItemAction.FavouriteClick ->
-                                    onAction(LibraryAction.OnFavouriteClick(action.isbn))
-
-                                is BookListItemAction.ReadingClick ->
-                                    onAction(LibraryAction.OnReadingClick(action.isbn))
-
-                                is BookListItemAction.ShareClick ->
-                                    onAction(LibraryAction.OnShareClick(action.isbn))
-
-                                is BookListItemAction.DeleteClick ->
-                                    onAction(LibraryAction.OnDeleteClick(action.isbn))
-                            }
-                        }
+                        onAction = onItemAction
                     )
                 }
             }

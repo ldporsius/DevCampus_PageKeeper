@@ -24,6 +24,7 @@ fun AppNavigation(
     onLibrary: () -> Unit,
     onFavorites: () -> Unit,
     onFinished: () -> Unit,
+    onImportBook: () -> Unit,
     content: @Composable () -> Unit
 ) {
     val deviceConfig = rememberDeviceConfig()
@@ -31,14 +32,7 @@ fun AppNavigation(
             deviceConfig.orientation == Orientation.Portrait
 
 
-    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { content ->
-        content?.let {
-            println("--- FILE PICKER CONTENT: $content")
-        }
-    }
-    val onImportBook = {
-        filePicker.launch("*/*")
-    }
+
     val navItems = remember(onImportBook, onLibrary, onFavorites, onFinished) {
         listOf(
             NavItem("Library", R.drawable.menu_library_active, onLibrary),
@@ -59,7 +53,7 @@ fun AppNavigation(
             selectedIndex = selectedIndex,
             onItemSelected = onItemSelected,
             drawerState = drawerState,
-            content = content
+            content = { content() }
         )
     } else {
         AppNavRail(
@@ -68,7 +62,7 @@ fun AppNavigation(
             items = navItems,
             selectedIndex = selectedIndex,
             onItemSelected = onItemSelected,
-            content = content
+            content = { content() }
         )
     }
 }

@@ -66,15 +66,17 @@ fun AppNavDrawer(
                         PrimaryButton(
                             text = "Import book",
                             iconRes = R.drawable.import_book,
-                            onClick = {}
+                            onClick = {
+                                onImportBook()
+                                scope.launch { drawerState.close() }
+                            }
                         )
 
                     },
                     label = {  },
                     selected = false,
                     onClick = {
-                        onImportBook()
-                        scope.launch { drawerState.close() }
+
                     }
                 )
                 Spacer(Modifier.height(64.dp))

@@ -2,21 +2,27 @@ package nl.codingwithlinda.pagekeeper
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation3.runtime.rememberNavBackStack
 import kotlinx.coroutines.launch
+import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
 import nl.codingwithlinda.pagekeeper.core.presentation.NavigationMenuAction
 import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.design_system.components.AppNavigation
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 import nl.codingwithlinda.pagekeeper.navigation.BookListRoute
 import nl.codingwithlinda.pagekeeper.navigation.FavoritesRoute
 import nl.codingwithlinda.pagekeeper.navigation.FinishedRoute
 import nl.codingwithlinda.pagekeeper.navigation.MainNav
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
@@ -25,8 +31,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val scope = rememberCoroutineScope()
+            val libraryViewModel: LibraryViewModel = koinViewModel()
+            val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { content ->
+                content?.path?.let {
+                    println("--- FILE PICKER CONTENT: $content, ${content.path}")
+
+                    libraryViewModel.onAction(LibraryAction.OnImportBookClick(it))
+
+                }
+            }
+            val onImportBook = {
+                filePicker.launch("*/*")
+            }
             PageKeeperTheme {
-                val scope = rememberCoroutineScope()
+
                 val backstack = rememberNavBackStack(BookListRoute)
                 val controller = koinInject<MenuActionController>()
 
@@ -76,11 +95,13 @@ class MainActivity : ComponentActivity() {
                                 }
                             ))
                         }
-                    }
+                    },
+                    onImportBook = onImportBook
                 ) {
                     MainNav(
                         backStack = backstack,
-                       )
+                        onImportBook = onImportBook
+                    )
                 }
             }
         }

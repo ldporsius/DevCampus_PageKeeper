@@ -14,11 +14,10 @@ import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryR
 
 @Composable
 fun MainNav(
+    onImportBook: () -> Unit,
     modifier: Modifier = Modifier,
     backStack: NavBackStack<NavKey> = rememberNavBackStack()
 ) {
-
-
 
     NavDisplay(
         backStack = backStack,
@@ -26,7 +25,8 @@ fun MainNav(
         entryProvider = entryProvider {
             entry<BookListRoute> {
                 LibraryRoot(
-                    onNavigateToDetail = { isbn -> backStack.add(BookDetailRoute(isbn)) }
+                    onNavigateToDetail = { isbn -> backStack.add(BookDetailRoute(isbn)) },
+                    onImportBook = onImportBook
                 )
             }
 

@@ -24,7 +24,7 @@ class LibraryViewModel(
                 viewModelScope.launch { _events.send(LibraryEvent.NavigateToDetail(action.isbn)) }
             is LibraryAction.OnImportBookClick ->
                 viewModelScope.launch {
-                    bookParser.fetch("action.uri")?.let {
+                    bookParser.fetch(action.uri)?.let {
                         bookRepository.upsertBook(it)
                     }
                 }

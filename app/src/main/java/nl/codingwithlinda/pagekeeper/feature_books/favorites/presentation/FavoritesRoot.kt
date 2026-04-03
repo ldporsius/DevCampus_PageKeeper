@@ -13,8 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListItem
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListState
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.DeleteBookDialog
 import nl.codingwithlinda.pagekeeper.feature_books.favorites.presentation.components.EmptyFavoritesContent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 import org.koin.androidx.compose.koinViewModel
@@ -24,23 +25,31 @@ import org.koin.core.qualifier.named
 fun FavoritesRoot(
     viewModel: BookListViewModel = koinViewModel(qualifier = named(BookFilter.Favorites))
 ) {
-    val books by viewModel.books.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     FavoritesScreen(
-        books = books,
+        state = state,
         onAction = viewModel::onAction
     )
 }
 
 @Composable
 fun FavoritesScreen(
-    books: List<BookUi>,
+    state: BookListState,
     onAction: (BookListItemAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    state.bookPendingDelete?.let { book ->
+        DeleteBookDialog(
+            bookTitle = book.title,
+            onConfirm = { onAction(BookListItemAction.ConfirmDeleteClick) },
+            onDismiss = { onAction(BookListItemAction.DismissDeleteClick) }
+        )
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
-            visible = books.isEmpty(),
+            visible = state.books.isEmpty(),
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -48,12 +57,12 @@ fun FavoritesScreen(
         }
 
         AnimatedVisibility(
-            visible = books.isNotEmpty(),
+            visible = state.books.isNotEmpty(),
             enter = fadeIn(),
             exit = fadeOut()
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(items = books, key = { it.isbn }) { book ->
+                items(items = state.books, key = { it.isbn }) { book ->
                     BookListItem(
                         book = book,
                         onAction = onAction

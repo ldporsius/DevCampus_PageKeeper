@@ -12,7 +12,9 @@ import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.File
+import java.io.InputStream
 import java.io.StringReader
+import javax.xml.parsers.DocumentBuilderFactory
 
 
 class FN2BookParser(
@@ -27,13 +29,19 @@ class FN2BookParser(
                 stream.read(buffer)
 
                 val split = buffer.decodeToString().split("</body>")
-                parse(split[0] + "</body>")
+                val body = split[0] + "</body></FictionBook>"
+
+                val metaData = docBuilder(inputStream = body.byteInputStream())
+
 
                 val images = split[1].split("</binary>").map {
                     "$it</binary>"
                 }
 
-                images.asSequence().onEach{ string ->
+                images.asSequence().forEach{ string ->
+                    if ("<binary" !in string) return@forEach
+
+                    println("string: $string")
                     val (imgRef, imgData) = extractImageString(string)
 
                     if (imgRef == 0) {
@@ -44,6 +52,8 @@ class FN2BookParser(
                             100,
                             File(context.filesDir, "img$imgRef.png").outputStream()
                         )
+
+                        return@forEach
                     }
                 }
 
@@ -51,8 +61,8 @@ class FN2BookParser(
 
                 Book(
                     ISBN = "1235",
-                    title = "TODO()",
-                    author = "TODO()",
+                    title = metaData.title,
+                    author = metaData.firstName + " " + metaData.lastName,
                     imgUrl = imgUrl,
                     dateCreated = System.currentTimeMillis()
                 )
@@ -142,4 +152,32 @@ class FN2BookParser(
             null
         }
     }
+
+    private fun docBuilder(inputStream: InputStream): Fb2Metadata {
+        val factory = DocumentBuilderFactory.newInstance()
+        val builder = factory.newDocumentBuilder()
+        val doc = builder.parse(inputStream)
+
+        fun getText(tag: String) = doc
+            .getElementsByTagName(tag)
+            .item(0)
+            ?.textContent
+            ?.trim()
+
+        val firstName = getText("first-name")
+        val lastName  = getText("last-name")
+        val title     = getText("book-title")
+
+        return Fb2Metadata(
+            firstName = firstName ?: "",
+            lastName = lastName ?: "",
+            title = title ?: ""
+        )
+    }
 }
+
+data class Fb2Metadata(
+    val firstName: String,
+    val lastName: String,
+    val title: String
+)

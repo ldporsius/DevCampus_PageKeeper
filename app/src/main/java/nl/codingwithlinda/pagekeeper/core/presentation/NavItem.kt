@@ -5,6 +5,6 @@ import androidx.annotation.DrawableRes
 data class NavItem(
     val label: String,
     @DrawableRes val iconRes: Int,
-    val action: MenuAction,
+    val action: () -> Unit,
     val showBackground: Boolean = false
 )

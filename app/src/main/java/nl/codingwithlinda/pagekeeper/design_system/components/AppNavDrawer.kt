@@ -3,6 +3,7 @@ package nl.codingwithlinda.pagekeeper.design_system.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +33,7 @@ import nl.codingwithlinda.pagekeeper.core.presentation.NavItem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavDrawer(
+    onImportBook: () -> Unit,
     items: List<NavItem>,
     selectedIndex: Int,
     onItemSelected: (Int) -> Unit,
@@ -44,7 +46,35 @@ fun AppNavDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
+                Spacer(Modifier.height(64.dp))
+                IconButton(
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.menu_arrow),
+                        contentDescription = "Close menu"
+                    )
+                }
                 Spacer(Modifier.height(16.dp))
+                NavigationDrawerItem(
+                    icon = {
+                        PrimaryButton(
+                            text = "Import book",
+                            iconRes = R.drawable.import_book,
+                            onClick = {}
+                        )
+
+                    },
+                    label = {  },
+                    selected = false,
+                    onClick = {
+                        onImportBook()
+                        scope.launch { drawerState.close() }
+                    }
+                )
+                Spacer(Modifier.height(64.dp))
                 items.forEachIndexed { index, item ->
                     NavigationDrawerItem(
                         icon = {

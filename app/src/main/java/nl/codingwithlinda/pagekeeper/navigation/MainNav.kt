@@ -2,6 +2,8 @@ package nl.codingwithlinda.pagekeeper.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -10,9 +12,11 @@ import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryR
 
 @Composable
 fun MainNav(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    backStack: NavBackStack<NavKey> = rememberNavBackStack()
 ) {
-    val backStack = rememberNavBackStack(BookListRoute)
+
+
 
     NavDisplay(
         backStack = backStack,
@@ -32,4 +36,5 @@ fun MainNav(
             }
         }
     )
+
 }

@@ -31,9 +31,10 @@ import nl.codingwithlinda.pagekeeper.core.presentation.NavItem
 @Composable
 fun AppNavRail(
     onMenuClick: () -> Unit,
+    onImportBook: () -> Unit,
     items: List<NavItem>,
     selectedIndex: Int,
-    onItemSelected: (MenuAction) -> Unit,
+    onItemSelected: (Int) -> Unit,
     content: @Composable () -> Unit
 ) {
     Scaffold { innerPadding ->
@@ -60,6 +61,27 @@ fun AppNavRail(
                     }
                 }
             ) {
+                NavigationRailItem(
+                    selected = false,
+                    onClick = { onImportBook() },
+                    icon = {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.import_book),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                )
                 items.forEachIndexed { index, item ->
                     NavigationRailItem(
                         icon = {
@@ -91,7 +113,7 @@ fun AppNavRail(
 
                         ) },
                         selected = index == selectedIndex,
-                        onClick = { onItemSelected(item.action) }
+                        onClick = { onItemSelected(index) }
                     )
                 }
             }

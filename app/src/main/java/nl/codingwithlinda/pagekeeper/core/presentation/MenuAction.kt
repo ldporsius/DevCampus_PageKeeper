@@ -1,18 +1,20 @@
 package nl.codingwithlinda.pagekeeper.core.presentation
 
-sealed interface MenuAction {
-    class ImportBookAction(private val onExecute: () -> Unit) : MenuAction {
-        override fun execute() = onExecute()
-    }
-    class LibraryAction(private val onExecute: () -> Unit) : MenuAction {
-        override fun execute() = onExecute()
-    }
-    class FavoritesAction(private val onExecute: () -> Unit) : MenuAction {
-        override fun execute() = onExecute()
-    }
-    class FinishedAction(private val onExecute: () -> Unit) : MenuAction {
-        override fun execute() = onExecute()
-    }
+import androidx.navigation3.runtime.NavKey
 
-    fun execute()
+interface MenuAction {
+    suspend fun execute()
+    fun undo()
+}
+
+data class NavigationMenuAction(
+    val destination: NavKey,
+    val navigate: () -> Unit
+): MenuAction {
+    override suspend fun execute() {
+      navigate()
+    }
+    override fun undo() {
+
+    }
 }

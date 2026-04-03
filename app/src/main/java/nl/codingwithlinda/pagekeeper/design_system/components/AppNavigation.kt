@@ -1,5 +1,7 @@
 package nl.codingwithlinda.pagekeeper.design_system.components
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -18,7 +20,7 @@ import nl.codingwithlinda.pagekeeper.design_system.util.rememberDeviceConfig
 
 @Composable
 fun AppNavigation(
-    onImportBook: () -> Unit,
+    selectedIndex: Int,
     onLibrary: () -> Unit,
     onFavorites: () -> Unit,
     onFinished: () -> Unit,
@@ -28,26 +30,31 @@ fun AppNavigation(
     val useDrawer = deviceConfig.deviceType == DeviceType.Phone &&
             deviceConfig.orientation == Orientation.Portrait
 
-    val controller = remember { DefaultMenuActionController() }
-    var selectedIndex by rememberSaveable { mutableIntStateOf(1) }
 
+    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { content ->
+        content?.let {
+            println("--- FILE PICKER CONTENT: $content")
+        }
+    }
+    val onImportBook = {
+        filePicker.launch("*/*")
+    }
     val navItems = remember(onImportBook, onLibrary, onFavorites, onFinished) {
         listOf(
-            NavItem("", R.drawable.import_book, MenuAction.ImportBookAction(onImportBook), showBackground = true),
-            NavItem("Library", R.drawable.menu_library_active, MenuAction.LibraryAction(onLibrary)),
-            NavItem("Favorites", R.drawable.menu_favorites_active, MenuAction.FavoritesAction(onFavorites)),
-            NavItem("Finished", R.drawable.menu_finished_active, MenuAction.FinishedAction(onFinished)),
+            NavItem("Library", R.drawable.menu_library_active, onLibrary),
+            NavItem("Favorites", R.drawable.menu_favorites_active, onFavorites),
+            NavItem("Finished", R.drawable.menu_finished_active, onFinished),
         )
     }
 
     val onItemSelected = { index: Int ->
-        selectedIndex = index
-        controller.onAction(navItems[index].action)
+        navItems[index].action()
     }
 
     if (useDrawer) {
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         AppNavDrawer(
+            onImportBook = onImportBook,
             items = navItems,
             selectedIndex = selectedIndex,
             onItemSelected = onItemSelected,
@@ -57,12 +64,10 @@ fun AppNavigation(
     } else {
         AppNavRail(
             onMenuClick = {},
+            onImportBook = onImportBook,
             items = navItems,
             selectedIndex = selectedIndex,
-            onItemSelected = {
-                selectedIndex = navItems.indexOfFirst { item -> item.action == it }
-                controller.onAction(it)
-            },
+            onItemSelected = onItemSelected,
             content = content
         )
     }

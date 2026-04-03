@@ -19,6 +19,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListV
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.DeleteBookDialog
 import nl.codingwithlinda.pagekeeper.feature_books.library.navigation.LibraryEvent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.EmptyLibraryContent
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.UnsupportedFormatDialog
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 
@@ -33,11 +34,18 @@ fun LibraryRoot(
     bookListViewModel: BookListViewModel = koinViewModel(qualifier = named(BookFilter.All))
 ) {
     val bookListState by bookListViewModel.state.collectAsStateWithLifecycle()
+    val libraryState by viewModel.state.collectAsStateWithLifecycle()
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is LibraryEvent.NavigateToDetail -> onNavigateToDetail(event.isbn)
         }
+    }
+
+    if (libraryState.showUnsupportedFormatDialog) {
+        UnsupportedFormatDialog(
+            onDismiss = { viewModel.onAction(LibraryAction.DismissUnsupportedFormatDialog) }
+        )
     }
 
     LibraryScreen(

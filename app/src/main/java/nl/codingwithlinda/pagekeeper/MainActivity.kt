@@ -10,7 +10,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation3.runtime.rememberNavBackStack
 import kotlinx.coroutines.launch
-import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
+import nl.codingwithlinda.pagekeeper.core.domain.remote.BookFormat
 import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
 import nl.codingwithlinda.pagekeeper.core.presentation.NavigationMenuAction
 import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
@@ -33,16 +33,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             val scope = rememberCoroutineScope()
             val libraryViewModel: LibraryViewModel = koinViewModel()
-            val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { content ->
+            val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { content ->
                 content?.let {
-                    println("--- FILE PICKER CONTENT: $content, ${content.path}")
-
                     libraryViewModel.onAction(LibraryAction.OnImportBookClick(it.toString()))
-
                 }
             }
             val onImportBook = {
-                filePicker.launch("*/*")
+                filePicker.launch(BookFormat.allMimeTypes)
             }
             PageKeeperTheme {
 

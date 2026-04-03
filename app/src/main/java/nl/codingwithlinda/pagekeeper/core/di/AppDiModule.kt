@@ -5,8 +5,10 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.PageKeeperDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.RoomBookRepository
+import nl.codingwithlinda.pagekeeper.core.data.remote.ContentResolverBookFormatValidator
 import nl.codingwithlinda.pagekeeper.core.data.remote.FN2BookParser
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
+import nl.codingwithlinda.pagekeeper.core.domain.remote.BookFormatValidator
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.presentation.DefaultMenuActionController
 import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
@@ -38,6 +40,7 @@ val appDataModule = module {
     }
     single { RoomBookRepository(get<PageKeeperDatabase>().bookDao()) } bind BookRepository::class
     single { FN2BookParser(androidContext()) } bind BookParser::class
+    single { ContentResolverBookFormatValidator(androidContext()) } bind BookFormatValidator::class
     single<MenuActionController> { DefaultMenuActionController() }
 }
 

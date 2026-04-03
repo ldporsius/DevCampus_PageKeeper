@@ -21,14 +21,6 @@ class FN2BookParser(
     private val context: Context
 ): BookParser {
 
-    suspend fun fromAssets(filename: String = "book.fb2"): Book? {
-        return withContext(Dispatchers.IO) {
-            context.assets.open(filename).use { stream ->
-                parseContent(stream.readBytes().decodeToString())
-            }
-        }
-    }
-
     override suspend fun fetch(uri: String): Book? {
         println("FN2BookParser.fetch: $uri")
         return withContext(Dispatchers.IO) {
@@ -63,7 +55,7 @@ class FN2BookParser(
     private fun parseContent(content: String): Book? {
         val split = content.split("</body>")
         val body = split[0] + "</body></FictionBook>"
-        val metaData = docBuilder(inputStream = body.byteInputStream(), bodyText = split[1])
+        val metaData = docBuilder(inputStream = body.byteInputStream(), bodyText = split[0])
 
         split[1].split("</binary>").map { "$it</binary>" }.asSequence().forEach { string ->
             if ("<binary" !in string) return@forEach
@@ -87,32 +79,6 @@ class FN2BookParser(
             imgUrl = imgUrl,
             dateCreated = System.currentTimeMillis()
         )
-    }
-
-    fun parse(data: String){
-        val factory = XmlPullParserFactory.newInstance()
-        factory.setNamespaceAware(true)
-        val xpp = factory.newPullParser()
-
-        xpp.setInput(StringReader(data))
-        var eventType = xpp.eventType
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            when(eventType){
-                XmlPullParser.START_DOCUMENT -> println("Start document")
-                XmlPullParser.START_TAG -> {
-                    println("Start tag: " + xpp.name + " " + xpp.attributeCount)
-                    for (i in 0 until xpp.attributeCount){
-                        println("Attribute: " + xpp.getAttributeName(i) + " " + xpp.getAttributeValue(i))
-                    }
-                }
-                XmlPullParser.END_TAG -> println("End tag " + xpp.name )
-                XmlPullParser.PROCESSING_INSTRUCTION -> println("PI: " + xpp.name + " " + xpp.text)
-                XmlPullParser.TEXT -> println("Text: " + xpp.text)
-
-            }
-            eventType = xpp.nextToken()
-        }
-        println("End document")
     }
 
     private fun extractImageString(xml: String): Pair<Int,ByteArray>{

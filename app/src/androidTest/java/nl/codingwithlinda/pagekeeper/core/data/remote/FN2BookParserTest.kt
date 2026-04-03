@@ -1,21 +1,33 @@
 package nl.codingwithlinda.pagekeeper.core.data.remote
 
 import android.content.Context
+import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Test
+import java.io.File
 
 class FN2BookParserTest {
 
-    private val context = ApplicationProvider.getApplicationContext<Context>()
-    private val parser = FN2BookParser(context)
+    private val appCtx: Context = ApplicationProvider.getApplicationContext()
+    private val parser = FN2BookParser(appCtx)
+
+    /** Copies an asset to filesDir and returns its content:// URI so fetch() can open it. */
+    private fun assetUri(filename: String): String {
+        val file = File(appCtx.filesDir, filename)
+        file.parentFile?.mkdirs()
+        // Use the instrumentation context to access assets bundled in the test APK
+        InstrumentationRegistry.getInstrumentation().context.assets
+            .open(filename).use { it.copyTo(file.outputStream()) }
+        return Uri.fromFile(file).toString()
+    }
 
     @Test
     fun singleAuthor_parsesCorrectly(): Unit = runBlocking {
-        val book = parser.fromAssets("book_single_author.fb2")
+        val book = parser.fetch(assetUri("book_single_author.fb2"))
 
         assertNotNull(book)
         assertEquals("Pride and Pixels", book!!.title)
@@ -25,7 +37,7 @@ class FN2BookParserTest {
 
     @Test
     fun multipleAuthors_joinedWithComma(): Unit = runBlocking {
-        val book = parser.fromAssets("book_multiple_authors.fb2")
+        val book = parser.fetch(assetUri("book_multiple_authors.fb2"))
 
         assertNotNull(book)
         assertEquals("Engines of Thought", book!!.title)
@@ -35,7 +47,7 @@ class FN2BookParserTest {
 
     @Test
     fun noIsbn_returnsEmptyIsbnString(): Unit = runBlocking {
-        val book = parser.fromAssets("book_no_isbn.fb2")
+        val book = parser.fetch(assetUri("book_no_isbn.fb2"))
 
         assertNotNull(book)
         assertEquals("The Null Hypothesis", book!!.title)
@@ -44,7 +56,7 @@ class FN2BookParserTest {
 
     @Test
     fun minimalMetadata_parsesWithoutCrash(): Unit = runBlocking {
-        val book = parser.fromAssets("book_minimal_metadata.fb2")
+        val book = parser.fetch(assetUri("book_minimal_metadata.fb2"))
 
         assertNotNull(book)
         assertEquals("Unknown Title", book!!.title)
@@ -52,8 +64,8 @@ class FN2BookParserTest {
     }
 
     @Test
-    fun originalAssetBook_parsesCorrectly(): Unit = runBlocking {
-        val book = parser.fromAssets()
+    fun originalBook_parsesCorrectly(): Unit = runBlocking {
+        val book = parser.fetch(assetUri("book.fb2"))
 
         assertNotNull(book)
         assertEquals("A Second Chance for the Cowboy: Walker Ranch Book 2", book!!.title)

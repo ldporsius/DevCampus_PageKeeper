@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <description>
+        <title-info>
+            <genre>science</genre>
+            <author><first-name>Ada</first-name><last-name>Lovelace</last-name></author>
+            <author><first-name>Charles</first-name><last-name>Babbage</last-name></author>
+            <book-title>Engines of Thought</book-title>
+            <lang>en</lang>
+        </title-info>
+        <document-info>
+            <author><first-name>Ada</first-name><last-name>Lovelace</last-name></author>
+            <id>bbbbbbbb-0002-0002-0002-bbbbbbbbbbbb</id>
+            <version>1.0</version>
+        </document-info>
+        <publish-info>
+            <year>2023</year>
+            <publisher>Analytical Press</publisher>
+        </publish-info>
+    </description>
+<body>
+<section>
+<p>ISBN: 978-0-000000-02-8</p>
+<p>Two minds, one difference engine, zero working prototypes.</p>
+</section>
+</body>
+</FictionBook>

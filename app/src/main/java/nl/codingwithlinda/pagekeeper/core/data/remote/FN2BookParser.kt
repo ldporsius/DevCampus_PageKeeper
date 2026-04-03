@@ -21,9 +21,9 @@ class FN2BookParser(
     private val context: Context
 ): BookParser {
 
-    suspend fun fromAssets(): Book? {
+    suspend fun fromAssets(filename: String = "book.fb2"): Book? {
         return withContext(Dispatchers.IO) {
-            context.assets.open("book.fb2").use { stream ->
+            context.assets.open(filename).use { stream ->
                 parseContent(stream.readBytes().decodeToString())
             }
         }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <description>
+        <title-info>
+            <genre>fantasy</genre>
+            <author><first-name>Turing</first-name><last-name>McTestface</last-name></author>
+            <book-title>The Null Hypothesis</book-title>
+            <lang>en</lang>
+        </title-info>
+        <document-info>
+            <author><first-name>Turing</first-name><last-name>McTestface</last-name></author>
+            <id>cccccccc-0003-0003-0003-cccccccccccc</id>
+            <version>1.0</version>
+        </document-info>
+        <publish-info>
+            <year>2025</year>
+            <publisher>Void Publishing</publisher>
+        </publish-info>
+    </description>
+<body>
+<section>
+<p>No ISBN was harmed in the making of this book.</p>
+</section>
+</body>
+</FictionBook>

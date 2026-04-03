@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <description>
+        <title-info>
+            <genre>other</genre>
+            <author><first-name></first-name><last-name></last-name></author>
+            <book-title>Unknown Title</book-title>
+            <lang>en</lang>
+        </title-info>
+        <document-info>
+            <id>dddddddd-0004-0004-0004-dddddddddddd</id>
+            <version>1.0</version>
+        </document-info>
+        <publish-info>
+        </publish-info>
+    </description>
+<body>
+<section>
+<p>Minimum viable fiction.</p>
+</section>
+</body>
+</FictionBook>

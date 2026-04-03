@@ -33,7 +33,7 @@ fun AppNavigation(
 
     val navItems = remember(onImportBook, onLibrary, onFavorites, onFinished) {
         listOf(
-            NavItem("", R.drawable.import_book, MenuAction.ImportBookAction(onImportBook)),
+            NavItem("", R.drawable.import_book, MenuAction.ImportBookAction(onImportBook), showBackground = true),
             NavItem("Library", R.drawable.menu_library_active, MenuAction.LibraryAction(onLibrary)),
             NavItem("Favorites", R.drawable.menu_favorites_active, MenuAction.FavoritesAction(onFavorites)),
             NavItem("Finished", R.drawable.menu_finished_active, MenuAction.FinishedAction(onFinished)),

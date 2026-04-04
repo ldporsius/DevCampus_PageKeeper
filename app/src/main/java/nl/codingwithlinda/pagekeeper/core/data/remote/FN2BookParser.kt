@@ -1,13 +1,10 @@
 package nl.codingwithlinda.pagekeeper.core.data.remote
 
-import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.util.Base64
 import androidx.core.net.toUri
-import nl.codingwithlinda.pagekeeper.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book

@@ -37,7 +37,9 @@ class BookListViewModel(
                                     BookFilter.Finished -> book.isFinished
                                 }
                             }
+                            .sortedByDescending { it.dateCreated }
                             .map { it.toBookUi() }
+
                     )
                 }
             }

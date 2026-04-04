@@ -54,12 +54,16 @@ fun BookListItem(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         AsyncImage(
-            model = book.imgUrl,
+            model = book.imgUrl.ifEmpty { null },
             contentDescription = book.title,
-            contentScale = ContentScale.Crop,
+            contentScale = ContentScale.Fit,
+            error = painterResource(R.drawable.book),
+            placeholder = painterResource(R.drawable.book),
             modifier = Modifier
-                .size(width = 80.dp, height = 110.dp)
+                .size(width = 96.dp, height = 172.dp)
                 .clip(RoundedCornerShape(8.dp))
+                .background(color = MaterialTheme.colorScheme.surfaceVariant)
+
         )
 
         Column(

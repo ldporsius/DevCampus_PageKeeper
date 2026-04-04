@@ -22,6 +22,6 @@ fun SearchRoot(
         onQueryChange = searchViewModel::onQueryChange,
         onBack = onBack
     ) {
-        SearchContent(books = state.books)
+        SearchContent(query = state.query, books = state.books)
     }
 }

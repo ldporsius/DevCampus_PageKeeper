@@ -14,7 +14,9 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.io.File
 import java.io.InputStream
 import java.io.StringReader
+import java.util.UUID
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.uuid.Uuid
 
 
 class FN2BookParser(
@@ -26,9 +28,12 @@ class FN2BookParser(
         return withContext(Dispatchers.IO) {
             try {
                 context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
-                    val content = stream.readBytes().decodeToString()
+                    val bytes = stream.readBytes()
+                    val content = bytes.decodeToString()
                     if (!isValidFb2(content)) return@withContext null
-                    parseContent(content)
+                    val book = parseContent(content) ?: return@withContext null
+                    File(context.filesDir, "${book.ISBN}.fb2").writeBytes(bytes)
+                    book
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -152,9 +157,18 @@ class FN2BookParser(
         val year      = getText("year") ?: ""
         val publisher = getText("publisher") ?: ""
 
+        val isbnPattern = Regex("""ISBN[:\s]*([\d\-X]+)""", RegexOption.IGNORE_CASE)
+        val uuidPattern = Regex("""[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}""", RegexOption.IGNORE_CASE)
+
+
         // ISBN is not in FB2 metadata tags — extract from body text
-        val isbn = Regex("""ISBN[:\s]*([\d\-X]+)""", RegexOption.IGNORE_CASE)
-            .find(bodyText)?.groupValues?.getOrElse(1) { "" } ?: ""
+        val hasIsbn = isbnPattern
+            .find(bodyText)?.groupValues?.getOrNull(1)
+
+        val uuid = uuidPattern
+            .find(bodyText)?.groupValues?.getOrNull(1)
+
+        val isbn = hasIsbn ?: uuid ?: UUID.randomUUID().toString()
 
         return Fb2Metadata(
             authors = authors,

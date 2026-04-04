@@ -1,5 +1,8 @@
 package nl.codingwithlinda.pagekeeper.feature_books.finished.presentation
 
+import android.content.Intent
+import androidx.core.content.FileProvider
+import java.io.File
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -10,7 +13,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListItem
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListState
@@ -26,6 +31,19 @@ fun FinishedRoot(
     viewModel: BookListViewModel = koinViewModel(qualifier = named(BookFilter.Finished))
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    ObserveAsEvents(viewModel.shareEvents) { book ->
+        val file = File(context.filesDir, "${book.isbn}.fb2")
+        val fileUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "application/octet-stream"
+            putExtra(Intent.EXTRA_TEXT, "I'm reading \"${book.title}\" by ${book.author}")
+            putExtra(Intent.EXTRA_STREAM, fileUri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(intent, null))
+    }
 
     FinishedScreen(
         state = state,

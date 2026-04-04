@@ -2,10 +2,12 @@ package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
@@ -18,6 +20,9 @@ class BookListViewModel(
 
     private val _state = MutableStateFlow(BookListState())
     val state = _state.asStateFlow()
+
+    private val _shareEvents = Channel<BookUi>()
+    val shareEvents = _shareEvents.receiveAsFlow()
 
     init {
         bookRepository.books
@@ -62,7 +67,10 @@ class BookListViewModel(
                     bookRepository.upsertBook(book.copy(isFinished = !book.isFinished))
                 }
             }
-            is BookListItemAction.ShareClick -> Unit   // TODO
+            is BookListItemAction.ShareClick -> {
+                val book = _state.value.books.find { it.isbn == action.isbn } ?: return
+                viewModelScope.launch { _shareEvents.send(book) }
+            }
         }
     }
 }

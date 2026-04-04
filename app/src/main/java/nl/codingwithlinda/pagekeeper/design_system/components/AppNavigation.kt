@@ -10,11 +10,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.R
+import nl.codingwithlinda.pagekeeper.core.presentation.ImportBookMenuAction
+import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
 import nl.codingwithlinda.pagekeeper.core.presentation.NavItem
 import nl.codingwithlinda.pagekeeper.design_system.util.DeviceType
 import nl.codingwithlinda.pagekeeper.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.SearchRoot
+import org.koin.compose.koinInject
 
 @Composable
 fun AppNavigation(
@@ -22,14 +25,17 @@ fun AppNavigation(
     onLibrary: () -> Unit,
     onFavorites: () -> Unit,
     onFinished: () -> Unit,
-    onImportBook: () -> Unit,
     content: @Composable () -> Unit
 ) {
+    val controller = koinInject<MenuActionController>()
+    val scope = rememberCoroutineScope()
+    val onImportBook: () -> Unit = { scope.launch { controller.onAction(ImportBookMenuAction) } }
+
     val deviceConfig = rememberDeviceConfig()
     val useDrawer = deviceConfig.deviceType == DeviceType.Phone &&
             deviceConfig.orientation == Orientation.Portrait
 
-    val navItems = remember(onImportBook, onLibrary, onFavorites, onFinished) {
+    val navItems = remember(onLibrary, onFavorites, onFinished) {
         listOf(
             NavItem("Library", R.drawable.menu_library_active, onLibrary),
             NavItem("Favorites", R.drawable.menu_favorites_active, onFavorites),

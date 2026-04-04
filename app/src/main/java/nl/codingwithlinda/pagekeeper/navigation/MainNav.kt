@@ -8,6 +8,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
+import nl.codingwithlinda.pagekeeper.core.presentation.ImportBookMenuAction
 import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
 import nl.codingwithlinda.pagekeeper.core.presentation.NavigationMenuAction
 import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
@@ -26,10 +27,13 @@ fun MainNav(
     val backStack = rememberNavBackStack(BookListRoute)
     val controller = koinInject<MenuActionController>()
 
-    ObserveAsEvents(controller.actions) {
-        scope.launch {
-            it.undo()
-            it.execute()
+    ObserveAsEvents(controller.actions) { action ->
+        when (action) {
+            ImportBookMenuAction -> onImportBook()
+            else -> scope.launch {
+                action.undo()
+                action.execute()
+            }
         }
     }
 
@@ -52,7 +56,7 @@ fun MainNav(
         modifier = modifier,
         entryProvider = entryProvider {
             entry<BookListRoute> {
-                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished, onImportBook) {
+                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished) {
                     BooksRoot(
                         activeFilter = BookFilter.All,
                         onNavigateToDetail = { isbn -> backStack.add(BookDetailRoute(isbn)) },
@@ -62,13 +66,13 @@ fun MainNav(
             }
 
             entry<FavoritesRoute> {
-                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished, onImportBook) {
+                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished) {
                     BooksRoot(activeFilter = BookFilter.Favorites)
                 }
             }
 
             entry<FinishedRoute> {
-                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished, onImportBook) {
+                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished) {
                     BooksRoot(activeFilter = BookFilter.Finished)
                 }
             }
@@ -89,7 +93,6 @@ private fun NavScaffold(
     onLibrary: () -> Unit,
     onFavorites: () -> Unit,
     onFinished: () -> Unit,
-    onImportBook: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     AppNavigation(
@@ -97,7 +100,6 @@ private fun NavScaffold(
         onLibrary = onLibrary,
         onFavorites = onFavorites,
         onFinished = onFinished,
-        onImportBook = onImportBook,
         content = content,
     )
 }

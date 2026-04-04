@@ -7,6 +7,11 @@ interface MenuAction {
     fun undo()
 }
 
+object ImportBookMenuAction : MenuAction {
+    override suspend fun execute() {}
+    override fun undo() {}
+}
+
 data class NavigationMenuAction(
     val destination: NavKey,
     val navigate: () -> Unit

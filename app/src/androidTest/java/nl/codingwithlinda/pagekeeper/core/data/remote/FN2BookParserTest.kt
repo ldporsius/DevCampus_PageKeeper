@@ -1,16 +1,22 @@
 package nl.codingwithlinda.pagekeeper.core.data.remote
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isLessThanOrEqualTo
+import assertk.assertions.isGreaterThanOrEqualTo
 import kotlinx.coroutines.runBlocking
 import nl.codingwithlinda.pagekeeper.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+import java.io.ByteArrayOutputStream
 import java.io.File
 
 class FN2BookParserTest {
@@ -82,5 +88,26 @@ class FN2BookParserTest {
         assertNotNull(book)
         assertEquals("A Second Chance for the Cowboy: Walker Ranch Book 2", book!!.title)
         assertEquals("Tess Thornton", book.author)
+    }
+
+    @Test
+    fun scaleCoverBitmap_debugSwap_scalesDownToAtMost200px() = runBlocking{
+        val instrCtx = InstrumentationRegistry.getInstrumentation().context
+
+        val book = parser.fetch(assetUri("book.fb2")) ?: return@runBlocking
+
+        val scaled: Bitmap = appCtx.contentResolver?.openInputStream(book.imgUrl.toUri()).use {
+            BitmapFactory.decodeStream(it)
+        }
+
+        val maxDim = maxOf(scaled.width, scaled.height)
+        assertThat(maxDim).isLessThanOrEqualTo(200)
+        assertThat(maxDim).isGreaterThanOrEqualTo(195) // close to 200, not a tiny thumbnail
+
+        // Verify it round-trips as a valid PNG
+        val out = ByteArrayOutputStream()
+        scaled.compress(Bitmap.CompressFormat.PNG, 100, out)
+        val decoded = BitmapFactory.decodeByteArray(out.toByteArray(), 0, out.size())
+        assertThat(maxOf(decoded.width, decoded.height)).isEqualTo(maxDim)
     }
 }

@@ -38,7 +38,7 @@ val appDataModule = module {
             "pagekeeper.db"
         ).addMigrations(MIGRATION_2_3).fallbackToDestructiveMigration(false).build()
     }
-    single { RoomBookRepository(get<PageKeeperDatabase>().bookDao()) } bind BookRepository::class
+    single { RoomBookRepository(get<PageKeeperDatabase>().bookDao(), androidContext().filesDir) } bind BookRepository::class
     single { FN2BookParser(androidContext()) } bind BookParser::class
     single { ContentResolverBookFormatValidator(androidContext()) } bind BookFormatValidator::class
     single<MenuActionController> { DefaultMenuActionController() }

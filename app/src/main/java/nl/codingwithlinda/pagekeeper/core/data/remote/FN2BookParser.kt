@@ -7,6 +7,7 @@ import android.util.Base64
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import nl.codingwithlinda.pagekeeper.core.data.util.scaleCoverBitmapTo
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import org.xmlpull.v1.XmlPullParser
@@ -18,6 +19,8 @@ import java.util.UUID
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.uuid.Uuid
 
+
+private const val MAX_COVER_PX = 200
 
 class FN2BookParser(
     private val context: Context
@@ -68,11 +71,13 @@ class FN2BookParser(
 
             val (imgRef, imgData) = extractImageString(string)
             if (imgRef == 0) {
-                val saved = parseImage(imgData)?.compress(
-                    Bitmap.CompressFormat.PNG,
-                    100,
-                    File(context.filesDir, "${metaData.isbn}.png").outputStream()
-                ) ?: false
+                val saved = parseImage(imgData)
+                    ?.let { scaleCoverBitmap(it, MAX_COVER_PX) }
+                    ?.compress(
+                        Bitmap.CompressFormat.PNG,
+                        100,
+                        File(context.filesDir, "${metaData.isbn}.png").outputStream()
+                    ) ?: false
                 coverSaved = saved
                 return@forEach
             }
@@ -130,6 +135,9 @@ class FN2BookParser(
             null
         }
     }
+
+    private fun scaleCoverBitmap(original: Bitmap, maxPx: Int): Bitmap =
+        scaleCoverBitmapTo(original, maxPx)
 
     private fun docBuilder(inputStream: InputStream, bodyText: String = ""): Fb2Metadata {
         val factory = DocumentBuilderFactory.newInstance()

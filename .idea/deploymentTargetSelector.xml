@@ -17,6 +17,9 @@
       <SelectionState runConfigName="noCoverImage_returnsDummyFrontCover()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="scaleCoverBitmap_debugSwap_scalesDownToAtMost200px()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>

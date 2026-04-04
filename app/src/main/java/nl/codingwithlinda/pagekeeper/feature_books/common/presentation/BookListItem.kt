@@ -94,9 +94,10 @@ fun BookListItem(
                         tint = if (book.isFavorite) MaterialTheme.colorScheme.primary else iconTint
                     )
                 }
-                IconButton(onClick = { onAction(BookListItemAction.ReadingClick(book.isbn)) }) {
+                val fIcon = if(book.isFinished) R.drawable.finished else R.drawable.finish
+                IconButton(onClick = { onAction(BookListItemAction.FinishClick(book.isbn)) }) {
                     Icon(
-                        painter = painterResource(R.drawable.import_book),
+                        painter = painterResource(fIcon),
                         contentDescription = "Currently reading",
                         tint = iconTint
                     )

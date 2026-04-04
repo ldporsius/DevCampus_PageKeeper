@@ -57,7 +57,11 @@ class BookListViewModel(
                     bookRepository.upsertBook(book.copy(isFavorite = !book.isFavorite))
                 }
             }
-            is BookListItemAction.ReadingClick -> Unit // TODO
+            is BookListItemAction.FinishClick -> viewModelScope.launch{
+                bookRepository.getBookByISBN(action.isbn)?.let { book ->
+                    bookRepository.upsertBook(book.copy(isFinished = !book.isFinished))
+                }
+            }
             is BookListItemAction.ShareClick -> Unit   // TODO
         }
     }

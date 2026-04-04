@@ -192,6 +192,16 @@ fun SearchScaffold(
                     onValueChange = onQueryChange,
                     placeholder = { Text("Search books...") },
                     singleLine = true,
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = { onQueryChange("") }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.cancel),
+                                    contentDescription = "Clear search"
+                                )
+                            }
+                        }
+                    },
                     modifier = Modifier.weight(1f),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,

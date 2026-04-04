@@ -5,16 +5,16 @@
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="testParse()">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="NavigationTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="FN2BookParserTest">
+      <SelectionState runConfigName="ContentResolverBookFormatValidatorTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="ContentResolverBookFormatValidatorTest">
+      <SelectionState runConfigName="noIsbn_returnsEmptyIsbnString()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="noIsbn_returnsRandomIsbnString()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

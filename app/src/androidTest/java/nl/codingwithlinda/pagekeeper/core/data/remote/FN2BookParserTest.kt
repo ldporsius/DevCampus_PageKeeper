@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
+import assertk.assertThat
+import assertk.assertions.isEqualTo
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -46,12 +48,12 @@ class FN2BookParserTest {
     }
 
     @Test
-    fun noIsbn_returnsEmptyIsbnString(): Unit = runBlocking {
+    fun noIsbn_returnsRandomIsbnString(): Unit = runBlocking {
         val book = parser.fetch(assetUri("book_no_isbn.fb2"))
 
         assertNotNull(book)
         assertEquals("The Null Hypothesis", book!!.title)
-        assertEquals("", book.ISBN)
+        assertThat(book.ISBN.length).isEqualTo(36)
     }
 
     @Test

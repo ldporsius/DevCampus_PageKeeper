@@ -1,10 +1,13 @@
 package nl.codingwithlinda.pagekeeper.core.data.remote
 
+import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Base64
 import androidx.core.net.toUri
+import nl.codingwithlinda.pagekeeper.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
@@ -62,21 +65,26 @@ class FN2BookParser(
         val body = split[0] + "</body></FictionBook>"
         val metaData = docBuilder(inputStream = body.byteInputStream(), bodyText = split[0])
 
+        var coverSaved = false
         split[1].split("</binary>").map { "$it</binary>" }.asSequence().forEach { string ->
             if ("<binary" !in string) return@forEach
 
             val (imgRef, imgData) = extractImageString(string)
             if (imgRef == 0) {
-                parseImage(imgData)?.compress(
+                val saved = parseImage(imgData)?.compress(
                     Bitmap.CompressFormat.PNG,
                     100,
                     File(context.filesDir, "${metaData.isbn}.png").outputStream()
-                )
+                ) ?: false
+                coverSaved = saved
                 return@forEach
             }
         }
 
-        val imgUrl = File(context.filesDir, "${metaData.isbn}.png").toUri().toString()
+        val imgUrl = if (coverSaved) {
+            File(context.filesDir, "${metaData.isbn}.png").toUri().toString()
+        } else ""
+
         return Book(
             ISBN = metaData.isbn,
             title = metaData.title,

@@ -7,6 +7,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlinx.coroutines.runBlocking
+import nl.codingwithlinda.pagekeeper.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -63,6 +64,15 @@ class FN2BookParserTest {
         assertNotNull(book)
         assertEquals("Unknown Title", book!!.title)
         assertEquals("", book.ISBN)
+    }
+
+    @Test
+    fun noCoverImage_returnsDummyFrontCover(): Unit = runBlocking {
+        val book = parser.fetch(assetUri("book_single_author.fb2"))
+
+        assertNotNull(book)
+        val expectedImgUrl = ""
+        assertEquals(expectedImgUrl, book!!.imgUrl)
     }
 
     @Test

@@ -8,9 +8,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailRoot
-import nl.codingwithlinda.pagekeeper.feature_books.favorites.presentation.FavoritesRoot
-import nl.codingwithlinda.pagekeeper.feature_books.finished.presentation.FinishedRoot
-import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryRoot
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BooksRoot
 
 @Composable
 fun MainNav(
@@ -24,7 +23,8 @@ fun MainNav(
         modifier = modifier,
         entryProvider = entryProvider {
             entry<BookListRoute> {
-                LibraryRoot(
+                BooksRoot(
+                    activeFilter = BookFilter.All,
                     onNavigateToDetail = { isbn -> backStack.add(BookDetailRoute(isbn)) },
                     onImportBook = onImportBook
                 )
@@ -38,11 +38,11 @@ fun MainNav(
             }
 
             entry<FavoritesRoute> {
-                FavoritesRoot()
+                BooksRoot(activeFilter = BookFilter.Favorites)
             }
 
             entry<FinishedRoute> {
-                FinishedRoot()
+                BooksRoot(activeFilter = BookFilter.Finished)
             }
         }
     )

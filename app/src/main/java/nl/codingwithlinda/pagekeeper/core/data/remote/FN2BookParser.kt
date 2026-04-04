@@ -65,13 +65,13 @@ class FN2BookParser(
                 parseImage(imgData)?.compress(
                     Bitmap.CompressFormat.PNG,
                     100,
-                    File(context.filesDir, "img$imgRef.png").outputStream()
+                    File(context.filesDir, "${metaData.isbn}.png").outputStream()
                 )
                 return@forEach
             }
         }
 
-        val imgUrl = File(context.filesDir, "img0.png").toUri().toString()
+        val imgUrl = File(context.filesDir, "${metaData.isbn}.png").toUri().toString()
         return Book(
             ISBN = metaData.isbn,
             title = metaData.title,

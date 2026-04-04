@@ -1,18 +1,10 @@
 package nl.codingwithlinda.pagekeeper.design_system.components
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import nl.codingwithlinda.pagekeeper.R
-import nl.codingwithlinda.pagekeeper.core.presentation.DefaultMenuActionController
-import nl.codingwithlinda.pagekeeper.core.presentation.MenuAction
 import nl.codingwithlinda.pagekeeper.core.presentation.NavItem
 import nl.codingwithlinda.pagekeeper.design_system.util.DeviceType
 import nl.codingwithlinda.pagekeeper.design_system.util.Orientation

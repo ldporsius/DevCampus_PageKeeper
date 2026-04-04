@@ -17,15 +17,15 @@ import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interact
 
 @Composable
 fun LibraryScreen(
-    bookListState: BookListState,
+    state: BookListState,
     onImportBook: () -> Unit,
-    onAction: (LibraryAction) -> Unit,
-    onItemAction: (BookListItemAction) -> Unit,
+    onLibraryAction: (LibraryAction) -> Unit,
+    onAction: (BookListItemAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
-            visible = bookListState.books.isEmpty(),
+            visible = state.books.isEmpty(),
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -33,16 +33,16 @@ fun LibraryScreen(
         }
 
         AnimatedVisibility(
-            visible = bookListState.books.isNotEmpty(),
+            visible = state.books.isNotEmpty(),
             enter = fadeIn(),
             exit = fadeOut()
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(items = bookListState.books, key = { it.isbn }) { book ->
+                items(items = state.books, key = { it.isbn }) { book ->
                     BookListItem(
                         book = book,
-                        onClick = { onAction(LibraryAction.OnBookClick(book.isbn)) },
-                        onAction = onItemAction
+                        onClick = { onLibraryAction(LibraryAction.OnBookClick(book.isbn)) },
+                        onAction = onAction
                     )
                 }
             }

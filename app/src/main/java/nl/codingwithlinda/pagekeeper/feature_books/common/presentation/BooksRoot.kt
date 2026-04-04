@@ -67,10 +67,10 @@ fun BooksRoot(
 
     when (activeFilter) {
         BookFilter.All -> LibraryScreen(
-            bookListState = state,
+            state = state,
             onImportBook = onImportBook,
-            onAction = libraryViewModel::onAction,
-            onItemAction = bookListViewModel::onAction
+            onLibraryAction = libraryViewModel::onAction,
+            onAction = bookListViewModel::onAction
         )
         BookFilter.Favorites -> FavoritesScreen(
             state = state,

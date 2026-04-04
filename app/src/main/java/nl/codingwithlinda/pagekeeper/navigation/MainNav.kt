@@ -43,18 +43,16 @@ fun MainNav(
         scope.launch { controller.onAction(NavigationMenuAction(destination, navigate)) }
     }
 
+    val onLibrary = { navigate(BookListRoute) { backStack.add(BookListRoute); backStack.retainAll { it is BookListRoute } } }
+    val onFavorites = { navigate(FavoritesRoute) { backStack.add(FavoritesRoute); backStack.retainAll { it is FavoritesRoute } } }
+    val onFinished = { navigate(FinishedRoute) { backStack.add(FinishedRoute); backStack.retainAll { it is FinishedRoute } } }
+
     NavDisplay(
         backStack = backStack,
         modifier = modifier,
         entryProvider = entryProvider {
             entry<BookListRoute> {
-                AppNavigation(
-                    selectedIndex = selectedIndex,
-                    onLibrary = { navigate(BookListRoute) { backStack.add(BookListRoute); backStack.retainAll { it is BookListRoute } } },
-                    onFavorites = { navigate(FavoritesRoute) { backStack.add(FavoritesRoute); backStack.retainAll { it is FavoritesRoute } } },
-                    onFinished = { navigate(FinishedRoute) { backStack.add(FinishedRoute); backStack.retainAll { it is FinishedRoute } } },
-                    onImportBook = onImportBook,
-                ) {
+                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished, onImportBook) {
                     BooksRoot(
                         activeFilter = BookFilter.All,
                         onNavigateToDetail = { isbn -> backStack.add(BookDetailRoute(isbn)) },
@@ -64,25 +62,13 @@ fun MainNav(
             }
 
             entry<FavoritesRoute> {
-                AppNavigation(
-                    selectedIndex = selectedIndex,
-                    onLibrary = { navigate(BookListRoute) { backStack.add(BookListRoute); backStack.retainAll { it is BookListRoute } } },
-                    onFavorites = { navigate(FavoritesRoute) { backStack.add(FavoritesRoute); backStack.retainAll { it is FavoritesRoute } } },
-                    onFinished = { navigate(FinishedRoute) { backStack.add(FinishedRoute); backStack.retainAll { it is FinishedRoute } } },
-                    onImportBook = onImportBook,
-                ) {
+                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished, onImportBook) {
                     BooksRoot(activeFilter = BookFilter.Favorites)
                 }
             }
 
             entry<FinishedRoute> {
-                AppNavigation(
-                    selectedIndex = selectedIndex,
-                    onLibrary = { navigate(BookListRoute) { backStack.add(BookListRoute); backStack.retainAll { it is BookListRoute } } },
-                    onFavorites = { navigate(FavoritesRoute) { backStack.add(FavoritesRoute); backStack.retainAll { it is FavoritesRoute } } },
-                    onFinished = { navigate(FinishedRoute) { backStack.add(FinishedRoute); backStack.retainAll { it is FinishedRoute } } },
-                    onImportBook = onImportBook,
-                ) {
+                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished, onImportBook) {
                     BooksRoot(activeFilter = BookFilter.Finished)
                 }
             }
@@ -94,5 +80,24 @@ fun MainNav(
                 )
             }
         }
+    )
+}
+
+@Composable
+private fun NavScaffold(
+    selectedIndex: Int,
+    onLibrary: () -> Unit,
+    onFavorites: () -> Unit,
+    onFinished: () -> Unit,
+    onImportBook: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    AppNavigation(
+        selectedIndex = selectedIndex,
+        onLibrary = onLibrary,
+        onFavorites = onFavorites,
+        onFinished = onFinished,
+        onImportBook = onImportBook,
+        content = content,
     )
 }

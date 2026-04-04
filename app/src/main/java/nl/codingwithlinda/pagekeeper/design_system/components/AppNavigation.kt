@@ -3,12 +3,18 @@ package nl.codingwithlinda.pagekeeper.design_system.components
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.NavItem
 import nl.codingwithlinda.pagekeeper.design_system.util.DeviceType
 import nl.codingwithlinda.pagekeeper.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.design_system.util.rememberDeviceConfig
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.SearchRoot
 
 @Composable
 fun AppNavigation(
@@ -22,8 +28,6 @@ fun AppNavigation(
     val deviceConfig = rememberDeviceConfig()
     val useDrawer = deviceConfig.deviceType == DeviceType.Phone &&
             deviceConfig.orientation == Orientation.Portrait
-
-
 
     val navItems = remember(onImportBook, onLibrary, onFavorites, onFinished) {
         listOf(
@@ -39,13 +43,28 @@ fun AppNavigation(
 
     if (useDrawer) {
         val drawerState = rememberDrawerState(DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
+        var showSearch by remember { mutableStateOf(false) }
+
         AppNavDrawer(
             onImportBook = onImportBook,
             items = navItems,
             selectedIndex = selectedIndex,
             onItemSelected = onItemSelected,
             drawerState = drawerState,
-            content = { content() }
+            mainContent = {
+                if (showSearch) {
+                    SearchRoot(onBack = { showSearch = false })
+                } else {
+                    MainScaffold(
+                        title = navItems[selectedIndex].label,
+                        onMenuClick = { scope.launch { drawerState.open() } },
+                        onSearch = { showSearch = true }
+                    ) {
+                        content()
+                    }
+                }
+            }
         )
     } else {
         AppNavRail(

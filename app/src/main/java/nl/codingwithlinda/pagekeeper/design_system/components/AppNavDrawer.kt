@@ -2,7 +2,10 @@ package nl.codingwithlinda.pagekeeper.design_system.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,7 +23,8 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -41,7 +45,7 @@ fun AppNavDrawer(
     selectedIndex: Int,
     onItemSelected: (Int) -> Unit,
     drawerState: DrawerState,
-    content: @Composable () -> Unit
+    mainContent: @Composable () -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
@@ -116,37 +120,86 @@ fun AppNavDrawer(
             }
         }
     ) {
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text(
-                        items[selectedIndex].label,
-                        style = MaterialTheme.typography.titleLarge,
+        mainContent()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScaffold(
+    title: String,
+    onMenuClick: () -> Unit,
+    onSearch: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(title, style = MaterialTheme.typography.titleLarge) },
+                navigationIcon = {
+                    IconButton(onClick = onMenuClick) {
+                        Icon(
+                            painter = painterResource(R.drawable.menu),
+                            contentDescription = "Open menu"
                         )
-                            },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(
-                                painter = painterResource(R.drawable.menu),
-                                contentDescription = "Open menu"
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { /*TODO*/ }){
-                            Icon(
-                                painter = painterResource(R.drawable.search),
-                                contentDescription = "Search"
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors().copy(
-                        containerColor = Color.Transparent
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onSearch) {
+                        Icon(
+                            painter = painterResource(R.drawable.search),
+                            contentDescription = "Search"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors().copy(
+                    containerColor = Color.Transparent
+                )
+            )
+        }
+    ) { innerPadding ->
+        Box(Modifier.padding(innerPadding)) { content() }
+    }
+}
+
+@Composable
+fun SearchScaffold(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onBack: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        painter = painterResource(R.drawable.back),
+                        contentDescription = "Back"
+                    )
+                }
+                TextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    placeholder = { Text("Search books...") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
                     )
                 )
             }
-        ) { innerPadding ->
-            Box(Modifier.padding(innerPadding)) { content() }
+            content()
         }
     }
 }

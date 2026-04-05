@@ -56,7 +56,8 @@ class NavigationTest {
                     single<BookRepository> { FakeBookRepository(listOf(testBook)) } bind BookRepository::class
                     single<BookParser> { FakeBookParser() } bind BookParser::class
                     viewModelOf(::LibraryViewModel)
-                    viewModel(qualifier = named(BookFilter.All)) { BookListViewModel(get(), BookFilter.All) }
+                    //viewModel(qualifier = named(BookFilter.All)) { BookListViewModel(get(), BookFilter.All) }
+                    viewModelOf(::BookListViewModel)
                     viewModel { (isbn: String) -> BookDetailViewModel(isbn, get()) }
                 }
             )

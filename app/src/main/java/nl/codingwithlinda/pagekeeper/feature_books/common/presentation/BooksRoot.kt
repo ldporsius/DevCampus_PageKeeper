@@ -1,6 +1,7 @@
 package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
@@ -9,6 +10,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.finished.presentation.Finishe
 import nl.codingwithlinda.pagekeeper.feature_books.library.navigation.LibraryEvent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryScreen
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.ImportFailedDialog
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.UnsupportedFormatDialog
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 import org.koin.androidx.compose.koinViewModel
@@ -19,9 +21,14 @@ fun BooksRoot(
     activeFilter: BookFilter,
     onNavigateToDetail: (String) -> Unit = {},
     onImportBook: () -> Unit = {},
-    bookListViewModel: BookListViewModel = koinViewModel(qualifier = named(activeFilter)),
+    bookListViewModel: BookListViewModel = koinViewModel(),
     libraryViewModel: LibraryViewModel = koinViewModel()
 ) {
+
+    LaunchedEffect(activeFilter) {
+        bookListViewModel.savedStateHandle[BookListViewModel.KEY_FILTER] = activeFilter
+    }
+
     val state by bookListViewModel.state.collectAsStateWithLifecycle()
     val libraryState by libraryViewModel.state.collectAsStateWithLifecycle()
 
@@ -39,10 +46,18 @@ fun BooksRoot(
         )
     }
 
+    if (libraryState.importFailed) {
+        ImportFailedDialog(
+            onDismiss = { libraryViewModel.onAction(LibraryAction.DismissImportFailed) }
+        )
+    }
+
     when (activeFilter) {
         BookFilter.All -> LibraryScreen(
             state = state,
+            isImporting = libraryState.isImporting,
             onImportBook = onImportBook,
+            onCancelImport = { libraryViewModel.onAction(LibraryAction.CancelImport) },
             onLibraryAction = libraryViewModel::onAction,
             onAction = bookListViewModel::onAction
         )

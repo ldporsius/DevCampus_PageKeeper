@@ -1,10 +1,12 @@
 package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -14,24 +16,30 @@ import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 
 class BookListViewModel(
+    val savedStateHandle: SavedStateHandle,
     private val bookRepository: BookRepository,
-    private val filter: BookFilter
 ) : ViewModel() {
 
+    companion object{
+        const val KEY_FILTER = "KEY_FILTER"
+    }
     private val _state = MutableStateFlow(BookListState())
     val state = _state.asStateFlow()
 
     private val _shareEvents = Channel<BookUi>()
     val shareEvents = _shareEvents.receiveAsFlow()
 
+
     init {
-        bookRepository.books
-            .onEach { list ->
+
+        val savedFilter = savedStateHandle.getStateFlow(KEY_FILTER, BookFilter.All)
+
+        bookRepository.books.combine(savedFilter) { list , sFilter->
                 _state.update { current ->
                     current.copy(
                         books = list
                             .filter { book ->
-                                when (filter) {
+                                when (sFilter) {
                                     BookFilter.All -> true
                                     BookFilter.Favorites -> book.isFavorite
                                     BookFilter.Finished -> book.isFinished

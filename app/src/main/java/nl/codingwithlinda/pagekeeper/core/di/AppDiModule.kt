@@ -23,6 +23,7 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.viewModel
 
 private val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -46,9 +47,10 @@ val appDataModule = module {
 }
 
 val appPresentationModule = module {
-    viewModel(qualifier = named(BookFilter.All)) { BookListViewModel(get(), BookFilter.All) }
-    viewModel(qualifier = named(BookFilter.Favorites)) { BookListViewModel(get(), BookFilter.Favorites) }
-    viewModel(qualifier = named(BookFilter.Finished)) { BookListViewModel(get(), BookFilter.Finished) }
+//    viewModel(qualifier = named(BookFilter.All)) { BookListViewModel(get(), BookFilter.All) }
+//    viewModel(qualifier = named(BookFilter.Favorites)) { BookListViewModel(get(), BookFilter.Favorites) }
+//    viewModel(qualifier = named(BookFilter.Finished)) { BookListViewModel(get(), BookFilter.Finished) }
+    viewModelOf(::BookListViewModel)
     viewModelOf(::LibraryViewModel)
     viewModelOf(::SearchViewModel)
     viewModel { (isbn: String) -> BookDetailViewModel(isbn, get()) }

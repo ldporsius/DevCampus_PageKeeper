@@ -90,7 +90,7 @@ class MultiSelectViewModel(
             }
 
             MultiSelectAction.ConfirmDelete -> {
-                val toDelete = _state.value.selectedIsbn.toList()
+                val toDelete = _state.value.selectedBooks.map { it.isbn }
                 _state.update { it.copy(showDeleteConfirmation = false, selectedIsbn = emptySet()) }
                 viewModelScope.launch {
                     toDelete.forEach { bookRepository.deleteBook(it) }

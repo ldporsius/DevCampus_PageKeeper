@@ -16,6 +16,7 @@ import nl.codingwithlinda.pagekeeper.design_system.components.AppNavigation
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailRoot
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BooksRoot
+import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.MultiSelectRoot
 import org.koin.compose.koinInject
 
 @Composable
@@ -23,19 +24,10 @@ fun MainNav(
     onImportBook: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
+
     val backStack = rememberNavBackStack(BookListRoute)
     val controller = koinInject<MenuActionController>()
 
-    ObserveAsEvents(controller.actions) { action ->
-        when (action) {
-            ImportBookMenuAction -> onImportBook()
-            else -> scope.launch {
-                action.undo()
-                action.execute()
-            }
-        }
-    }
 
     val selectedIndex = when (backStack.lastOrNull()) {
         is FavoritesRoute -> 1
@@ -43,13 +35,36 @@ fun MainNav(
         else -> 0
     }
 
-    fun navigate(destination: NavKey, navigate: () -> Unit) {
-        scope.launch { controller.onAction(NavigationMenuAction(destination, navigate)) }
+    fun navigate(destination: Destination) {
+        when(destination){
+            is BookListRoute -> {
+                backStack.add(BookListRoute); backStack.retainAll { it is BookListRoute }
+            }
+            is FavoritesRoute ->{
+                backStack.add(FavoritesRoute); backStack.retainAll { it is FavoritesRoute }
+            }
+            is BookDetailRoute -> {
+                backStack.add(BookDetailRoute(destination.ISBN))
+            }
+            FinishedRoute -> {
+                backStack.add(FinishedRoute); backStack.retainAll { it is FinishedRoute }
+            }
+            is MultiSelectRoute -> {
+                backStack.add(MultiSelectRoute(destination.filter))
+            }
+        }
     }
 
-    val onLibrary = { navigate(BookListRoute) { backStack.add(BookListRoute); backStack.retainAll { it is BookListRoute } } }
-    val onFavorites = { navigate(FavoritesRoute) { backStack.add(FavoritesRoute); backStack.retainAll { it is FavoritesRoute } } }
-    val onFinished = { navigate(FinishedRoute) { backStack.add(FinishedRoute); backStack.retainAll { it is FinishedRoute } } }
+    ObserveAsEvents(controller.actions) { action ->
+        when (action) {
+            ImportBookMenuAction -> onImportBook()
+            is NavigationMenuAction -> navigate(action.destination)
+        }
+    }
+
+    val onLibrary = { navigate(BookListRoute) }
+    val onFavorites = { navigate(FavoritesRoute) }
+    val onFinished = { navigate(FinishedRoute) }
 
     NavDisplay(
         backStack = backStack,
@@ -80,6 +95,12 @@ fun MainNav(
             entry<BookDetailRoute> { key ->
                 BookDetailRoot(
                     isbn = key.ISBN,
+                    onNavigateBack = { backStack.removeLastOrNull() }
+                )
+            }
+            entry<MultiSelectRoute> { key ->
+                MultiSelectRoot(
+                    filter = key.filter,
                     onNavigateBack = { backStack.removeLastOrNull() }
                 )
             }

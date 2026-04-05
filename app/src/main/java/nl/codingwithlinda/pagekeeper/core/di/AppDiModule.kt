@@ -17,6 +17,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilte
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.SearchViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.MultiSelectViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -53,5 +54,6 @@ val appPresentationModule = module {
     viewModelOf(::BookListViewModel)
     viewModelOf(::LibraryViewModel)
     viewModelOf(::SearchViewModel)
+    viewModelOf(::MultiSelectViewModel)
     viewModel { (isbn: String) -> BookDetailViewModel(isbn, get()) }
 }

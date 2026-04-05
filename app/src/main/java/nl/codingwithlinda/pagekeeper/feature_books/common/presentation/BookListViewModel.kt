@@ -13,11 +13,15 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
+import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
+import nl.codingwithlinda.pagekeeper.core.presentation.NavigationMenuAction
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
+import nl.codingwithlinda.pagekeeper.navigation.MultiSelectRoute
 
 class BookListViewModel(
     val savedStateHandle: SavedStateHandle,
     private val bookRepository: BookRepository,
+    private val menuActionController: MenuActionController
 ) : ViewModel() {
 
     companion object{
@@ -81,6 +85,14 @@ class BookListViewModel(
                 val book = _state.value.books.find { it.isbn == action.isbn } ?: return
                 viewModelScope.launch { _shareEvents.send(book) }
             }
+
+            is BookListItemAction.MultiSelectLongPress -> {
+                val filter = savedStateHandle.get<BookFilter>(KEY_FILTER) ?: BookFilter.All
+                viewModelScope.launch {
+                    menuActionController.onAction(NavigationMenuAction(MultiSelectRoute(filter)))
+                }
+            }
+
         }
     }
 }

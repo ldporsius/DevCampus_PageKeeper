@@ -7,4 +7,6 @@ sealed interface BookListItemAction {
     data class DeleteClick(val isbn: String) : BookListItemAction
     data object ConfirmDeleteClick : BookListItemAction
     data object DismissDeleteClick : BookListItemAction
+
+    data object MultiSelectLongPress: BookListItemAction
 }

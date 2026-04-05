@@ -1,25 +1,11 @@
 package nl.codingwithlinda.pagekeeper.core.presentation
 
-import androidx.navigation3.runtime.NavKey
+import nl.codingwithlinda.pagekeeper.navigation.Destination
 
-interface MenuAction {
-    suspend fun execute()
-    fun undo()
-}
+interface MenuAction
 
-object ImportBookMenuAction : MenuAction {
-    override suspend fun execute() {}
-    override fun undo() {}
-}
+object ImportBookMenuAction : MenuAction
 
 data class NavigationMenuAction(
-    val destination: NavKey,
-    val navigate: () -> Unit
-): MenuAction {
-    override suspend fun execute() {
-      navigate()
-    }
-    override fun undo() {
-
-    }
-}
+    val destination: Destination,
+): MenuAction

@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import nl.codingwithlinda.pagekeeper.R
@@ -16,6 +17,7 @@ import nl.codingwithlinda.pagekeeper.R
 @Composable
 fun SelectionTopBar(
     selectionCount: Int,
+    @DrawableRes navigationIcon: Int = R.drawable.cancel,
     onClear: () -> Unit,
     onFavorite: () -> Unit,
     onShare: () -> Unit,
@@ -26,8 +28,8 @@ fun SelectionTopBar(
         navigationIcon = {
             IconButton(onClick = onClear) {
                 Icon(
-                    painter = painterResource(R.drawable.cancel),
-                    contentDescription = "Clear selection"
+                    painter = painterResource(navigationIcon),
+                    contentDescription = "Navigate back"
                 )
             }
         },

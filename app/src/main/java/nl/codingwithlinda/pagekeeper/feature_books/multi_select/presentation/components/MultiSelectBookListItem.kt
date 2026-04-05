@@ -1,16 +1,13 @@
-package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
+package nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,20 +25,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import nl.codingwithlinda.pagekeeper.R
-import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.lora
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 
 @Composable
-fun BookListItem(
+fun MultiSelectBookListItem(
     book: BookUi,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
-    onAction: (BookListItemAction) -> Unit
+    isSelected: Boolean,
+    onToggle: (String) -> Unit,
+    onAction: (BookListItemAction) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val iconTint = MaterialTheme.colorScheme.onSurfaceVariant
 
@@ -49,11 +47,22 @@ fun BookListItem(
             .fillMaxWidth()
             .height(IntrinsicSize.Max)
             .background(MaterialTheme.colorScheme.background)
-            .combinedClickable(onClick = onClick, onLongClick = { onAction(BookListItemAction.MultiSelectLongPress) })
+            .clickable { onToggle(book.isbn) }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        Icon(
+            painter = painterResource(
+                if (isSelected) R.drawable.checkbox_checked else R.drawable.checkbox
+            ),
+            contentDescription = if (isSelected) "Selected" else "Not selected",
+            tint = Color.Unspecified,
+            modifier = Modifier
+                .size(24.dp)
+                .align(Alignment.CenterVertically)
+        )
+
         AsyncImage(
             model = book.imgUrl.ifEmpty { null },
             contentDescription = book.title,
@@ -64,7 +73,6 @@ fun BookListItem(
                 .size(width = 96.dp, height = 172.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(color = MaterialTheme.colorScheme.surfaceVariant)
-
         )
 
         Column(
@@ -91,19 +99,19 @@ fun BookListItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val icon = if(book.isFavorite) R.drawable.menu_favorites_active else R.drawable.menu_favorites_deactive
+                val favIcon = if (book.isFavorite) R.drawable.menu_favorites_active else R.drawable.menu_favorites_deactive
                 IconButton(onClick = { onAction(BookListItemAction.FavouriteClick(book.isbn)) }) {
                     Icon(
-                        painter = painterResource(icon),
+                        painter = painterResource(favIcon),
                         contentDescription = "Favourite",
                         tint = if (book.isFavorite) MaterialTheme.colorScheme.primary else iconTint
                     )
                 }
-                val fIcon = if(book.isFinished) R.drawable.finished else R.drawable.finish
+                val finishIcon = if (book.isFinished) R.drawable.finished else R.drawable.finish
                 IconButton(onClick = { onAction(BookListItemAction.FinishClick(book.isbn)) }) {
                     Icon(
-                        painter = painterResource(fIcon),
-                        contentDescription = "Currently reading",
+                        painter = painterResource(finishIcon),
+                        contentDescription = "Mark as finished",
                         tint = iconTint
                     )
                 }
@@ -125,28 +133,6 @@ fun BookListItem(
                     )
                 }
             }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun PreviewBookListItem() {
-    PageKeeperTheme {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            BookListItem(
-                book = BookUi(
-                    isbn = "9780195034929",
-                    title = "The Adventures of Tom Sawyer",
-                    author = "Mark Twain",
-                    imgUrl = "https://covers.openlibrary.org/b/olid/OL7353617M-M.jpg",
-                    formattedDate = "Apr 1, 2026"
-                ),
-                onAction = {}
-            )
         }
     }
 }

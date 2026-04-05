@@ -20,7 +20,8 @@ import nl.codingwithlinda.pagekeeper.navigation.MultiSelectRoute
 class BookListViewModel(
     val savedStateHandle: SavedStateHandle,
     private val bookRepository: BookRepository,
-    private val menuActionController: MenuActionController
+    private val menuActionController: MenuActionController,
+    initialFilter: BookFilter = BookFilter.All
 ) : ViewModel() {
 
     companion object{
@@ -34,12 +35,19 @@ class BookListViewModel(
 
 
     init {
+        // Set the filter synchronously before getStateFlow is called so the first
+        // combine emission uses the correct filter — no double-emission flash.
+        // Skip if already present (process restoration via SavedStateHandle).
+        if (!savedStateHandle.contains(KEY_FILTER)) {
+            savedStateHandle[KEY_FILTER] = initialFilter
+        }
 
-        val savedFilter = savedStateHandle.getStateFlow(KEY_FILTER, BookFilter.All)
+        val savedFilter = savedStateHandle.getStateFlow(KEY_FILTER, initialFilter)
 
         bookRepository.books.combine(savedFilter) { list , sFilter->
                 _state.update { current ->
                     current.copy(
+                        isLoading = false,
                         books = list
                             .filter { book ->
                                 when (sFilter) {

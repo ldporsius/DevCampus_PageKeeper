@@ -1,7 +1,6 @@
 package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
@@ -14,20 +13,16 @@ import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.componen
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.UnsupportedFormatDialog
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 import org.koin.androidx.compose.koinViewModel
-import org.koin.core.qualifier.named
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun BooksRoot(
     activeFilter: BookFilter,
     onNavigateToDetail: (String) -> Unit = {},
     onImportBook: () -> Unit = {},
-    bookListViewModel: BookListViewModel = koinViewModel(),
+    bookListViewModel: BookListViewModel = koinViewModel { parametersOf(activeFilter) },
     libraryViewModel: LibraryViewModel = koinViewModel()
 ) {
-
-    LaunchedEffect(activeFilter) {
-        bookListViewModel.savedStateHandle[BookListViewModel.KEY_FILTER] = activeFilter
-    }
 
     val state by bookListViewModel.state.collectAsStateWithLifecycle()
     val libraryState by libraryViewModel.state.collectAsStateWithLifecycle()

@@ -46,7 +46,7 @@ fun MultiSelectBookListItem(
         modifier = modifier
             .fillMaxWidth()
             .height(IntrinsicSize.Max)
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .clickable { onToggle(book.isbn) }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.Top,

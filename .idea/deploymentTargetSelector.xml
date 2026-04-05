@@ -4,6 +4,14 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-04-05T17:13:09.989980960Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=ZY22M946DQ" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
       </SelectionState>
       <SelectionState runConfigName="FavoritesScreenVisibilityTest">
         <option name="selectionMode" value="DROPDOWN" />
@@ -13,10 +21,10 @@
       </SelectionState>
       <SelectionState runConfigName="Tests in 'nl.codingwithlinda.pagekeeper.visibility'">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-04-05T15:36:02.724024833Z">
+        <DropdownSelection timestamp="2026-04-05T16:46:58.749854906Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=ZY22M946DQ" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=HA1NBBSD" />
             </handle>
           </Target>
         </DropdownSelection>

@@ -48,7 +48,7 @@ fun BookListItem(
         modifier = modifier
             .fillMaxWidth()
             .height(IntrinsicSize.Max)
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .combinedClickable(onClick = onClick, onLongClick = { onAction(BookListItemAction.MultiSelectLongPress) })
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.Top,

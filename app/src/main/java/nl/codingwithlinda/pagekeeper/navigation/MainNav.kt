@@ -1,13 +1,10 @@
 package nl.codingwithlinda.pagekeeper.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.presentation.ImportBookMenuAction
 import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
 import nl.codingwithlinda.pagekeeper.core.presentation.NavigationMenuAction

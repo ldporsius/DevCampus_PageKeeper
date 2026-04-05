@@ -13,7 +13,6 @@ import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.presentation.DefaultMenuActionController
 import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailViewModel
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.SearchViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
@@ -21,7 +20,6 @@ import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.Mul
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
-import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.viewModel
@@ -48,9 +46,6 @@ val appDataModule = module {
 }
 
 val appPresentationModule = module {
-//    viewModel(qualifier = named(BookFilter.All)) { BookListViewModel(get(), BookFilter.All) }
-//    viewModel(qualifier = named(BookFilter.Favorites)) { BookListViewModel(get(), BookFilter.Favorites) }
-//    viewModel(qualifier = named(BookFilter.Finished)) { BookListViewModel(get(), BookFilter.Finished) }
     viewModelOf(::BookListViewModel)
     viewModelOf(::LibraryViewModel)
     viewModelOf(::SearchViewModel)

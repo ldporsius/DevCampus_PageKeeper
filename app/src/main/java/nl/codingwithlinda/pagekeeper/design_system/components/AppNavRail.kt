@@ -74,7 +74,7 @@ fun AppNavRail(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.import_book),
-                                contentDescription = null,
+                                contentDescription = "Import book",
                                 tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(24.dp)
                             )

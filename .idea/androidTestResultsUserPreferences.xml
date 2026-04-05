@@ -3,6 +3,19 @@
   <component name="AndroidTestResultsUserPreferences">
     <option name="androidTestResultsTableState">
       <map>
+        <entry key="-1912916846">
+          <value>
+            <AndroidTestResultsTableState>
+              <option name="preferredColumnWidths">
+                <map>
+                  <entry key="Duration" value="90" />
+                  <entry key="Tests" value="360" />
+                  <entry key="motorola motorola edge 60 neo" value="120" />
+                </map>
+              </option>
+            </AndroidTestResultsTableState>
+          </value>
+        </entry>
         <entry key="-1413729209">
           <value>
             <AndroidTestResultsTableState>
@@ -56,6 +69,19 @@
           </value>
         </entry>
         <entry key="-76670797">
+          <value>
+            <AndroidTestResultsTableState>
+              <option name="preferredColumnWidths">
+                <map>
+                  <entry key="Duration" value="90" />
+                  <entry key="Tests" value="360" />
+                  <entry key="motorola motorola edge 60 neo" value="120" />
+                </map>
+              </option>
+            </AndroidTestResultsTableState>
+          </value>
+        </entry>
+        <entry key="344276857">
           <value>
             <AndroidTestResultsTableState>
               <option name="preferredColumnWidths">
@@ -126,6 +152,20 @@
               <option name="preferredColumnWidths">
                 <map>
                   <entry key="Duration" value="90" />
+                  <entry key="Tests" value="360" />
+                  <entry key="motorola motorola edge 60 neo" value="120" />
+                </map>
+              </option>
+            </AndroidTestResultsTableState>
+          </value>
+        </entry>
+        <entry key="1605244769">
+          <value>
+            <AndroidTestResultsTableState>
+              <option name="preferredColumnWidths">
+                <map>
+                  <entry key="Duration" value="90" />
+                  <entry key="LENOVO Lenovo TB125FU" value="120" />
                   <entry key="Tests" value="360" />
                   <entry key="motorola motorola edge 60 neo" value="120" />
                 </map>

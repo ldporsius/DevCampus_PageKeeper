@@ -103,7 +103,7 @@ fun BookListItem(
                 IconButton(onClick = { onAction(BookListItemAction.FinishClick(book.isbn)) }) {
                     Icon(
                         painter = painterResource(fIcon),
-                        contentDescription = "Currently reading",
+                        contentDescription = "Mark as finished",
                         tint = iconTint
                     )
                 }

@@ -5,14 +5,22 @@
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="noIsbn_returnsRandomIsbnString()">
+      <SelectionState runConfigName="FavoritesScreenVisibilityTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="noCoverImage_returnsDummyFrontCover()">
+      <SelectionState runConfigName="FinishedScreenVisibilityTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="scaleCoverBitmap_debugSwap_scalesDownToAtMost200px()">
+      <SelectionState runConfigName="Tests in 'nl.codingwithlinda.pagekeeper.visibility'">
         <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-04-05T15:36:02.724024833Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=ZY22M946DQ" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
       </SelectionState>
     </selectionStates>
   </component>

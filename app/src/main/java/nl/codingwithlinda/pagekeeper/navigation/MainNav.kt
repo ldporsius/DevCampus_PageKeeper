@@ -31,34 +31,23 @@ fun MainNav(
     onImportBook: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
     val backStack = rememberNavBackStack(BookListRoute)
     val controller = koinInject<MenuActionController>()
 
-
     fun navigate(destination: Destination) {
-        when(destination){
+        when (destination) {
             is BookListRoute -> {
                 backStack.add(BookListRoute); backStack.retainAll { it is BookListRoute }
             }
-            is FavoritesRoute ->{
+            is FavoritesRoute -> {
                 backStack.add(FavoritesRoute); backStack.retainAll { it is FavoritesRoute }
             }
-
             is FinishedRoute -> {
                 backStack.add(FinishedRoute); backStack.retainAll { it is FinishedRoute }
             }
-            is SearchRoute -> {
-                backStack.add(SearchRoute(destination.filter))
-            }
-
-            is MultiSelectRoute -> {
-                backStack.add(MultiSelectRoute(destination.filter))
-            }
-
-            is BookDetailRoute -> {
-            backStack.add(BookDetailRoute(destination.ISBN))
-        }
+            is SearchRoute -> backStack.add(SearchRoute(destination.filter))
+            is MultiSelectRoute -> backStack.add(MultiSelectRoute(destination.filter))
+            is BookDetailRoute -> backStack.add(BookDetailRoute(destination.ISBN))
         }
     }
 
@@ -69,75 +58,63 @@ fun MainNav(
         }
     }
 
-    fun onSearch(filter: BookFilter) { navigate(SearchRoute(filter)) }
+    val selectedIndex = when (backStack.firstOrNull()) {
+        is BookListRoute -> 0
+        is FavoritesRoute -> 1
+        is FinishedRoute -> 2
+        else -> 0
+    }
 
-    NavDisplay(
-        backStack = backStack,
-        modifier = modifier,
-        entryProvider = entryProvider {
-            entry<BookListRoute> {
-                val isExpandedWidth = currentWindowAdaptiveInfo()
-                    .windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
-                AppNavigation(
-                    selectedIndex = 0,
-                    content = {
+    AppNavigation(
+        selectedIndex = selectedIndex,
+        content = {
+            NavDisplay(
+                backStack = backStack,
+                modifier = modifier,
+                entryProvider = entryProvider {
+                    entry<BookListRoute> {
+                        val isExpandedWidth = currentWindowAdaptiveInfo()
+                            .windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
                         if (isExpandedWidth) {
                             BooksRootExpandedWidth(onImportBook = onImportBook)
                         } else {
                             BooksRoot(onImportBook = onImportBook)
                         }
                     }
-                )
-            }
-
-            entry<FavoritesRoute> {
-                val viewModel = koinViewModel<BookListViewModel>(qualifier = named("favorites"))
-                viewModel.setFilter(BookFilter.Favorites)
-                AppNavigation(
-                    selectedIndex = 1,
-                    content = {
+                    entry<FavoritesRoute> {
+                        val viewModel = koinViewModel<BookListViewModel>(qualifier = named("favorites"))
                         FavoritesScreen(
                             state = viewModel.state.collectAsStateWithLifecycle().value,
                             onAction = viewModel::onAction
                         )
                     }
-                )
-            }
-
-            entry<FinishedRoute> {
-                val viewModel = koinViewModel<BookListViewModel>(qualifier = named("finished"))
-                viewModel.setFilter(BookFilter.Finished)
-                AppNavigation(
-                    selectedIndex = 2,
-                    content = {
+                    entry<FinishedRoute> {
+                        val viewModel = koinViewModel<BookListViewModel>(qualifier = named("finished"))
                         FinishedScreen(
                             state = viewModel.state.collectAsStateWithLifecycle().value,
                             onAction = viewModel::onAction
                         )
                     }
-                )
-
-            }
-            entry<SearchRoute> { key ->
-                SearchRoot(
-                    filter = key.filter,
-                    onBack = { backStack.removeLastOrNull() },
-                )
-            }
-
-            entry<BookDetailRoute> { key ->
-                BookDetailRoot(
-                    isbn = key.ISBN,
-                    onNavigateBack = { backStack.removeLastOrNull() }
-                )
-            }
-            entry<MultiSelectRoute> { key ->
-                MultiSelectRoot(
-                    filter = key.filter,
-                    onNavigateBack = { backStack.removeLastOrNull() }
-                )
-            }
+                    entry<SearchRoute> { key ->
+                        SearchRoot(
+                            filter = key.filter,
+                            onBack = { backStack.removeLastOrNull() },
+                        )
+                    }
+                    entry<BookDetailRoute> { key ->
+                        BookDetailRoot(
+                            isbn = key.ISBN,
+                            onNavigateBack = { backStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<MultiSelectRoute> { key ->
+                        MultiSelectRoot(
+                            filter = key.filter,
+                            onNavigateBack = { backStack.removeLastOrNull() }
+                        )
+                    }
+                }
+            )
         }
     )
 }
-

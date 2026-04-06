@@ -14,21 +14,29 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.R
+import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
+import nl.codingwithlinda.pagekeeper.core.presentation.NavigationMenuAction
+import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListSideEffects
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.library.navigation.LibraryEvent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryScreen
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 import nl.codingwithlinda.pagekeeper.feature_books.search.SearchViewModel
+import nl.codingwithlinda.pagekeeper.navigation.BookDetailRoute
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 
@@ -43,6 +51,17 @@ fun BooksRootExpandedWidth(
     val state by bookListViewModel.state.collectAsStateWithLifecycle()
     val libraryState by libraryViewModel.state.collectAsStateWithLifecycle()
     val searchState by searchViewModel.state.collectAsStateWithLifecycle()
+
+    val controller = koinInject<MenuActionController>()
+    val scope = rememberCoroutineScope()
+
+    ObserveAsEvents(libraryViewModel.events) { event ->
+        when (event) {
+            is LibraryEvent.NavigateToDetail -> scope.launch {
+                controller.onAction(NavigationMenuAction(BookDetailRoute(event.isbn)))
+            }
+        }
+    }
 
     BookListSideEffects(bookListViewModel)
 

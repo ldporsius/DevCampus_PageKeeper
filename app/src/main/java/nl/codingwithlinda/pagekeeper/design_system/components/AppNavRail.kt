@@ -2,6 +2,8 @@ package nl.codingwithlinda.pagekeeper.design_system.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -64,12 +66,22 @@ fun AppNavRail(
             AnimatedContent(
                 targetState = expanded,
                 transitionSpec = {
+                    val springSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessHigh,
+                        visibilityThreshold = androidx.compose.ui.unit.IntOffset(1, 1)
+                    )
+                    val sizeSpring = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessHigh,
+                        visibilityThreshold = androidx.compose.ui.unit.IntSize(1, 1)
+                    )
                     if (targetState) {
-                        (fadeIn(tween(120)) + slideInHorizontally(tween(120))) togetherWith
-                        fadeOut(tween(80)) using SizeTransform { _, _ -> tween(120) }
+                        (fadeIn(tween(70)) + slideInHorizontally(springSpec)) togetherWith
+                        fadeOut(tween(50)) using SizeTransform { _, _ -> sizeSpring }
                     } else {
-                        fadeIn(tween(80)) togetherWith
-                        (fadeOut(tween(120)) + slideOutHorizontally(tween(120))) using SizeTransform { _, _ -> tween(120) }
+                        fadeIn(tween(50)) togetherWith
+                        (fadeOut(tween(70)) + slideOutHorizontally(springSpec)) using SizeTransform { _, _ -> sizeSpring }
                     }
                 },
                 label = "NavRailExpand"

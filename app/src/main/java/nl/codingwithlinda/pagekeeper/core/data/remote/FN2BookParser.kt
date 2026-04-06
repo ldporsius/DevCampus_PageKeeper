@@ -85,7 +85,7 @@ class FN2BookParser(
 
     // Returns the parsed Book (without imgUrl) and the compressed cover bytes, or null on failure.
     // Does not touch the filesystem.
-    private fun parseContent(descriptionSection: String, binarySection: String): Pair<Book, ByteArray?> {
+    private suspend fun parseContent(descriptionSection: String, binarySection: String): Pair<Book, ByteArray?> {
         val metaData = docBuilder(
             inputStream = (descriptionSection + "</FictionBook>").byteInputStream(),
             bodyText = descriptionSection
@@ -187,7 +187,7 @@ class FN2BookParser(
         }
     }
 
-    private fun scaleCoverBitmap(original: Bitmap, maxPx: Int): Bitmap =
+    private suspend fun scaleCoverBitmap(original: Bitmap, maxPx: Int): Bitmap =
         scaleCoverBitmapTo(original, maxPx)
 
     private fun docBuilder(inputStream: InputStream, bodyText: String = ""): Fb2Metadata {

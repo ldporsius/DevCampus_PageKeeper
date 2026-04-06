@@ -16,7 +16,7 @@ import nl.codingwithlinda.pagekeeper.core.presentation.NavItem
 import nl.codingwithlinda.pagekeeper.design_system.util.DeviceType
 import nl.codingwithlinda.pagekeeper.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.design_system.util.rememberDeviceConfig
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.SearchRoot
+import nl.codingwithlinda.pagekeeper.feature_books.search.width_compact.SearchRoot
 import org.koin.compose.koinInject
 
 @Composable
@@ -25,6 +25,7 @@ fun AppNavigation(
     onLibrary: () -> Unit,
     onFavorites: () -> Unit,
     onFinished: () -> Unit,
+    onSearch: () -> Unit,
     content: @Composable () -> Unit
 ) {
     val controller = koinInject<MenuActionController>()
@@ -50,7 +51,7 @@ fun AppNavigation(
     if (useDrawer) {
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
-        var showSearch by remember { mutableStateOf(false) }
+       // var showSearch by remember { mutableStateOf(false) }
 
         AppNavDrawer(
             onImportBook = onImportBook,
@@ -59,18 +60,15 @@ fun AppNavigation(
             onItemSelected = onItemSelected,
             drawerState = drawerState,
             mainContent = {
-                if (showSearch) {
-                    SearchRoot(onBack = { showSearch = false })
-                } else {
                     MainScaffold(
                         title = navItems[selectedIndex].label,
                         onMenuClick = { scope.launch { drawerState.open() } },
-                        onSearch = { showSearch = true }
+                        onSearch = { onSearch() }
                     ) {
                         content()
                     }
                 }
-            }
+
         )
     } else {
         AppNavRail(

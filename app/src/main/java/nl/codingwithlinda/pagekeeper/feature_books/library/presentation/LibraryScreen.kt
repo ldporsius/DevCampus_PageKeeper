@@ -12,7 +12,9 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.design_system.util.DeviceType
 import nl.codingwithlinda.pagekeeper.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.design_system.util.rememberDeviceConfig
@@ -20,12 +22,15 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListI
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListItemPlaceholder
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListState
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.EmptyLibraryContent
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.ImportFailedDialog
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.UnsupportedFormatDialog
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 
 @Composable
 fun LibraryScreen(
     state: BookListState,
+    libraryState: LibraryState,
     isImporting: Boolean,
     onImportBook: () -> Unit,
     onCancelImport: () -> Unit,
@@ -33,6 +38,19 @@ fun LibraryScreen(
     onAction: (BookListItemAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+
+    if (libraryState.showUnsupportedFormatDialog) {
+        UnsupportedFormatDialog(
+            onDismiss = { onLibraryAction(LibraryAction.DismissUnsupportedFormatDialog) }
+        )
+    }
+
+    if (libraryState.importFailed) {
+        ImportFailedDialog(
+            onDismiss = { onLibraryAction(LibraryAction.DismissImportFailed) }
+        )
+    }
     Box(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
             visible = state.books.isEmpty() && !isImporting && !state.isLoading,

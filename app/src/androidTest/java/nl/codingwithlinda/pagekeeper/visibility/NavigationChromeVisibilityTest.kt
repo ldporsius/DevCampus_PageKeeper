@@ -20,7 +20,7 @@ import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
 import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.SearchViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.search.SearchViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.MultiSelectViewModel
 import nl.codingwithlinda.pagekeeper.navigation.MainNav

@@ -10,6 +10,7 @@ import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListState
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryScreen
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryState
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -77,6 +78,7 @@ class LibraryScreenVisibilityTest {
             PageKeeperTheme {
                 LibraryScreen(
                     state = BookListState(),
+                    libraryState = LibraryState(),
                     isImporting = false,
                     onImportBook = {},
                     onCancelImport = {},
@@ -93,6 +95,7 @@ class LibraryScreenVisibilityTest {
             PageKeeperTheme {
                 LibraryScreen(
                     state = BookListState(books = listOf(sampleBook)),
+                    libraryState = LibraryState(),
                     isImporting = false,
                     onImportBook = {},
                     onCancelImport = {},

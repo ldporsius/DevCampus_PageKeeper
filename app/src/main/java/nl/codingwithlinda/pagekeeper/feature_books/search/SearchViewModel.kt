@@ -1,5 +1,6 @@
-package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
+package nl.codingwithlinda.pagekeeper.feature_books.search
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.FlowPreview
@@ -9,16 +10,36 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.stateIn
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel.Companion.KEY_FILTER
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 
 @OptIn(FlowPreview::class)
 class SearchViewModel(
+    initialFilter: BookFilter,
+    savedStateHandle: SavedStateHandle,
     bookRepository: BookRepository
 ) : ViewModel() {
 
+    init {
+        if (!savedStateHandle.contains(KEY_FILTER)) {
+            println("--- BOOKLISTVIEWMODEL--- Setting filter to $initialFilter")
+            savedStateHandle[KEY_FILTER] = initialFilter
+        }
+    }
+    private val filter = savedStateHandle.getStateFlow(KEY_FILTER, initialFilter)
+
+    private val filteredBooks = bookRepository.books.combine(filter){ books, filter ->
+        when(filter){
+            BookFilter.All -> books
+            BookFilter.Favorites -> books.filter { it.isFavorite }
+            BookFilter.Finished -> books.filter { it.isFinished }
+        }
+    }
     private val _query = MutableStateFlow("")
 
     val state = combine(
-        bookRepository.books,
+        filteredBooks,
         _query,
         _query.debounce { if (it.isBlank()) 0L else 500L }
     ) { books, query, debouncedQuery ->
@@ -35,7 +56,7 @@ class SearchViewModel(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.Companion.WhileSubscribed(5_000),
         initialValue = SearchState()
     )
 

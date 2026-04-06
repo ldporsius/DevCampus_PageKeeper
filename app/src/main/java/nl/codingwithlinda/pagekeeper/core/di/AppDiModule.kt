@@ -14,16 +14,16 @@ import nl.codingwithlinda.pagekeeper.core.presentation.DefaultMenuActionControll
 import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.SearchViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.search.SearchViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.MultiSelectViewModel
 import org.koin.android.ext.koin.androidContext
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import org.koin.plugin.module.dsl.viewModel
 
 private val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -47,9 +47,12 @@ val appDataModule = module {
 }
 
 val appPresentationModule = module {
-    viewModel { params -> BookListViewModel(get(), get(), get(), params.getOrNull<BookFilter>() ?: BookFilter.All) }
+    viewModel(qualifier = named("all")) { BookListViewModel(get(), get(), get(), BookFilter.All) }
+    viewModel(qualifier = named("favorites")) { BookListViewModel(get(), get(), get(), BookFilter.Favorites) }
+    viewModel(qualifier = named("finished")) { BookListViewModel(get(), get(), get(), BookFilter.Finished) }
+    viewModel(qualifier = named("search")) { BookListViewModel(get(), get(), get(), BookFilter.All) }
     viewModelOf(::LibraryViewModel)
-    viewModelOf(::SearchViewModel)
+    viewModel { (initialFilter: BookFilter) -> SearchViewModel(initialFilter, get(), get()) }
     viewModelOf(::MultiSelectViewModel)
     viewModel { (isbn: String) -> BookDetailViewModel(isbn, get()) }
 }

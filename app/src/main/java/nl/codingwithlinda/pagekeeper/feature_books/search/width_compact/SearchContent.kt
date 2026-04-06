@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
+package nl.codingwithlinda.pagekeeper.feature_books.search.width_compact
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,11 +8,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListItem
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.qualifier.named
 
 @Composable
-fun SearchContent(query: String, books: List<BookUi>) {
+fun SearchContent(
+    query: String,
+    books: List<BookUi>
+) {
     val viewModel: BookListViewModel = koinViewModel(qualifier = named(BookFilter.All))
 
     if (query.isNotBlank() && books.isEmpty()) {

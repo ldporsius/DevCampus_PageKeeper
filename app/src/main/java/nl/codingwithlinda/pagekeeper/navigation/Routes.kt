@@ -18,5 +18,8 @@ data object FavoritesRoute: NavKey, Destination
 data object FinishedRoute: NavKey, Destination
 
 @Serializable
+data class SearchRoute(val filter: BookFilter): NavKey, Destination
+
+@Serializable
 data class MultiSelectRoute(val filter: BookFilter): NavKey, Destination
 

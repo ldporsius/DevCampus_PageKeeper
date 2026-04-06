@@ -1,6 +1,7 @@
 package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
@@ -17,12 +18,13 @@ import org.koin.core.parameter.parametersOf
 
 @Composable
 fun BooksRoot(
-    activeFilter: BookFilter,
+    //activeFilter: BookFilter,
     onNavigateToDetail: (String) -> Unit = {},
     onImportBook: () -> Unit = {},
-    bookListViewModel: BookListViewModel = koinViewModel { parametersOf(activeFilter) },
+    bookListViewModel: BookListViewModel = koinViewModel { parametersOf(BookFilter.All) },
     libraryViewModel: LibraryViewModel = koinViewModel()
 ) {
+
 
     val state by bookListViewModel.state.collectAsStateWithLifecycle()
     val libraryState by libraryViewModel.state.collectAsStateWithLifecycle()
@@ -35,21 +37,11 @@ fun BooksRoot(
 
     BookListSideEffects(bookListViewModel)
 
-    if (libraryState.showUnsupportedFormatDialog) {
-        UnsupportedFormatDialog(
-            onDismiss = { libraryViewModel.onAction(LibraryAction.DismissUnsupportedFormatDialog) }
-        )
-    }
 
-    if (libraryState.importFailed) {
-        ImportFailedDialog(
-            onDismiss = { libraryViewModel.onAction(LibraryAction.DismissImportFailed) }
-        )
-    }
-
-    when (activeFilter) {
+    when (state.filter) {
         BookFilter.All -> LibraryScreen(
             state = state,
+            libraryState = libraryState,
             isImporting = libraryState.isImporting,
             onImportBook = onImportBook,
             onCancelImport = { libraryViewModel.onAction(LibraryAction.CancelImport) },

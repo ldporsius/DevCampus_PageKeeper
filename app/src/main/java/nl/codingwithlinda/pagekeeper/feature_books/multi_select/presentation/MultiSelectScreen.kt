@@ -14,7 +14,7 @@ import nl.codingwithlinda.pagekeeper.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.DeleteBookDialog
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.SelectionTopBar
+import nl.codingwithlinda.pagekeeper.feature_books.multi_select.SelectionTopBar
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.components.MultiSelectBookListItem
 

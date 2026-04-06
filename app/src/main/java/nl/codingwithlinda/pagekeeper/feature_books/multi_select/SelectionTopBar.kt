@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
+package nl.codingwithlinda.pagekeeper.feature_books.multi_select
 
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api

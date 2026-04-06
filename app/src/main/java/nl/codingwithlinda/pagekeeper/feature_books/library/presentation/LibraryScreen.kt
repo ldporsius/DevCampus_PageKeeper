@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.design_system.util.DeviceType
 import nl.codingwithlinda.pagekeeper.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.design_system.util.rememberDeviceConfig
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookItemsGrid
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListItem
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListItemPlaceholder
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListState
@@ -38,7 +39,6 @@ fun LibraryScreen(
     onAction: (BookListItemAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
 
     if (libraryState.showUnsupportedFormatDialog) {
         UnsupportedFormatDialog(
@@ -65,31 +65,13 @@ fun LibraryScreen(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            val deviceConfig = rememberDeviceConfig()
-            val columns = if (
-                deviceConfig.deviceType == DeviceType.Tablet ||
-                deviceConfig.orientation == Orientation.Landscape
-            ) 2 else 1
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(columns),
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                if (isImporting) {
-                    item(key = "importing_placeholder", span = { GridItemSpan(maxLineSpan) }) {
-                        BookListItemPlaceholder(onCancel = onCancelImport)
-                    }
-                }
-                items(items = state.books, key = { it.isbn }) { book ->
-                    BookListItem(
-                        book = book,
-                        onClick = { onLibraryAction(LibraryAction.OnBookClick(book.isbn)) },
-                        onAction = onAction
-                    )
-                }
-            }
+            BookItemsGrid(
+                books = state.books,
+                isImporting = isImporting,
+                onCancelImport = onCancelImport,
+                onLibraryAction = onLibraryAction,
+                onAction = onAction
+            )
         }
     }
 }

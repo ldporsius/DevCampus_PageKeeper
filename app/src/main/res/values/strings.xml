@@ -4,4 +4,5 @@
     <string name="empty_library_subtitle">Import your first book to start building your library</string>
     <string name="empty_library_import_button">Import Book</string>
     <string name="cd_empty_library_illustration">Open book illustration</string>
+    <string name="search_books_placeholder">Search books</string>
 </resources>

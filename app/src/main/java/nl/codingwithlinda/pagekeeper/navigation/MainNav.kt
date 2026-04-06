@@ -2,6 +2,7 @@ package nl.codingwithlinda.pagekeeper.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -12,12 +13,17 @@ import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.design_system.components.AppNavigation
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailRoot
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BooksRoot
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowWidthSizeClass
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.form_factors.BooksRoot
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.form_factors.BooksRootExpandedWidth
+import nl.codingwithlinda.pagekeeper.feature_books.favorites.presentation.FavoritesScreen
+import nl.codingwithlinda.pagekeeper.feature_books.finished.presentation.FinishedScreen
 import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.MultiSelectRoot
 import nl.codingwithlinda.pagekeeper.feature_books.search.width_compact.SearchRoot
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 
 @Composable
@@ -29,12 +35,6 @@ fun MainNav(
     val backStack = rememberNavBackStack(BookListRoute)
     val controller = koinInject<MenuActionController>()
 
-
-    val selectedIndex = when (backStack.lastOrNull()) {
-        is FavoritesRoute -> 1
-        is FinishedRoute -> 2
-        else -> 0
-    }
 
     fun navigate(destination: Destination) {
         when(destination){
@@ -69,49 +69,59 @@ fun MainNav(
         }
     }
 
-    val onLibrary = { navigate(BookListRoute) }
-    val onFavorites = { navigate(FavoritesRoute) }
-    val onFinished = { navigate(FinishedRoute) }
     fun onSearch(filter: BookFilter) { navigate(SearchRoute(filter)) }
-
 
     NavDisplay(
         backStack = backStack,
         modifier = modifier,
         entryProvider = entryProvider {
             entry<BookListRoute> {
-                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished,
-                    { onSearch(BookFilter.All) }) {
-                    BooksRoot(
-                        bookListViewModel = koinViewModel(qualifier = named("all")),
-                        onNavigateToDetail = { isbn -> backStack.add(BookDetailRoute(isbn)) },
-                        onImportBook = onImportBook
-                    )
-                }
+                val isExpandedWidth = currentWindowAdaptiveInfo()
+                    .windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
+                AppNavigation(
+                    selectedIndex = 0,
+                    content = {
+                        if (isExpandedWidth) {
+                            BooksRootExpandedWidth(onImportBook = onImportBook)
+                        } else {
+                            BooksRoot(onImportBook = onImportBook)
+                        }
+                    }
+                )
             }
 
             entry<FavoritesRoute> {
-                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished,
-                    { onSearch(BookFilter.Favorites) }) {
-                    BooksRoot(
-                        bookListViewModel = koinViewModel(qualifier = named("favorites")),
-                    )
-                }
+                val viewModel = koinViewModel<BookListViewModel>(qualifier = named("favorites"))
+                viewModel.setFilter(BookFilter.Favorites)
+                AppNavigation(
+                    selectedIndex = 1,
+                    content = {
+                        FavoritesScreen(
+                            state = viewModel.state.collectAsStateWithLifecycle().value,
+                            onAction = viewModel::onAction
+                        )
+                    }
+                )
             }
 
             entry<FinishedRoute> {
-                NavScaffold(selectedIndex, onLibrary, onFavorites, onFinished,
-                    { onSearch(BookFilter.Finished) }) {
-                    BooksRoot(
-                        bookListViewModel = koinViewModel(qualifier = named("finished")),
-                    )
-                }
+                val viewModel = koinViewModel<BookListViewModel>(qualifier = named("finished"))
+                viewModel.setFilter(BookFilter.Finished)
+                AppNavigation(
+                    selectedIndex = 2,
+                    content = {
+                        FinishedScreen(
+                            state = viewModel.state.collectAsStateWithLifecycle().value,
+                            onAction = viewModel::onAction
+                        )
+                    }
+                )
+
             }
             entry<SearchRoute> { key ->
                 SearchRoot(
                     filter = key.filter,
                     onBack = { backStack.removeLastOrNull() },
-                    //bookListViewModel = koinViewModel(qualifier = named("search"), parameters = { parametersOf(key.filter)})
                 )
             }
 
@@ -131,21 +141,3 @@ fun MainNav(
     )
 }
 
-@Composable
-private fun NavScaffold(
-    selectedIndex: Int,
-    onLibrary: () -> Unit,
-    onFavorites: () -> Unit,
-    onFinished: () -> Unit,
-    onSearch: () -> Unit,
-    content: @Composable () -> Unit,
-) {
-    AppNavigation(
-        selectedIndex = selectedIndex,
-        onLibrary = onLibrary,
-        onFavorites = onFavorites,
-        onFinished = onFinished,
-        onSearch = onSearch,
-        content = content,
-    )
-}

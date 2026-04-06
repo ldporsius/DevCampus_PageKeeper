@@ -1,7 +1,6 @@
 package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,13 +14,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -44,85 +46,99 @@ fun BookListItem(
 ) {
     val iconTint = MaterialTheme.colorScheme.onSurfaceVariant
 
-    Row(
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Max)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .combinedClickable(onClick = onClick, onLongClick = { onAction(BookListItemAction.MultiSelectLongPress) })
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center
     ) {
-        AsyncImage(
-            model = book.imgUrl.ifEmpty { null },
-            contentDescription = book.title,
-            contentScale = ContentScale.Fit,
-            error = painterResource(R.drawable.book),
-            placeholder = painterResource(R.drawable.book),
+        Surface(
             modifier = Modifier
-                .size(width = 96.dp, height = 172.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(color = MaterialTheme.colorScheme.surfaceVariant)
-
-        )
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
+                .widthIn(max = 560.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = Color.Transparent,
+            tonalElevation = 0.dp
         ) {
-            Text(
-                text = book.title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                fontFamily = lora,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = book.author,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Max)
+                    .combinedClickable(onClick = onClick, onLongClick = { onAction(BookListItemAction.MultiSelectLongPress) })
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                val icon = if(book.isFavorite) R.drawable.menu_favorites_active else R.drawable.menu_favorites_deactive
-                IconButton(onClick = { onAction(BookListItemAction.FavouriteClick(book.isbn)) }) {
-                    Icon(
-                        painter = painterResource(icon),
-                        contentDescription = "Favourite",
-                        tint = if (book.isFavorite) MaterialTheme.colorScheme.primary else iconTint
-                    )
-                }
-                val fIcon = if(book.isFinished) R.drawable.finished else R.drawable.finish
-                IconButton(onClick = { onAction(BookListItemAction.FinishClick(book.isbn)) }) {
-                    Icon(
-                        painter = painterResource(fIcon),
-                        contentDescription = "Mark as finished",
-                        tint = iconTint
-                    )
-                }
-                IconButton(onClick = { onAction(BookListItemAction.ShareClick(book.isbn)) }) {
-                    Icon(
-                        painter = painterResource(R.drawable.share),
-                        contentDescription = "Share",
-                        tint = iconTint
-                    )
-                }
+                AsyncImage(
+                    model = book.imgUrl.ifEmpty { null },
+                    contentDescription = book.title,
+                    contentScale = ContentScale.Fit,
+                    error = painterResource(R.drawable.book),
+                    placeholder = painterResource(R.drawable.book),
+                    modifier = Modifier
+                        .size(width = 96.dp, height = 172.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(color = MaterialTheme.colorScheme.surfaceVariant)
+                )
 
-                Spacer(modifier = Modifier.weight(1f))
-
-                IconButton(onClick = { onAction(BookListItemAction.DeleteClick(book.isbn)) }) {
-                    Icon(
-                        painter = painterResource(R.drawable.delete),
-                        contentDescription = "Delete",
-                        tint = iconTint
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                ) {
+                    Text(
+                        text = book.title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = lora,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
+                    Text(
+                        text = book.author,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val icon = if (book.isFavorite) R.drawable.menu_favorites_active else R.drawable.menu_favorites_deactive
+                        IconButton(onClick = { onAction(BookListItemAction.FavouriteClick(book.isbn)) }) {
+                            Icon(
+                                painter = painterResource(icon),
+                                contentDescription = "Favourite",
+                                tint = if (book.isFavorite) MaterialTheme.colorScheme.primary else iconTint
+                            )
+                        }
+                        val fIcon = if (book.isFinished) R.drawable.finished else R.drawable.finish
+                        IconButton(onClick = { onAction(BookListItemAction.FinishClick(book.isbn)) }) {
+                            Icon(
+                                painter = painterResource(fIcon),
+                                contentDescription = "Mark as finished",
+                                tint = iconTint
+                            )
+                        }
+                        IconButton(onClick = { onAction(BookListItemAction.ShareClick(book.isbn)) }) {
+                            Icon(
+                                painter = painterResource(R.drawable.share),
+                                contentDescription = "Share",
+                                tint = iconTint
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        IconButton(onClick = { onAction(BookListItemAction.DeleteClick(book.isbn)) }) {
+                            Icon(
+                                painter = painterResource(R.drawable.delete),
+                                contentDescription = "Delete",
+                                tint = iconTint
+                            )
+                        }
+                    }
                 }
             }
         }

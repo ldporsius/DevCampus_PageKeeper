@@ -34,6 +34,10 @@ class BookListViewModel(
     val shareEvents = _shareEvents.receiveAsFlow()
 
 
+    fun setFilter(filter: BookFilter) {
+        savedStateHandle[KEY_FILTER] = filter
+    }
+
     init {
         // Set the filter synchronously before getStateFlow is called so the first
         // combine emission uses the correct filter — no double-emission flash.

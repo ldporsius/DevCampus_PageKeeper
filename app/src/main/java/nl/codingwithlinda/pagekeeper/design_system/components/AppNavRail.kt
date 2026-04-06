@@ -90,13 +90,13 @@ fun AppNavRail(
                                     contentAlignment = Alignment.Center,
                                     modifier = Modifier
                                         .size(48.dp)
-                                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+                                        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(16.dp))
                                         .padding(8.dp)
                                 ) {
                                     Icon(
                                         painter = painterResource(item.iconRes),
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                         modifier = Modifier.size(24.dp)
                                     )
                                 }

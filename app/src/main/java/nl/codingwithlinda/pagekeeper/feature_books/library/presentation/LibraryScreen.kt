@@ -69,7 +69,7 @@ fun LibraryScreen(
                 books = state.books,
                 isImporting = isImporting,
                 onCancelImport = onCancelImport,
-                onLibraryAction = onLibraryAction,
+                onBookClick = { isbn -> onLibraryAction(LibraryAction.OnBookClick(isbn)) },
                 onAction = onAction
             )
         }

@@ -1,7 +1,9 @@
 package nl.codingwithlinda.pagekeeper.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -83,16 +85,20 @@ fun MainNav(
                     }
                     entry<FavoritesRoute> {
                         val viewModel = koinViewModel<BookListViewModel>(qualifier = named("favorites"))
+                        val scope = rememberCoroutineScope()
                         FavoritesScreen(
                             state = viewModel.state.collectAsStateWithLifecycle().value,
-                            onAction = viewModel::onAction
+                            onAction = viewModel::onAction,
+                            onBookClick = { isbn -> scope.launch { controller.onAction(NavigationMenuAction(BookDetailRoute(isbn))) } }
                         )
                     }
                     entry<FinishedRoute> {
                         val viewModel = koinViewModel<BookListViewModel>(qualifier = named("finished"))
+                        val scope = rememberCoroutineScope()
                         FinishedScreen(
                             state = viewModel.state.collectAsStateWithLifecycle().value,
-                            onAction = viewModel::onAction
+                            onAction = viewModel::onAction,
+                            onBookClick = { isbn -> scope.launch { controller.onAction(NavigationMenuAction(BookDetailRoute(isbn))) } }
                         )
                     }
                     entry<SearchRoute> { key ->

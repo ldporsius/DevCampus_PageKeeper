@@ -13,15 +13,14 @@ import nl.codingwithlinda.pagekeeper.design_system.util.DeviceType
 import nl.codingwithlinda.pagekeeper.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
-import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 
 @Composable
 fun BookItemsGrid(
     modifier: Modifier = Modifier,
     books: List<BookUi>,
-    isImporting: Boolean,
-    onCancelImport: () -> Unit,
-    onLibraryAction: (LibraryAction) -> Unit,
+    isImporting: Boolean = false,
+    onCancelImport: () -> Unit = {},
+    onBookClick: (String) -> Unit = {},
     onAction: (BookListItemAction) -> Unit
 ) {
     val deviceConfig = rememberDeviceConfig()
@@ -44,7 +43,7 @@ fun BookItemsGrid(
         items(items = books, key = { it.isbn }) { book ->
             BookListItem(
                 book = book,
-                onClick = { onLibraryAction(LibraryAction.OnBookClick(book.isbn)) },
+                onClick = { onBookClick(book.isbn) },
                 onAction = onAction
             )
         }

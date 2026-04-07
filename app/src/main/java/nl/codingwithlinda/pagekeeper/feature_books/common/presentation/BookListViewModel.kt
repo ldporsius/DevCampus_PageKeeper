@@ -38,7 +38,7 @@ class BookListViewModel(
         savedStateHandle[KEY_FILTER] = filter
     }
 
-    init {
+   init {
         // Set the filter synchronously before getStateFlow is called so the first
         // combine emission uses the correct filter — no double-emission flash.
         // Skip if already present (process restoration via SavedStateHandle).

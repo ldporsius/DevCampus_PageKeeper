@@ -18,7 +18,7 @@ import org.koin.core.qualifier.named
 fun SearchRoot(
     filter: BookFilter,
     onBack: () -> Unit,
-    searchViewModel: SearchViewModel = koinViewModel(parameters = { parametersOf(filter) }),
+    searchViewModel: SearchViewModel = koinViewModel<SearchViewModel>().also { it.setFilter(filter) },
     bookListViewModel: BookListViewModel = koinViewModel(qualifier = named("search"), parameters = { parametersOf(filter)}),
 ) {
     val state by searchViewModel.state.collectAsStateWithLifecycle()

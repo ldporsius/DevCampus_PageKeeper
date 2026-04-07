@@ -11,29 +11,33 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.stateIn
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel.Companion.KEY_FILTER
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListState
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 
 @OptIn(FlowPreview::class)
 class SearchViewModel(
-    initialFilter: BookFilter,
     savedStateHandle: SavedStateHandle,
     bookRepository: BookRepository
 ) : ViewModel() {
 
-    init {
-        if (!savedStateHandle.contains(KEY_FILTER)) {
-            println("--- BOOKLISTVIEWMODEL--- Setting filter to $initialFilter")
-            savedStateHandle[KEY_FILTER] = initialFilter
-        }
+    private val filter = MutableStateFlow(BookFilter.All)
+
+    fun setFilter(filter: BookFilter) {
+        this.filter.value = filter
     }
-    private val filter = savedStateHandle.getStateFlow(KEY_FILTER, initialFilter)
+
 
     private val filteredBooks = bookRepository.books.combine(filter){ books, filter ->
         when(filter){
             BookFilter.All -> books
             BookFilter.Favorites -> books.filter { it.isFavorite }
             BookFilter.Finished -> books.filter { it.isFinished }
+        }.let { bookEntities ->
+            BookListState(
+                isLoading = false,
+                filter = filter,
+                query = _query.value,
+                books = bookEntities.map { it.toBookUi() })
         }
     }
     private val _query = MutableStateFlow("")
@@ -43,11 +47,10 @@ class SearchViewModel(
         _query,
         _query.debounce { if (it.isBlank()) 0L else 500L }
     ) { books, query, debouncedQuery ->
-        SearchState(
+        books.copy(
+            isLoading = false,
             query = query,
-            books = books
-                .sortedByDescending { it.dateCreated }
-                .map { it.toBookUi() }
+            books = books.books
                 .filter { book ->
                     debouncedQuery.isBlank() ||
                             book.title.contains(debouncedQuery, ignoreCase = true) ||
@@ -57,7 +60,7 @@ class SearchViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Companion.WhileSubscribed(5_000),
-        initialValue = SearchState()
+        initialValue = BookListState()
     )
 
     fun onQueryChange(query: String) {

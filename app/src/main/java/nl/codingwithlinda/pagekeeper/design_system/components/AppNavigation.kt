@@ -31,13 +31,11 @@ import org.koin.core.qualifier.named
 @Composable
 fun AppNavigation(
     selectedIndex: Int = 0,
-    //bookListViewModel: BookListViewModel = koinViewModel(qualifier = named("all")),
     content: @Composable () -> Unit
 ) {
     val controller = koinInject<MenuActionController>()
     val scope = rememberCoroutineScope()
     val onImportBook: () -> Unit = { scope.launch { controller.onAction(ImportBookMenuAction) } }
-
 
 
     val deviceConfig = rememberDeviceConfig()

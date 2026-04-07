@@ -13,17 +13,18 @@ import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.presentation.DefaultMenuActionController
 import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
 import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.search.SearchViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.MultiSelectViewModel
 import org.koin.android.ext.koin.androidContext
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
+
 
 private val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -52,7 +53,7 @@ val appPresentationModule = module {
     viewModel(qualifier = named("finished")) { BookListViewModel(get(), get(), get(), BookFilter.Finished) }
     viewModel(qualifier = named("search")) { BookListViewModel(get(), get(), get(), BookFilter.All) }
     viewModelOf(::LibraryViewModel)
-    viewModel { (initialFilter: BookFilter) -> SearchViewModel(initialFilter, get(), get()) }
+    viewModelOf(::SearchViewModel)
     viewModelOf(::MultiSelectViewModel)
     viewModel { (isbn: String) -> BookDetailViewModel(isbn, get()) }
 }

@@ -14,6 +14,8 @@ import nl.codingwithlinda.pagekeeper.core.domain.FakeBookFormatValidator
 import nl.codingwithlinda.pagekeeper.core.domain.FakeBookParser
 import nl.codingwithlinda.pagekeeper.core.domain.FakeBookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
+import nl.codingwithlinda.pagekeeper.core.domain.util.BookImportError
+import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 import org.junit.After
 import org.junit.Before
@@ -83,7 +85,7 @@ class LibraryViewModelTest {
         val vm = viewModel(parser = parser)
 
         vm.onAction(LibraryAction.OnImportBookClick("file.fb2"))
-        parser.complete(aBook())
+        parser.complete(Result.Success(aBook()))
 
         assertThat(vm.state.value.isImporting).isFalse()
         assertThat(vm.state.value.importFailed).isFalse()
@@ -97,7 +99,7 @@ class LibraryViewModelTest {
         val vm = viewModel(parser = parser, repository = repo)
 
         vm.onAction(LibraryAction.OnImportBookClick("file.fb2"))
-        parser.complete(book)
+        parser.complete(Result.Success(book))
 
         assertThat(repo.savedBooks).containsExactly(book)
     }
@@ -110,7 +112,7 @@ class LibraryViewModelTest {
         val vm = viewModel(parser = parser)
 
         vm.onAction(LibraryAction.OnImportBookClick("file.fb2"))
-        parser.complete(null)
+        parser.complete(Result.Failure(BookImportError.BookImportOtherError))
 
         assertThat(vm.state.value.isImporting).isFalse()
         assertThat(vm.state.value.importFailed).isTrue()
@@ -122,7 +124,7 @@ class LibraryViewModelTest {
         val vm = viewModel(parser = parser)
 
         vm.onAction(LibraryAction.OnImportBookClick("file.fb2"))
-        parser.complete(null)
+        parser.complete(Result.Failure(BookImportError.BookImportOtherError))
         vm.onAction(LibraryAction.DismissImportFailed)
 
         assertThat(vm.state.value.importFailed).isFalse()

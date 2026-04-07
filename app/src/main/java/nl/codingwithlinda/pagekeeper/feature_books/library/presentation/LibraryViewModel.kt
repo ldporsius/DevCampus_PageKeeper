@@ -94,7 +94,11 @@ class LibraryViewModel(
                     if (existing != null && existing.ISBN != pending.ISBN) {
                         bookRepository.deleteBook(existing.ISBN)
                     }
-                    bookRepository.upsertBook(pending)
+                    val merged = pending.copy(
+                        isFavorite = existing?.isFavorite ?: false,
+                        isFinished = existing?.isFinished ?: false
+                    )
+                    bookRepository.upsertBook(merged)
                     pendingImportBook = null
                     duplicateBook = null
                 }

@@ -9,12 +9,12 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isLessThanOrEqualTo
 import assertk.assertions.isGreaterThanOrEqualTo
 import kotlinx.coroutines.runBlocking
-import nl.codingwithlinda.pagekeeper.R
+import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -36,65 +36,70 @@ class FN2BookParserTest {
 
     @Test
     fun singleAuthor_parsesCorrectly(): Unit = runBlocking {
-        val book = parser.fetch(assetUri("book_single_author.fb2"))
+        val result = parser.fetch(assetUri("book_single_author.fb2"))
 
-        assertNotNull(book)
-        assertEquals("Pride and Pixels", book!!.title)
+        assertThat(result).isInstanceOf(Result.Success::class)
+        val book = (result as Result.Success).data
+        assertEquals("Pride and Pixels", book.title)
         assertEquals("Jane Austen", book.author)
         assertEquals("978-0-000000-01-1", book.ISBN)
     }
 
     @Test
     fun multipleAuthors_joinedWithComma(): Unit = runBlocking {
-        val book = parser.fetch(assetUri("book_multiple_authors.fb2"))
+        val result = parser.fetch(assetUri("book_multiple_authors.fb2"))
 
-        assertNotNull(book)
-        assertEquals("Engines of Thought", book!!.title)
+        assertThat(result).isInstanceOf(Result.Success::class)
+        val book = (result as Result.Success).data
+        assertEquals("Engines of Thought", book.title)
         assertEquals("Ada Lovelace, Charles Babbage", book.author)
         assertEquals("978-0-000000-02-8", book.ISBN)
     }
 
     @Test
-    fun noIsbn_returnsRandomIsbnString(): Unit = runBlocking {
-        val book = parser.fetch(assetUri("book_no_isbn.fb2"))
+    fun noIsbn_usesDocumentId(): Unit = runBlocking {
+        val result = parser.fetch(assetUri("book_no_isbn.fb2"))
 
-        assertNotNull(book)
-        assertEquals("The Null Hypothesis", book!!.title)
-        assertThat(book.ISBN.length).isEqualTo(36)
+        assertThat(result).isInstanceOf(Result.Success::class)
+        val book = (result as Result.Success).data
+        assertEquals("The Null Hypothesis", book.title)
+        assertEquals("cccccccc-0003-0003-0003-cccccccccccc", book.ISBN)
     }
 
     @Test
-    fun minimalMetadata_parsesWithoutCrash(): Unit = runBlocking {
-        val book = parser.fetch(assetUri("book_minimal_metadata.fb2"))
+    fun minimalMetadata_usesDocumentId(): Unit = runBlocking {
+        val result = parser.fetch(assetUri("book_minimal_metadata.fb2"))
 
-        assertNotNull(book)
-        assertEquals("Unknown Title", book!!.title)
-        assertEquals("", book.ISBN)
+        assertThat(result).isInstanceOf(Result.Success::class)
+        val book = (result as Result.Success).data
+        assertEquals("Unknown Title", book.title)
+        assertEquals("dddddddd-0004-0004-0004-dddddddddddd", book.ISBN)
     }
 
     @Test
     fun noCoverImage_returnsDummyFrontCover(): Unit = runBlocking {
-        val book = parser.fetch(assetUri("book_single_author.fb2"))
+        val result = parser.fetch(assetUri("book_single_author.fb2"))
 
-        assertNotNull(book)
-        val expectedImgUrl = ""
-        assertEquals(expectedImgUrl, book!!.imgUrl)
+        assertThat(result).isInstanceOf(Result.Success::class)
+        val book = (result as Result.Success).data
+        assertEquals("", book.imgUrl)
     }
 
     @Test
     fun originalBook_parsesCorrectly(): Unit = runBlocking {
-        val book = parser.fetch(assetUri("book.fb2"))
+        val result = parser.fetch(assetUri("book.fb2"))
 
-        assertNotNull(book)
-        assertEquals("A Second Chance for the Cowboy: Walker Ranch Book 2", book!!.title)
+        assertThat(result).isInstanceOf(Result.Success::class)
+        val book = (result as Result.Success).data
+        assertEquals("A Second Chance for the Cowboy: Walker Ranch Book 2", book.title)
         assertEquals("Tess Thornton", book.author)
     }
 
     @Test
-    fun scaleCoverBitmap_debugSwap_scalesDownToAtMost200px() = runBlocking{
-        val instrCtx = InstrumentationRegistry.getInstrumentation().context
-
-        val book = parser.fetch(assetUri("book.fb2")) ?: return@runBlocking
+    fun scaleCoverBitmap_debugSwap_scalesDownToAtMost200px() = runBlocking {
+        val result = parser.fetch(assetUri("book.fb2"))
+        if (result !is Result.Success) return@runBlocking
+        val book = result.data
 
         val scaled: Bitmap = appCtx.contentResolver?.openInputStream(book.imgUrl.toUri()).use {
             BitmapFactory.decodeStream(it)

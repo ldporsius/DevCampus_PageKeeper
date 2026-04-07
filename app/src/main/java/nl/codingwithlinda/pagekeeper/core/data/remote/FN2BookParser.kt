@@ -14,12 +14,9 @@ import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.domain.util.BookImportError
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
-import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
-import java.io.StringReader
 import java.util.UUID
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -47,7 +44,8 @@ class FN2BookParser(
                         ?: return@withContext Result.Failure(BookImportError.BookImportOtherError)
 
                     if (!isValidFb2(descriptionSection)) return@withContext Result.Failure(BookImportError.BookImportOtherError)
-                    val (book, coverBytes) = parseContent(descriptionSection, binarySection)
+                    val bodySection = bytes.sectionBetween("<body>", "</body>") ?: ""
+                    val (book, coverBytes) = parseContent(descriptionSection, bodySection, binarySection)
 
                     fb2File = File(context.filesDir, "${book.ISBN}.fb2").also { it.writeBytes(bytes) }
                     val imgUrl = if (coverBytes != null) {
@@ -87,17 +85,19 @@ class FN2BookParser(
 
     // Returns the parsed Book (without imgUrl) and the compressed cover bytes, or null on failure.
     // Does not touch the filesystem.
-    private suspend fun parseContent(descriptionSection: String, binarySection: String): Pair<Book, ByteArray?> {
+    private suspend fun parseContent(descriptionSection: String, bodySection: String, binarySection: String): Pair<Book, ByteArray?> {
         val metaData = docBuilder(
             inputStream = (descriptionSection + "</FictionBook>").byteInputStream(),
-            bodyText = descriptionSection
+            bodyText = bodySection
         )
 
         var coverBytes: ByteArray? = null
+        var firstBinaryData: ByteArray? = null
         binarySection.split("</binary>").map { "$it</binary>" }.asSequence().forEach { string ->
             if ("<binary" !in string) return@forEach
-            val (imgRef, imgData) = extractImageString(string)
-            if (imgRef == 0) {
+            val (imgId, imgData) = extractImageString(string)
+            if (firstBinaryData == null) firstBinaryData = imgData
+            if (imgId == "_0") {
                 coverBytes = parseImage(imgData)
                     ?.let { scaleCoverBitmap(it, MAX_COVER_PX) }
                     ?.let { bitmap ->
@@ -107,6 +107,16 @@ class FN2BookParser(
                     }
                 return@forEach
             }
+        }
+
+        if (coverBytes == null && firstBinaryData != null) {
+            coverBytes = parseImage(firstBinaryData!!)
+                ?.let { scaleCoverBitmap(it, MAX_COVER_PX) }
+                ?.let { bitmap ->
+                    ByteArrayOutputStream().also { out ->
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                    }.toByteArray()
+                }
         }
 
         val book = Book(
@@ -139,8 +149,8 @@ class FN2BookParser(
         return String(this, start, size - start, Charsets.UTF_8)
     }
 
-    private fun ByteArray.indexOf(pattern: ByteArray): Int {
-        outer@ for (i in 0..size - pattern.size) {
+    private fun ByteArray.indexOf(pattern: ByteArray, fromIndex: Int = 0): Int {
+        outer@ for (i in fromIndex..size - pattern.size) {
             for (j in pattern.indices) {
                 if (this[i + j] != pattern[j]) continue@outer
             }
@@ -149,35 +159,37 @@ class FN2BookParser(
         return -1
     }
 
+    /** Decodes bytes between [start] (exclusive) and [end] (exclusive). Returns null if either marker is missing. */
+    private fun ByteArray.sectionBetween(start: String, end: String): String? {
+        val startBytes = start.toByteArray(Charsets.UTF_8)
+        val contentStart = indexOf(startBytes).takeIf { it != -1 }?.plus(startBytes.size) ?: return null
+        val endBytes = end.toByteArray(Charsets.UTF_8)
+        val endPos = indexOf(endBytes, contentStart).takeIf { it != -1 } ?: return null
+        return String(this, contentStart, endPos - contentStart, Charsets.UTF_8)
+    }
+
     // --- parsing helpers (unchanged) ---
 
-    private fun extractImageString(xml: String): Pair<Int, ByteArray> {
-        val factory = XmlPullParserFactory.newInstance()
-        factory.isNamespaceAware = true
-        val xpp = factory.newPullParser()
+    private fun extractImageString(xml: String): Pair<String, ByteArray> {
+        val binaryTagStart = xml.indexOf("<binary")
+        if (binaryTagStart == -1) return "" to ByteArray(0)
 
-        xpp.setInput(StringReader(xml))
-        var eventType = xpp.eventType
-        var imgRef: Int = -1
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    println("start: ${xpp.name}, xpp.attributeCount: ${xpp.attributeCount}")
-                    for (i in 0 until xpp.attributeCount) {
-                        println("attribute: ${xpp.getAttributeName(i)} ${xpp.getAttributeValue(i)}")
-                        if (xpp.getAttributeName(i) == "id") {
-                            imgRef = xpp.getAttributeValue(i).filter { it.isDigit() }.toInt()
-                        }
-                    }
-                }
-                XmlPullParser.TEXT -> {
-                    val imgData = Base64.decode(xpp.text, Base64.DEFAULT)
-                    return imgRef to imgData
-                }
-            }
-            eventType = xpp.next()
+        val binaryTag = xml.substring(binaryTagStart)
+        val idMatch = Regex("""id\s*=\s*["']([^"']*)["']""").find(binaryTag)
+        val imgId = idMatch?.groupValues?.getOrNull(1) ?: ""
+
+        val contentStart = xml.indexOf('>', binaryTagStart) + 1
+        val contentEnd = xml.lastIndexOf("</binary>")
+        if (contentStart <= binaryTagStart || contentEnd <= contentStart) return imgId to ByteArray(0)
+
+        val base64Text = xml.substring(contentStart, contentEnd).trim()
+        if (base64Text.isEmpty()) return imgId to ByteArray(0)
+
+        return try {
+            imgId to Base64.decode(base64Text, Base64.DEFAULT)
+        } catch (e: Exception) {
+            imgId to ByteArray(0)
         }
-        return imgRef to ByteArray(0)
     }
 
     private fun parseImage(binary: ByteArray): Bitmap? {
@@ -191,6 +203,13 @@ class FN2BookParser(
 
     private suspend fun scaleCoverBitmap(original: Bitmap, maxPx: Int): Bitmap =
         scaleCoverBitmapTo(original, maxPx)
+
+    private fun deterministicUuid(
+        title: String, author: String, publisher: String, year: String, lang: String
+    ): String {
+        val name = "$title|$author|$publisher|$year|$lang".lowercase().trim()
+        return UUID.nameUUIDFromBytes(name.toByteArray()).toString()
+    }
 
     private fun docBuilder(inputStream: InputStream, bodyText: String = ""): Fb2Metadata {
         val factory = DocumentBuilderFactory.newInstance()
@@ -223,13 +242,16 @@ class FN2BookParser(
         val year      = getText("year") ?: ""
         val publisher = getText("publisher") ?: ""
 
-        val isbnPattern = Regex("""ISBN[:\s]*([\d\-X]+)""", RegexOption.IGNORE_CASE)
-        val uuidPattern = Regex("""[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}""", RegexOption.IGNORE_CASE)
-
-        // ISBN is not in FB2 metadata tags — extract from body text
-        val hasIsbn = isbnPattern.find(bodyText)?.groupValues?.getOrNull(1)
-        val uuid = uuidPattern.find(bodyText)?.groupValues?.getOrNull(1)
-        val isbn = hasIsbn ?: uuid ?: UUID.randomUUID().toString()
+        // Priority 1: explicit ISBN prefix in body text
+        val isbnWithPrefix = Regex("""ISBN[:\s-]*([\d][\d\-X]*)""", RegexOption.IGNORE_CASE)
+            .find(bodyText)?.groupValues?.getOrNull(1)
+        // Priority 2: bare ISBN-13 (starts with 978/979) in body text, no prefix needed
+        val isbnBare = isbnWithPrefix
+            ?: Regex("""\b(97[89](?:[-\s]?\d){10})\b""").find(bodyText)?.groupValues?.getOrNull(1)
+        // Priority 3: <id> inside <document-info> — the FB2 protocol's own unique identifier
+        val isbn = isbnBare
+            ?: getText("id")?.takeIf { it.isNotBlank() }
+            ?: deterministicUuid(title, authors.joinToString(","), publisher, year, lang)
 
         return Fb2Metadata(
             authors = authors,

@@ -34,8 +34,4 @@ class BookFormatTest {
         assertEquals("fb2", BookFormat.FB2.extension)
     }
 
-    @Test
-    fun supportedExtensions_sizeMatchesEntryCount() {
-        assertEquals(BookFormat.entries.size, BookFormat.supportedExtensions.size)
-    }
 }

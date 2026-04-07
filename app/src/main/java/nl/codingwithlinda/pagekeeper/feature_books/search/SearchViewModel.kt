@@ -12,18 +12,19 @@ import kotlinx.coroutines.flow.stateIn
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListState
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel.Companion.KEY_FILTER
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 
 @OptIn(FlowPreview::class)
 class SearchViewModel(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     bookRepository: BookRepository
 ) : ViewModel() {
 
-    private val filter = MutableStateFlow(BookFilter.All)
+    private val filter = savedStateHandle.getStateFlow(KEY_FILTER, BookFilter.All)
 
     fun setFilter(filter: BookFilter) {
-        this.filter.value = filter
+        savedStateHandle[KEY_FILTER] = filter
     }
 
 

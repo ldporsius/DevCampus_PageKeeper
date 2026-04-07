@@ -9,6 +9,8 @@ interface BookRepository {
 
     suspend fun getBookByISBN(ISBN: String): Book?
 
+    suspend fun findDuplicate(isbn: String, title: String, author: String): Book?
+
     suspend fun upsertBook(book: Book)
 
     suspend fun deleteBook(ISBN: String)

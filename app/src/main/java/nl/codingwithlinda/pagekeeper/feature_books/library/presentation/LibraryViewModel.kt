@@ -12,6 +12,9 @@ import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookFormatValidator
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
+import nl.codingwithlinda.pagekeeper.core.domain.model.Book
+import nl.codingwithlinda.pagekeeper.core.domain.util.BookImportError
+import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_books.library.navigation.LibraryEvent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 
@@ -28,6 +31,8 @@ class LibraryViewModel(
     val events = _events.receiveAsFlow()
 
     private var importJob: Job? = null
+    private var pendingImportBook: Book? = null
+    private var duplicateBook: Book? = null
 
     fun onAction(action: LibraryAction) {
         when (action) {
@@ -41,23 +46,58 @@ class LibraryViewModel(
                     }
                     _state.update { it.copy(isImporting = true) }
                     try {
-                        val book = bookParser.fetch(action.uri)
-                        if (book != null) {
-                            bookRepository.upsertBook(book)
-                        } else {
-                            _state.update { it.copy(importFailed = true) }
+                        val result = when (val parseResult = bookParser.fetch(action.uri)) {
+                            is Result.Success -> {
+                                val book = parseResult.data
+                                val duplicate = bookRepository.findDuplicate(book.ISBN, book.title, book.author)
+                                if (duplicate != null) {
+                                    pendingImportBook = book
+                                    duplicateBook = duplicate
+                                    Result.Failure(BookImportError.BookIsDuplicate)
+                                } else {
+                                    parseResult
+                                }
+                            }
+                            is Result.Failure -> parseResult
+                        }
+                        when (result) {
+                            is Result.Success -> bookRepository.upsertBook(result.data)
+                            is Result.Failure -> when (result.error) {
+                                BookImportError.BookIsDuplicate ->
+                                    _events.send(LibraryEvent.ShowDuplicateDialog(existing = duplicateBook!!, incoming = pendingImportBook!!))
+                                BookImportError.BookImportOtherError ->
+                                    _state.update { it.copy(importFailed = true) }
+                            }
                         }
                     } finally {
                         _state.update { it.copy(isImporting = false) }
                     }
                 }
-            is LibraryAction.CancelImport -> {
+            is LibraryAction.CancelImport ->
                 importJob?.cancel()
-            }
             is LibraryAction.DismissUnsupportedFormatDialog ->
                 _state.update { it.copy(showUnsupportedFormatDialog = false) }
             is LibraryAction.DismissImportFailed ->
                 _state.update { it.copy(importFailed = false) }
+            is LibraryAction.DismissDuplicateDialog -> {
+                val pending = pendingImportBook
+                if (pending != null && pending.ISBN != duplicateBook?.ISBN) {
+                    viewModelScope.launch { bookRepository.deleteBook(pending.ISBN) }
+                }
+                pendingImportBook = null
+                duplicateBook = null
+            }
+            is LibraryAction.ConfirmOverwriteDuplicate ->
+                viewModelScope.launch {
+                    val pending = pendingImportBook ?: return@launch
+                    val existing = duplicateBook
+                    if (existing != null && existing.ISBN != pending.ISBN) {
+                        bookRepository.deleteBook(existing.ISBN)
+                    }
+                    bookRepository.upsertBook(pending)
+                    pendingImportBook = null
+                    duplicateBook = null
+                }
         }
     }
 }

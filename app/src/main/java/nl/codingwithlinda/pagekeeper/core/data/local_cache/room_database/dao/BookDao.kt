@@ -18,6 +18,9 @@ internal interface BookDao {
     @Upsert
     suspend fun upsertBook(book: BookEntity)
 
+    @Query("SELECT * FROM books WHERE title = :title AND author = :author LIMIT 1")
+    suspend fun getBookByTitleAndAuthor(title: String, author: String): BookEntity?
+
     @Query("DELETE FROM books WHERE isbn = :isbn")
     suspend fun deleteBook(isbn: String)
 }

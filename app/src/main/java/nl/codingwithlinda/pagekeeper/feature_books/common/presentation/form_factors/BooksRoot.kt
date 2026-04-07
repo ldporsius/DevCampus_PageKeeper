@@ -31,6 +31,7 @@ import org.koin.core.qualifier.named
 @Composable
 fun BooksRoot(
     onImportBook: () -> Unit = {},
+    onNavigateToDetail: (String) -> Unit = {},
     bookListViewModel: BookListViewModel = koinViewModel(qualifier = named("all")),
     libraryViewModel: LibraryViewModel = koinViewModel()
 ) {
@@ -50,7 +51,7 @@ fun BooksRoot(
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        BookImportSideEffects()
+        BookImportSideEffects(onNavigateToDetail = onNavigateToDetail)
         BookListSideEffects(bookListViewModel)
 
         Box(modifier = Modifier.fillMaxSize()) {

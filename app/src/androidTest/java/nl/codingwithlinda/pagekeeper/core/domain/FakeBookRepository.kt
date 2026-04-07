@@ -14,6 +14,10 @@ class FakeBookRepository(initialBooks: List<Book> = emptyList()) : BookRepositor
     override suspend fun getBookByISBN(ISBN: String): Book? =
         _books.value.find { it.ISBN == ISBN }
 
+    override suspend fun findDuplicate(isbn: String, title: String, author: String): Book? =
+        _books.value.find { it.ISBN == isbn }
+            ?: _books.value.find { it.title == title && it.author == author }
+
     override suspend fun upsertBook(book: Book) {
         _books.value = _books.value.filterNot { it.ISBN == book.ISBN } + book
     }

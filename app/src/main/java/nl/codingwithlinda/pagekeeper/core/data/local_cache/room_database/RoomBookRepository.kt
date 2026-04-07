@@ -23,6 +23,10 @@ internal class RoomBookRepository(
     override suspend fun getBookByISBN(ISBN: String): Book? =
         dao.getBookByIsbn(ISBN)?.toDomain()
 
+    override suspend fun findDuplicate(isbn: String, title: String, author: String): Book? =
+        dao.getBookByIsbn(isbn)?.toDomain()
+            ?: dao.getBookByTitleAndAuthor(title, author)?.toDomain()
+
     override suspend fun upsertBook(book: Book) {
         dao.upsertBook(book.toEntity())
     }

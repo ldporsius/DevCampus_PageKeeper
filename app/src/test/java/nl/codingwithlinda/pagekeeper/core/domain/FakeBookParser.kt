@@ -3,11 +3,13 @@ package nl.codingwithlinda.pagekeeper.core.domain
 import kotlinx.coroutines.CompletableDeferred
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
+import nl.codingwithlinda.pagekeeper.core.domain.util.BookImportError
+import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 
 class FakeBookParser : BookParser {
-    private val deferred = CompletableDeferred<Book?>()
+    private val deferred = CompletableDeferred<Result<Book, BookImportError>>()
 
-    override suspend fun fetch(uri: String): Book? = deferred.await()
+    override suspend fun fetch(uri: String): Result<Book, BookImportError> = deferred.await()
 
-    fun complete(book: Book?) = deferred.complete(book)
+    fun complete(result: Result<Book, BookImportError>) = deferred.complete(result)
 }

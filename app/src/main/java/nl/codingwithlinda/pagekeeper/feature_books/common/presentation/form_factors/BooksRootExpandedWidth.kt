@@ -52,6 +52,7 @@ import org.koin.core.qualifier.named
 fun BooksRootExpandedWidth(
     modifier: Modifier = Modifier,
     onImportBook: () -> Unit = {},
+    onNavigateToDetail: (String) -> Unit = {},
     bookListViewModel: BookListViewModel = koinViewModel(qualifier = named("all")),
     searchViewModel: SearchViewModel = koinViewModel<SearchViewModel>(),
     libraryViewModel: LibraryViewModel = koinViewModel()
@@ -88,7 +89,7 @@ fun BooksRootExpandedWidth(
     ) {
 
         BookListSideEffects(bookListViewModel)
-        BookImportSideEffects()
+        BookImportSideEffects(onNavigateToDetail = onNavigateToDetail)
 
         BoxWithConstraints (modifier = Modifier.fillMaxSize()
 

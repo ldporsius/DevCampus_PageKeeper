@@ -6,4 +6,6 @@ sealed interface LibraryAction {
     data object DismissUnsupportedFormatDialog : LibraryAction
     data object CancelImport : LibraryAction
     data object DismissImportFailed : LibraryAction
+    data object DismissDuplicateDialog : LibraryAction
+    data object ConfirmOverwriteDuplicate : LibraryAction
 }

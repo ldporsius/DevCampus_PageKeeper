@@ -73,12 +73,14 @@ fun MainNav(
                             searchViewModel.setFilter(BookFilter.All)
                             BooksRootExpandedWidth(
                                 onImportBook = onImportBook,
+                                onNavigateToDetail = { navigate(BookDetailRoute(it)) },
                                 bookListViewModel = viewModel,
                                 searchViewModel = searchViewModel
                             )
                         } else {
                             BooksRoot(
                                 onImportBook = onImportBook,
+                                onNavigateToDetail = { navigate(BookDetailRoute(it)) },
                                 bookListViewModel = viewModel,
                                 libraryViewModel = koinViewModel(),
                             )
@@ -98,12 +100,14 @@ fun MainNav(
                             searchViewModel.setFilter(BookFilter.Favorites)
                             BooksRootExpandedWidth(
                                 onImportBook = onImportBook,
+                                onNavigateToDetail = { navigate(BookDetailRoute(it)) },
                                 bookListViewModel = viewModel,
                                 searchViewModel = searchViewModel
                             )
                         } else {
                             BooksRoot(
                                 onImportBook = onImportBook,
+                                onNavigateToDetail = { navigate(BookDetailRoute(it)) },
                                 bookListViewModel = viewModel,
                                 libraryViewModel = koinViewModel(),
                             )
@@ -124,12 +128,14 @@ fun MainNav(
                             searchViewModel.setFilter(BookFilter.Finished)
                             BooksRootExpandedWidth(
                                 onImportBook = onImportBook,
+                                onNavigateToDetail = { navigate(BookDetailRoute(it)) },
                                 bookListViewModel = viewModel,
                                 searchViewModel = searchViewModel
                             )
                         } else {
                             BooksRoot(
                                 onImportBook = onImportBook,
+                                onNavigateToDetail = { navigate(BookDetailRoute(it)) },
                                 bookListViewModel = viewModel,
                                 libraryViewModel = koinViewModel(),
                             )

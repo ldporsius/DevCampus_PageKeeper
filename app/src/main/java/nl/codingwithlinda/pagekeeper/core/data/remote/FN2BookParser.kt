@@ -12,6 +12,8 @@ import kotlinx.coroutines.withContext
 import nl.codingwithlinda.pagekeeper.core.data.util.scaleCoverBitmapTo
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
+import nl.codingwithlinda.pagekeeper.core.domain.util.BookImportError
+import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.ByteArrayOutputStream
@@ -28,7 +30,7 @@ class FN2BookParser(
     private val context: Context
 ) : BookParser {
 
-    override suspend fun fetch(uri: String): Book? {
+    override suspend fun fetch(uri: String): Result<Book, BookImportError> {
         println("FN2BookParser.fetch: $uri")
         return withContext(Dispatchers.IO) {
             var fb2File: File? = null
@@ -40,11 +42,11 @@ class FN2BookParser(
                     // Decode only the two sections we actually need — never the body text.
                     // For a 100 MB file this keeps peak String memory in the low MBs.
                     val descriptionSection = bytes.sectionUpToAndIncluding("</description>")
-                        ?: return@withContext null
+                        ?: return@withContext Result.Failure(BookImportError.BookImportOtherError)
                     val binarySection = bytes.sectionAfter("</body>")
-                        ?: return@withContext null
+                        ?: return@withContext Result.Failure(BookImportError.BookImportOtherError)
 
-                    if (!isValidFb2(descriptionSection)) return@withContext null
+                    if (!isValidFb2(descriptionSection)) return@withContext Result.Failure(BookImportError.BookImportOtherError)
                     val (book, coverBytes) = parseContent(descriptionSection, binarySection)
 
                     fb2File = File(context.filesDir, "${book.ISBN}.fb2").also { it.writeBytes(bytes) }
@@ -54,8 +56,8 @@ class FN2BookParser(
                         f.toUri().toString()
                     } else ""
 
-                    book.copy(imgUrl = imgUrl)
-                }
+                    Result.Success(book.copy(imgUrl = imgUrl))
+                } ?: Result.Failure(BookImportError.BookImportOtherError)
             } catch (e: CancellationException) {
                 fb2File?.delete()
                 pngFile?.delete()
@@ -64,7 +66,7 @@ class FN2BookParser(
                 fb2File?.delete()
                 pngFile?.delete()
                 e.printStackTrace()
-                null
+                Result.Failure(BookImportError.BookImportOtherError)
             }
         }
     }

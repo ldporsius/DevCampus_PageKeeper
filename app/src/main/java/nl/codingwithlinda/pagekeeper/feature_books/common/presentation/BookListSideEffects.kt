@@ -12,7 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import nl.codingwithlinda.pagekeeper.core.util.toShareFile
+import nl.codingwithlinda.pagekeeper.core.data.util.toShareFile
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 import java.io.File
 

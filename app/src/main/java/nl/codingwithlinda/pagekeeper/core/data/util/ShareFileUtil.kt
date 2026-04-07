@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.core.util
+package nl.codingwithlinda.pagekeeper.core.data.util
 
 import java.io.File
 

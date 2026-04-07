@@ -8,7 +8,7 @@ import nl.codingwithlinda.pagekeeper.core.domain.remote.BookFormat
 
 @Composable
 fun UnsupportedFormatDialog(onDismiss: () -> Unit) {
-    val supported = BookFormat.entries.joinToString { ".${it.extension}" }
+    val supported = BookFormat.entries.filter { it.isSupported }.joinToString { ".${it.extension}" }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Unsupported file format") },

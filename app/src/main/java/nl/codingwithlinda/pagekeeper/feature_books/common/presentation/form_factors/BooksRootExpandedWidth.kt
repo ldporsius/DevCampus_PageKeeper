@@ -1,19 +1,16 @@
 package nl.codingwithlinda.pagekeeper.feature_books.common.presentation.form_factors
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,8 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -47,6 +44,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryV
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.EmptyLibraryContent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 import nl.codingwithlinda.pagekeeper.feature_books.search.SearchViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.search.components.EmptySearchComponent
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.qualifier.named
 
@@ -59,6 +57,7 @@ fun BooksRootExpandedWidth(
     libraryViewModel: LibraryViewModel = koinViewModel()
 ) {
 
+    val focusManager = LocalFocusManager.current
     var searchMode by remember { mutableStateOf(false) }
     var screenWidth by remember { mutableStateOf(1.dp) }
     val searchFieldWidth = animateFloatAsState(
@@ -69,6 +68,7 @@ fun BooksRootExpandedWidth(
 
     val state by searchViewModel.state.collectAsStateWithLifecycle()
 
+
     val emptyContent: @Composable ()-> Unit = {
         when(state.filter){
             BookFilter.All -> EmptyLibraryContent() { onImportBook()}
@@ -76,6 +76,8 @@ fun BooksRootExpandedWidth(
             BookFilter.Finished -> EmptyFinishedContent()
         }
     }
+
+    val emptySearch: @Composable ()-> Unit = { if (searchMode) EmptySearchComponent() else emptyContent() }
 
     Surface(
         modifier = modifier
@@ -92,18 +94,8 @@ fun BooksRootExpandedWidth(
 
         ) {
             val mw = maxWidth
-            AnimatedVisibility(
-                visible = state.books.isEmpty() && !state.isLoading,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                emptyContent()
-            }
-            AnimatedVisibility(
-                visible = state.books.isNotEmpty(),
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
+
+
                 Column(modifier = Modifier
                     .fillMaxSize()
                     .onGloballyPositioned{
@@ -119,21 +111,23 @@ fun BooksRootExpandedWidth(
                         trailingIcon = {
                             Icon(
                                 painter = painterResource(searchIcon),
-                                contentDescription = null
+                                contentDescription = null,
+                                modifier = Modifier.clickable {
+                                    if (searchMode) {
+                                        searchMode = false
+                                        focusManager.clearFocus()
+                                        searchViewModel.onQueryChange("")
+                                    }
+                                }
                             )
                         },
                         modifier = Modifier
-                            .pointerInput(true){
-                                detectTapGestures(
-                                    onTap = {
-                                        searchMode = true
-                                    }
-                                )
+                            .onFocusChanged { focusState ->
+                                if (focusState.hasFocus) searchMode = true
                             }
                             .width(screenWidth * searchFieldWidth.value)
                             .align(Alignment.Start)
                             .padding(horizontal = 16.dp, vertical = 4.dp)
-
                         ,
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -143,18 +137,23 @@ fun BooksRootExpandedWidth(
                         )
                     )
 
-                    BookItemsGrid(
-                        books = state.books,
-                        isImporting = libraryViewModel.state.collectAsStateWithLifecycle().value.isImporting,
-                        onCancelImport = {
-                            libraryViewModel.onAction(LibraryAction.CancelImport)
-                        },
-                        onBookClick = {
+                    AnimatedContent(targetState =state.books.isEmpty() && !state.isLoading ) { empty ->
+                        when (empty) {
+                            true -> emptySearch()
+                            false ->
+                                BookItemsGrid(
+                                    books = state.books,
+                                    isImporting = libraryViewModel.state.collectAsStateWithLifecycle().value.isImporting,
+                                    onCancelImport = {
+                                        libraryViewModel.onAction(LibraryAction.CancelImport)
+                                    },
+                                    onBookClick = {
 
-                        },
-                        onAction = bookListViewModel::onAction
-                    )
-                }
+                                    },
+                                    onAction = bookListViewModel::onAction
+                                )
+                        }
+                    }
             }
         }
     }

@@ -12,6 +12,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilte
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListItem
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
+import nl.codingwithlinda.pagekeeper.feature_books.search.components.EmptySearchComponent
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.qualifier.named
 
@@ -23,9 +24,7 @@ fun SearchContent(
     val viewModel: BookListViewModel = koinViewModel(qualifier = named(BookFilter.All))
 
     if (query.isNotBlank() && books.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No results found")
-        }
+        EmptySearchComponent()
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(books, key = { it.isbn }) { book ->

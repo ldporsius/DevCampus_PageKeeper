@@ -1,14 +1,18 @@
 package nl.codingwithlinda.pagekeeper.feature_books.common.presentation.form_factors
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -24,6 +28,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -53,9 +60,14 @@ fun BooksRootExpandedWidth(
 ) {
 
     var searchMode by remember { mutableStateOf(false) }
+    var screenWidth by remember { mutableStateOf(1.dp) }
+    val searchFieldWidth = animateFloatAsState(
+        if (searchMode) 1f else  .5f
+    )
+
+    val searchIcon = if (searchMode) R.drawable.cancel else R.drawable.search
 
     val state by searchViewModel.state.collectAsStateWithLifecycle()
-
 
     val emptyContent: @Composable ()-> Unit = {
         when(state.filter){
@@ -76,7 +88,10 @@ fun BooksRootExpandedWidth(
         BookListSideEffects(bookListViewModel)
         BookImportSideEffects()
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        BoxWithConstraints (modifier = Modifier.fillMaxSize()
+
+        ) {
+            val mw = maxWidth
             AnimatedVisibility(
                 visible = state.books.isEmpty() && !state.isLoading,
                 enter = fadeIn(),
@@ -89,7 +104,12 @@ fun BooksRootExpandedWidth(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                Column(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier
+                    .fillMaxSize()
+                    .onGloballyPositioned{
+                        screenWidth = mw
+                    }
+                ) {
                     TextField(
                         value = state.query,
                         onValueChange = searchViewModel::onQueryChange,
@@ -98,20 +118,22 @@ fun BooksRootExpandedWidth(
                         shape = RoundedCornerShape(50),
                         trailingIcon = {
                             Icon(
-                                painter = painterResource(R.drawable.search),
+                                painter = painterResource(searchIcon),
                                 contentDescription = null
                             )
                         },
                         modifier = Modifier
-                            .widthIn(max = 480.dp)
-                            .fillMaxWidth()
+                            .pointerInput(true){
+                                detectTapGestures(
+                                    onTap = {
+                                        searchMode = true
+                                    }
+                                )
+                            }
+                            .width(screenWidth * searchFieldWidth.value)
                             .align(Alignment.Start)
                             .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .clickable(
-                                onClick = {
-                                    searchMode = !searchMode
-                                }
-                            )
+
                         ,
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,

@@ -36,7 +36,7 @@ fun BookItemsGrid(
         horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         if (isImporting) {
-            item(key = "importing_placeholder", span = { GridItemSpan(maxLineSpan) }) {
+            item(key = "importing_placeholder", span = { GridItemSpan(1) }) {
                 BookListItemPlaceholder(onCancel = onCancelImport)
             }
         }

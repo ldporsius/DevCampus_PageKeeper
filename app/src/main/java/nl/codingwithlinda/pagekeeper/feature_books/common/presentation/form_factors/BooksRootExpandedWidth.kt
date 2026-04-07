@@ -96,65 +96,64 @@ fun BooksRootExpandedWidth(
         ) {
             val mw = maxWidth
 
-
-                Column(modifier = Modifier
-                    .fillMaxSize()
-                    .onGloballyPositioned{
-                        screenWidth = mw
-                    }
-                ) {
-                    TextField(
-                        value = state.query,
-                        onValueChange = searchViewModel::onQueryChange,
-                        placeholder = { Text(stringResource(R.string.search_books_placeholder)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(50),
-                        trailingIcon = {
-                            Icon(
-                                painter = painterResource(searchIcon),
-                                contentDescription = null,
-                                modifier = Modifier.clickable {
-                                    if (searchMode) {
-                                        searchMode = false
-                                        focusManager.clearFocus()
-                                        searchViewModel.onQueryChange("")
-                                    }
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned{
+                    screenWidth = mw
+                }
+            ) {
+                TextField(
+                    value = state.query,
+                    onValueChange = searchViewModel::onQueryChange,
+                    placeholder = { Text(stringResource(R.string.search_books_placeholder)) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(50),
+                    trailingIcon = {
+                        Icon(
+                            painter = painterResource(searchIcon),
+                            contentDescription = null,
+                            modifier = Modifier.clickable {
+                                if (searchMode) {
+                                    searchMode = false
+                                    focusManager.clearFocus()
+                                    searchViewModel.onQueryChange("")
                                 }
-                            )
-                        },
-                        modifier = Modifier
-                            .onFocusChanged { focusState ->
-                                if (focusState.hasFocus) searchMode = true
                             }
-                            .width(screenWidth * searchFieldWidth.value)
-                            .align(Alignment.Start)
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                        ,
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            focusedIndicatorColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            unfocusedIndicatorColor = MaterialTheme.colorScheme.surfaceContainerHighest
                         )
-                    )
-
-                    AnimatedContent(targetState =state.books.isEmpty() && !state.isLoading ) { empty ->
-                        when (empty) {
-                            true -> emptySearch()
-                            false ->
-                                BookItemsGrid(
-                                    books = state.books,
-                                    isImporting = libraryViewModel.state.collectAsStateWithLifecycle().value.isImporting,
-                                    onCancelImport = {
-                                        libraryViewModel.onAction(LibraryAction.CancelImport)
-                                    },
-                                    onBookClick = {
-
-                                    },
-                                    onAction = bookListViewModel::onAction
-                                )
+                    },
+                    modifier = Modifier
+                        .onFocusChanged { focusState ->
+                            if (focusState.hasFocus) searchMode = true
                         }
+                        .width(screenWidth * searchFieldWidth.value)
+                        .align(Alignment.Start)
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                    ,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                )
+
+                AnimatedContent(targetState =state.books.isEmpty() && !state.isLoading ) { empty ->
+                    when (empty) {
+                        true -> emptySearch()
+                        false ->
+                            BookItemsGrid(
+                                books = state.books,
+                                isImporting = libraryViewModel.state.collectAsStateWithLifecycle().value.isImporting,
+                                onCancelImport = {
+                                    libraryViewModel.onAction(LibraryAction.CancelImport)
+                                },
+                                onBookClick = {
+
+                                },
+                                onAction = bookListViewModel::onAction
+                            )
                     }
+                }
             }
         }
     }

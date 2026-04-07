@@ -38,7 +38,9 @@ class SearchViewModel(
                 isLoading = false,
                 filter = filter,
                 query = _query.value,
-                books = bookEntities.map { it.toBookUi() })
+                books = bookEntities.
+                    sortedByDescending { it.dateCreated }
+                    .map { it.toBookUi() })
         }
     }
     private val _query = MutableStateFlow("")

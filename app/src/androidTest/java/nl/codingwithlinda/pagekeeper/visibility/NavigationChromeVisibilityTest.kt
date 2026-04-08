@@ -84,7 +84,10 @@ class NavigationChromeVisibilityTest {
                 viewModelOf(::BookListViewModel)
                 viewModelOf(::MultiSelectViewModel)
                 viewModelOf(::SearchViewModel)
-                viewModel { (isbn: String) -> BookDetailViewModel(isbn, get()) }
+                viewModel { (isbn: String) -> BookDetailViewModel(
+                    isbn, bookRepository = get(),
+                    bookPager = get()
+                ) }
             })
         }
     }

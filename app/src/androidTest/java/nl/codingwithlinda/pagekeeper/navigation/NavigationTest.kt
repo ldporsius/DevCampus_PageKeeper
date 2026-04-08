@@ -58,7 +58,11 @@ class NavigationTest {
                     viewModelOf(::LibraryViewModel)
                     //viewModel(qualifier = named(BookFilter.All)) { BookListViewModel(get(), BookFilter.All) }
                     viewModelOf(::BookListViewModel)
-                    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get()) }
+                    viewModel { (isbn: String) -> BookDetailViewModel(
+                        isbn,
+                        bookRepository = get(),
+                        bookPager = get(),
+                    ) }
                 }
             )
         }

@@ -148,7 +148,7 @@ fun BooksRootExpandedWidth(
                                     libraryViewModel.onAction(LibraryAction.CancelImport)
                                 },
                                 onBookClick = {
-
+                                        onNavigateToDetail(it)
                                 },
                                 onAction = bookListViewModel::onAction
                             )

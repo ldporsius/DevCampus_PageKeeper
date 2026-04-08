@@ -26,9 +26,6 @@
           </targets>
         </DialogSelection>
       </SelectionState>
-      <SelectionState runConfigName="FavoritesScreenVisibilityTest">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="FinishedScreenVisibilityTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
@@ -47,6 +44,9 @@
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="singleAuthor_parsesCorrectly()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="writePages_withValidFb2_completesWithoutException()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

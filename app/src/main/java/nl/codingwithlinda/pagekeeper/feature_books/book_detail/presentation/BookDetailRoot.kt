@@ -22,7 +22,7 @@ import org.koin.core.parameter.parametersOf
 fun BookDetailRoot(
     isbn: String,
     onNavigateBack: () -> Unit,
-    viewModel: BookDetailViewModel = koinViewModel { parametersOf(isbn) }
+    viewModel: BookDetailViewModel = koinViewModel(key = isbn) { parametersOf(isbn) }
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 

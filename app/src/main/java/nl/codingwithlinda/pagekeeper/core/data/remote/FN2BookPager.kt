@@ -2,6 +2,7 @@ package nl.codingwithlinda.pagekeeper.core.data.remote
 
 import android.content.Context
 import android.net.Uri
+import android.util.Base64
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -10,6 +11,7 @@ import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import nl.codingwithlinda.pagekeeper.core.data.util.sectionAfter
 import nl.codingwithlinda.pagekeeper.core.data.util.sectionBetween
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookPager
@@ -37,7 +39,10 @@ class FN2BookPager(
                     val body = bytes.sectionBetween("<body>", "</body>") ?: ""
                     val sections = body.split("</section>").filter { it.isNotBlank() }
 
-                    val pages = buildPages(sections)
+                    val binarySection = bytes.sectionAfter("</body>") ?: ""
+                    val imageMap = extractBinaries(binarySection)
+
+                    val pages = buildPages(sections, imageMap, book)
                     val file = pagesFile(book)
                     runInterruptible { file.writeText(json.encodeToString(pages)) }
                 }
@@ -65,7 +70,41 @@ class FN2BookPager(
         return FormattedLine(spans)
     }
 
-    private suspend fun buildPages(sections: List<String>): List<Page> = buildList {
+    private fun extractBinaries(binarySection: String): Map<String, ByteArray> {
+        return binarySection.split("</binary>")
+            .filter { it.contains("<binary") }
+            .associate { chunk ->
+                val xml = "$chunk</binary>"
+                val binaryTagStart = xml.indexOf("<binary")
+                val idMatch = Regex("""id\s*=\s*["']([^"']*)["']""").find(xml.substring(binaryTagStart))
+                val id = idMatch?.groupValues?.getOrNull(1) ?: ""
+                val contentStart = xml.indexOf('>', binaryTagStart) + 1
+                val contentEnd = xml.lastIndexOf("</binary>")
+                val base64Text = if (contentStart > binaryTagStart && contentEnd > contentStart)
+                    xml.substring(contentStart, contentEnd).trim()
+                else ""
+                val imageBytes = try {
+                    if (base64Text.isNotEmpty()) Base64.decode(base64Text, Base64.DEFAULT)
+                    else ByteArray(0)
+                } catch (e: Exception) { ByteArray(0) }
+                id to imageBytes
+            }
+    }
+
+    private fun saveImageToStorage(href: String, imageMap: Map<String, ByteArray>, book: Book): String? {
+        val id = href.trimStart('#')
+        val bytes = imageMap[id]?.takeIf { it.isNotEmpty() } ?: return null
+        val safeId = id.replace(Regex("[^a-zA-Z0-9_.-]"), "_")
+        val file = File(context.filesDir, "${book.ISBN}_img_$safeId")
+        return try {
+            file.writeBytes(bytes)
+            file.toUri().toString()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private suspend fun buildPages(sections: List<String>, imageMap: Map<String, ByteArray>, book: Book): List<Page> = buildList {
         val textBuffer = mutableListOf<FormattedLine>()
 
         fun flushText() {
@@ -82,7 +121,8 @@ class FN2BookPager(
                 val imageHref = imageRegex.find(content)?.groupValues?.get(1)
                 if (imageHref != null) {
                     flushText()
-                    add(Page.ImagePage(imageHref))
+                    val fileUri = saveImageToStorage(imageHref, imageMap, book)
+                    add(Page.ImagePage(fileUri ?: imageHref))
                 } else {
                     textBuffer += parseSpans(content)
                     if (textBuffer.size >= 100) flushText()

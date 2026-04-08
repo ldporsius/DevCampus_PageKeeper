@@ -10,6 +10,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import nl.codingwithlinda.pagekeeper.core.domain.remote.Page
@@ -51,7 +57,19 @@ fun BookDetailScreen(
                     is Page.TextPage -> {
                         Column() {
                             page.lines.forEach { line ->
-                                Text(text = line.toPlainText())
+                                Text(text = buildAnnotatedString {
+                                    line.spans.forEach { span ->
+                                        when {
+                                            span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
+                                                append(span.text)
+                                            }
+                                            span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                                                append(span.text)
+                                            }
+                                            else -> append(span.text)
+                                        }
+                                    }
+                                })
                             }
                         }
                     }

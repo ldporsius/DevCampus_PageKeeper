@@ -32,7 +32,11 @@ class FN2BookPager(
 
     private val pRegex = Regex("<p>(.*?)</p>", RegexOption.DOT_MATCHES_ALL)
     private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
-    private val spanRegex = Regex("<emphasis>(.*?)</emphasis>", RegexOption.DOT_MATCHES_ALL)
+    private val spanRegex = Regex(
+        """<emphasis>(.*?)</emphasis>|<a\s[^>]*?\w+:href="([^"]*)"[^>]*?>(.*?)</a>""",
+        RegexOption.DOT_MATCHES_ALL
+    )
+    private val tagStripRegex = Regex("<[^>]+>")
 
     override suspend fun writePages(uri: String, book: Book) {
         withContext(Dispatchers.IO) {
@@ -64,7 +68,13 @@ class FN2BookPager(
             if (match.range.first > cursor) {
                 spans += TextSpan(content.substring(cursor, match.range.first))
             }
-            spans += TextSpan(match.groupValues[1], emphasis = true)
+            if (match.groups[1] != null) {
+                spans += TextSpan(match.groupValues[1], emphasis = true)
+            } else {
+                val url = match.groupValues[2]
+                val text = tagStripRegex.replace(match.groupValues[3], "")
+                if (text.isNotBlank()) spans += TextSpan(text, url = url)
+            }
             cursor = match.range.last + 1
         }
         if (cursor < content.length) {

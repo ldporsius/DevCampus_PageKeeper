@@ -64,9 +64,9 @@ fun EmptyFinishedContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Mark a book as finished to see it here",
+            text = "Books you mark as Finished will appear here.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSecondary,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
     }

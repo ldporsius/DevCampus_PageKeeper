@@ -64,9 +64,9 @@ fun EmptyFavoritesContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Mark a book as favourite to find it here",
+            text = "Books you add to Favorites will appear here.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSecondary,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
     }

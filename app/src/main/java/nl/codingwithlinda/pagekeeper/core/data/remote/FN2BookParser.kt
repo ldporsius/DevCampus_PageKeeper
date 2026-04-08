@@ -45,7 +45,7 @@ class FN2BookParser(
                     if (!isValidFb2(descriptionSection)) return@withContext Result.Failure(BookImportError.BookImportOtherError)
 
                     val bodySection = bytes.sectionBetween("<body>", "</body>") ?: ""
-                    val book  = parseContent(descriptionSection, bodySection, binarySection)
+                    val book  = extractBookMetaData(descriptionSection)
 
                     runInterruptible {
                         fb2File = File(context.filesDir, "${book.ISBN}.fb2").also { it.writeBytes(bytes) }
@@ -99,7 +99,7 @@ class FN2BookParser(
         return (requiredMarkers.all { it in descriptionSection })
     }
 
-    private suspend fun parseContent(descriptionSection: String, bodySection: String, binarySection: String): Book = withContext(
+    private suspend fun extractBookMetaData(descriptionSection: String): Book = withContext(
         Dispatchers.Default){
         val metaData = extractMetadata(
             descriptionSection = descriptionSection

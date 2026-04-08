@@ -14,7 +14,6 @@ import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.domain.util.BookImportError
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
 import java.util.UUID
@@ -38,21 +37,45 @@ class FN2BookParser(
 
                     // Decode only the two sections we actually need — never the body text.
                     // For a 100 MB file this keeps peak String memory in the low MBs.
-                    val descriptionSection = bytes.sectionUpToAndIncluding("</description>")
+                    val descriptionSection = bytes.sectionBetween("<description>", "</description>")?.let{ "<description>$it</description>" }
                         ?: return@withContext Result.Failure(BookImportError.BookImportOtherError)
                     val binarySection = bytes.sectionAfter("</body>")
                         ?: return@withContext Result.Failure(BookImportError.BookImportOtherError)
 
                     if (!isValidFb2(descriptionSection)) return@withContext Result.Failure(BookImportError.BookImportOtherError)
-                    val bodySection = bytes.sectionBetween("<body>", "</body>") ?: ""
-                    val (book, coverBytes) = parseContent(descriptionSection, bodySection, binarySection)
 
-                    fb2File = File(context.filesDir, "${book.ISBN}.fb2").also { it.writeBytes(bytes) }
-                    val imgUrl = if (coverBytes != null) {
-                        val f = File(context.filesDir, "${book.ISBN}.png").also { it.writeBytes(coverBytes) }
-                        pngFile = f
-                        f.toUri().toString()
-                    } else ""
+                    val bodySection = bytes.sectionBetween("<body>", "</body>") ?: ""
+                    val book  = parseContent(descriptionSection, bodySection, binarySection)
+
+                    runInterruptible {
+                        fb2File = File(context.filesDir, "${book.ISBN}.fb2").also { it.writeBytes(bytes) }
+                    }
+                    val imgUrl = withContext(Dispatchers.Default) {
+                        val coverPage = extractCoverPageInfo(descriptionSection)
+                        println("coverPage: $coverPage")
+                        val coverResult = extractCoverImage(binarySection, coverPage)
+                        println("coverResult: $coverResult")
+                        when (coverResult) {
+                            is Result.Failure -> ""
+                            is Result.Success -> {
+                                if (coverResult.data.data != null) {
+                                    val f = File(context.filesDir, "${book.ISBN}.png")
+                                    val os = f.outputStream()
+                                    os.use {
+                                        coverResult.data.data.compress(
+                                            Bitmap.CompressFormat.PNG,
+                                            100,
+                                            it
+                                        )
+                                    }
+
+                                    pngFile = f
+                                    f.toUri().toString()
+                                } else ""
+                            }
+
+                        }
+                    }
 
                     Result.Success(book.copy(imgUrl = imgUrl))
                 } ?: Result.Failure(BookImportError.BookImportOtherError)
@@ -72,52 +95,15 @@ class FN2BookParser(
     // Validates the description section (already stripped of body text).
     // </body> presence is guaranteed by sectionAfter() returning non-null in fetch().
     private fun isValidFb2(descriptionSection: String): Boolean {
-        val requiredMarkers = listOf("<FictionBook", "<title-info>", "<book-title>", "</description>")
-        if (requiredMarkers.any { it !in descriptionSection }) return false
-        return try {
-            val xml = descriptionSection + "</FictionBook>"
-            DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml.byteInputStream())
-            true
-        } catch (e: Exception) {
-            false
-        }
+        val requiredMarkers = listOf("<author", "<title-info>", "<book-title>",)
+        return (requiredMarkers.all { it in descriptionSection })
     }
 
-    // Returns the parsed Book (without imgUrl) and the compressed cover bytes, or null on failure.
-    // Does not touch the filesystem.
-    private suspend fun parseContent(descriptionSection: String, bodySection: String, binarySection: String): Pair<Book, ByteArray?> {
-        val metaData = docBuilder(
-            inputStream = (descriptionSection + "</FictionBook>").byteInputStream(),
-            bodyText = bodySection
-        )
-
-        var coverBytes: ByteArray? = null
-        var firstBinaryData: ByteArray? = null
-        binarySection.split("</binary>").map { "$it</binary>" }.asSequence().forEach { string ->
-            if ("<binary" !in string) return@forEach
-            val (imgId, imgData) = extractImageString(string)
-            if (firstBinaryData == null) firstBinaryData = imgData
-            if (imgId == "_0") {
-                coverBytes = parseImage(imgData)
-                    ?.let { scaleCoverBitmap(it, MAX_COVER_PX) }
-                    ?.let { bitmap ->
-                        ByteArrayOutputStream().also { out ->
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                        }.toByteArray()
-                    }
-                return@forEach
-            }
-        }
-
-        if (coverBytes == null && firstBinaryData != null) {
-            coverBytes = parseImage(firstBinaryData!!)
-                ?.let { scaleCoverBitmap(it, MAX_COVER_PX) }
-                ?.let { bitmap ->
-                    ByteArrayOutputStream().also { out ->
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                    }.toByteArray()
-                }
-        }
+    private suspend fun parseContent(descriptionSection: String, bodySection: String, binarySection: String): Book = withContext(
+        Dispatchers.Default){
+        val metaData = extractMetadata(
+            descriptionSection = descriptionSection
+           )
 
         val book = Book(
             ISBN = metaData.isbn,
@@ -127,7 +113,48 @@ class FN2BookParser(
             dateCreated = System.currentTimeMillis()
         )
 
-        return book to coverBytes
+        return@withContext book
+    }
+
+    private suspend fun extractCoverPageInfo(section: String): String{
+
+        val hrefRegex = Regex("""<coverpage[\s\S]*?l:href="([^"]+)"""")
+        val imageRef = hrefRegex.find(section)?.groupValues?.get(1)
+
+        return imageRef ?: "_0"
+    }
+
+    private suspend fun extractCoverImage(binarySection: String, givenCoverPage: String = "_0"): Result<BookCover, BookImportError> = withContext(Dispatchers.Default){
+
+        val imageSequence = binarySection.split("</binary>")
+            .filter { it.contains("<binary") }
+            .map { "$it</binary>" }.asSequence()
+
+        imageSequence.take(2).onEach {
+            println("imageSequence: $it")
+        }
+
+        val cover: BookCover? = try {
+            imageSequence.map {
+                extractImageString(it)
+            }.firstOrNull { (id, data) ->
+                id.filter { it.isDigit() } in givenCoverPage.orEmpty()
+            }?.let { (id, data) ->
+                val scaled = parseImage(data)?.let { scaleCoverBitmap(it, MAX_COVER_PX) }
+                BookCover(id, scaled)
+            }
+        }catch (e: CancellationException){
+            throw e
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+
+        if (cover == null) return@withContext Result.Failure(BookImportError.BookImportOtherError)
+
+        Result.Success(cover)
+
     }
 
     // --- ByteArray section helpers ---
@@ -211,20 +238,15 @@ class FN2BookParser(
         return UUID.nameUUIDFromBytes(name.toByteArray()).toString()
     }
 
-    private fun docBuilder(inputStream: InputStream, bodyText: String = ""): Fb2Metadata {
-        val factory = DocumentBuilderFactory.newInstance()
-        val builder = factory.newDocumentBuilder()
-        val doc = builder.parse(inputStream)
 
-        fun getText(tag: String) = doc
-            .getElementsByTagName(tag)
-            .item(0)
-            ?.textContent
-            ?.trim()
+
+    private fun extractMetadata(descriptionSection: String): Fb2Metadata {
+        val doc = DocBuilder(descriptionSection)
+        val isbnBare = ""
 
         // Extract authors from title-info only (not document-info)
         val authors = mutableListOf<String>()
-        val titleInfoNode = doc.getElementsByTagName("title-info").item(0)
+        val titleInfoNode = doc.getElements("title-info").item(0)
         if (titleInfoNode is org.w3c.dom.Element) {
             val authorNodes = titleInfoNode.getElementsByTagName("author")
             for (i in 0 until authorNodes.length) {
@@ -236,11 +258,30 @@ class FN2BookParser(
             }
         }
 
-        val title     = getText("book-title") ?: ""
-        val genre     = getText("genre") ?: ""
-        val lang      = getText("lang") ?: ""
-        val year      = getText("year") ?: ""
-        val publisher = getText("publisher") ?: ""
+        with(doc) {
+            val title = getText("book-title") ?: ""
+            val genre = getText("genre") ?: ""
+            val lang = getText("lang") ?: ""
+            val year = getText("year") ?: ""
+            val publisher = getText("publisher") ?: ""
+            val isbn = deterministicUuid(title, authors.joinToString(","), publisher, year, lang)
+                //?: getText("id")?.takeIf { it.isNotBlank() }
+
+
+
+            return Fb2Metadata(
+                authors = authors,
+                title = title,
+                isbn = isbn,
+                genre = genre,
+                lang = lang,
+                year = year,
+                publisher = publisher
+            )
+        }
+    }
+
+    private fun extractISBN(bodyText: String): String? {
 
         // Priority 1: explicit ISBN prefix in body text
         val isbnWithPrefix = Regex("""ISBN[:\s-]*([\d][\d\-X]*)""", RegexOption.IGNORE_CASE)
@@ -248,21 +289,24 @@ class FN2BookParser(
         // Priority 2: bare ISBN-13 (starts with 978/979) in body text, no prefix needed
         val isbnBare = isbnWithPrefix
             ?: Regex("""\b(97[89](?:[-\s]?\d){10})\b""").find(bodyText)?.groupValues?.getOrNull(1)
-        // Priority 3: <id> inside <document-info> — the FB2 protocol's own unique identifier
-        val isbn = isbnBare
-            ?: getText("id")?.takeIf { it.isNotBlank() }
-            ?: deterministicUuid(title, authors.joinToString(","), publisher, year, lang)
 
-        return Fb2Metadata(
-            authors = authors,
-            title = title,
-            isbn = isbn,
-            genre = genre,
-            lang = lang,
-            year = year,
-            publisher = publisher
-        )
+        return isbnBare
     }
+}
+class DocBuilder(bodyText: String = "") {
+    val inputStream: InputStream = bodyText.byteInputStream()
+    val factory = DocumentBuilderFactory.newInstance()
+    val builder = factory.newDocumentBuilder()
+    val doc = builder.parse(inputStream)
+
+    fun getText(tag: String) = doc
+        .getElementsByTagName(tag)
+        .item(0)
+        ?.textContent
+        ?.trim()
+
+    fun getElements(tag: String) = doc
+        .getElementsByTagName(tag)
 }
 
 data class Fb2Metadata(
@@ -273,4 +317,9 @@ data class Fb2Metadata(
     val lang: String,
     val year: String,
     val publisher: String
+)
+
+data class BookCover(
+    val id: String = "",
+    val data: Bitmap? = null
 )

@@ -52,7 +52,10 @@ fun MainNav(
 
     ObserveAsEvents(controller.actions) { action ->
         when (action) {
-            ImportBookMenuAction -> onImportBook()
+            ImportBookMenuAction -> {
+                navigate(BookListRoute)
+                onImportBook()
+            }
             is NavigationMenuAction -> navigate(action.destination)
         }
     }

@@ -31,7 +31,7 @@ class FN2BookPager(
 ): BookPager {
 
     private val pRegex = Regex("<p>(.*?)</p>", RegexOption.DOT_MATCHES_ALL)
-    private val imageRegex = Regex("""xlink:href="([^"]+)"""")
+    private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
     private val spanRegex = Regex("<emphasis>(.*?)</emphasis>", RegexOption.DOT_MATCHES_ALL)
 
     override suspend fun writePages(uri: String, book: Book) {

@@ -120,7 +120,7 @@ class FN2BookParser(
 
     private suspend fun extractCoverPageInfo(section: String): String{
 
-        val hrefRegex = Regex("""<coverpage[\s\S]*?l:href="([^"]+)"""")
+        val hrefRegex = Regex("""<coverpage[\s\S]*?\w+:href="([^"]+)"""")
         val imageRef = hrefRegex.find(section)?.groupValues?.get(1)
 
         return imageRef ?: "_0"

@@ -69,7 +69,7 @@ fun EmptyLibraryContent(
         Text(
             text = stringResource(R.string.empty_library_subtitle),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSecondary,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
 

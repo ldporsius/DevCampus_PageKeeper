@@ -9,8 +9,10 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
 import nl.codingwithlinda.pagekeeper.core.data.util.sectionAfter
 import nl.codingwithlinda.pagekeeper.core.data.util.sectionBetween
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
@@ -23,6 +25,7 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private val json = Json { ignoreUnknownKeys = true }
 
+@OptIn(ExperimentalSerializationApi::class)
 class FN2BookPager(
     private val context: Context
 ): BookPager {
@@ -44,7 +47,7 @@ class FN2BookPager(
 
                     val pages = buildPages(sections, imageMap, book)
                     val file = pagesFile(book)
-                    runInterruptible { file.writeText(json.encodeToString(pages)) }
+                    runInterruptible { file.outputStream().use { json.encodeToStream(pages, it) } }
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -137,8 +140,7 @@ class FN2BookPager(
             try {
                 val file = pagesFile(book)
                 if (!file.exists()) return@withContext emptyList()
-                val text = runInterruptible { file.readText() }
-                json.decodeFromString<List<Page>>(text)
+                runInterruptible { file.inputStream().use { json.decodeFromStream<List<Page>>(it) } }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

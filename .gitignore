@@ -1,15 +1,23 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+.idea/
 .DS_Store
 /build
+build/
 /captures
+adi-registration.properties
 .externalNativeBuild
 .cxx
 local.properties
+.kotlin/
+
+# Release artifacts
+app/release/
+*.aab
+*.apk
+
+# Signing
+*.keystore
+*.jks
+keystore.properties

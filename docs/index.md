@@ -53,4 +53,4 @@ same URL with a new "Last updated" date.
 ## Contact
 
 Questions about this policy can be sent to:
-**codingwithlinda.at.gmail.com**
+**...**

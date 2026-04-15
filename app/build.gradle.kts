@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -6,7 +8,20 @@ plugins {
 
 }
 
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
 android {
+    signingConfigs {
+        create("release") {
+            storeFile = file("/home/linda/.keystores/PageKeeper/pagekeeper2.jks")
+            storePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD")?.trim()
+            keyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS")?.trim()
+            keyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD")?.trim()
+        }
+    }
     namespace = "nl.codingwithlinda.pagekeeper"
     compileSdk {
         version = release(36) {
@@ -31,6 +46,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

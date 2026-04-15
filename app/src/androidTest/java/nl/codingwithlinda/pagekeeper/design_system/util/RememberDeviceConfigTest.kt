@@ -8,6 +8,9 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.DeviceType
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.Orientation
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
 import org.junit.Rule
 import org.junit.Test
 

@@ -13,10 +13,10 @@ import nl.codingwithlinda.pagekeeper.core.domain.FakeBookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
+import nl.codingwithlinda.pagekeeper.core.navigation.MainNav
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
-import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
-import nl.codingwithlinda.pagekeeper.feature_books.book_detail.presentation.BookDetailViewModel
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import org.junit.After
 import org.junit.Before
@@ -27,7 +27,6 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
-import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 

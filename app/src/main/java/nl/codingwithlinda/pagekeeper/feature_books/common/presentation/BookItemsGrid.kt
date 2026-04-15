@@ -9,9 +9,9 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import nl.codingwithlinda.pagekeeper.design_system.util.DeviceType
-import nl.codingwithlinda.pagekeeper.design_system.util.Orientation
-import nl.codingwithlinda.pagekeeper.design_system.util.rememberDeviceConfig
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.DeviceType
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.Orientation
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 
 @Composable

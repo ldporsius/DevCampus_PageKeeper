@@ -3,9 +3,9 @@ package nl.codingwithlinda.pagekeeper.feature_books.search.width_compact
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import nl.codingwithlinda.pagekeeper.design_system.components.AppNavigation
-import nl.codingwithlinda.pagekeeper.design_system.util.Orientation
-import nl.codingwithlinda.pagekeeper.design_system.util.rememberDeviceConfig
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.components.AppNavigation
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.Orientation
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListSideEffects
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel

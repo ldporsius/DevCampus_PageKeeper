@@ -8,7 +8,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
-import nl.codingwithlinda.pagekeeper.design_system.ui.theme.PageKeeperTheme
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.MultiSelectScreen
 import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.MultiSelectState

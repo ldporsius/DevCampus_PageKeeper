@@ -12,10 +12,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
-import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
-import nl.codingwithlinda.pagekeeper.core.presentation.NavigationMenuAction
+import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
+import nl.codingwithlinda.pagekeeper.core.navigation.NavigationMenuAction
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
-import nl.codingwithlinda.pagekeeper.navigation.MultiSelectRoute
+import nl.codingwithlinda.pagekeeper.core.navigation.MultiSelectRoute
 
 class BookListViewModel(
     val savedStateHandle: SavedStateHandle,

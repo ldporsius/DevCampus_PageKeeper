@@ -7,10 +7,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import assertk.assertThat
 import assertk.assertions.isEmpty
 import assertk.assertions.isNotEmpty
-import assertk.assertions.isInstanceOf
 import kotlinx.coroutines.runBlocking
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.remote.Page
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FN2BookPager
 import org.junit.Test
 import java.io.File
 

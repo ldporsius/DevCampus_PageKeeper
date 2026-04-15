@@ -28,7 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import nl.codingwithlinda.pagekeeper.R
-import nl.codingwithlinda.pagekeeper.design_system.ui.theme.lora
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.lora
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 

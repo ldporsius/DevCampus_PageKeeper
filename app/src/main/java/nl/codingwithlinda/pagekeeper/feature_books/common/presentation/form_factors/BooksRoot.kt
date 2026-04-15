@@ -11,8 +11,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import nl.codingwithlinda.pagekeeper.core.presentation.MenuActionController
-import nl.codingwithlinda.pagekeeper.core.presentation.NavigationMenuAction
+import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
+import nl.codingwithlinda.pagekeeper.core.navigation.NavigationMenuAction
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookImportSideEffects
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookItemsGrid
@@ -23,7 +23,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.finished.presentation.compone
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.EmptyLibraryContent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
-import nl.codingwithlinda.pagekeeper.navigation.BookDetailRoute
+import nl.codingwithlinda.pagekeeper.core.navigation.BookDetailRoute
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named

@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
-import nl.codingwithlinda.pagekeeper.core.presentation.ObserveAsEvents
+import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.feature_books.library.navigation.LibraryEvent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.DuplicateBookDialog

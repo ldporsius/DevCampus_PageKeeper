@@ -33,11 +33,8 @@ class FN2BookPager(
 
     private val pRegex = Regex("<p>(.*?)</p>", RegexOption.DOT_MATCHES_ALL)
     private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
-    private val spanRegex = Regex(
-        """<emphasis>(.*?)</emphasis>|<a\s[^>]*?\w+:href="([^"]*)"[^>]*?>(.*?)</a>""",
-        RegexOption.DOT_MATCHES_ALL
-    )
-    private val tagStripRegex = Regex("<[^>]+>")
+
+
     val pageBuilder = PageBuilder()
 
     override suspend fun writePages(uri: String, book: Book) {
@@ -49,7 +46,7 @@ class FN2BookPager(
 
                     val hasTitles = body.contains("<title>")
 
-                    println("--- FN2 BOOK PAGER HAS TITLES --- $hasTitles")
+                    //println("--- FN2 BOOK PAGER HAS TITLES --- $hasTitles")
 
                     runInterruptible {
                         val sections = parseSection(Section(0), body, book)
@@ -106,27 +103,7 @@ class FN2BookPager(
 
     }
 
-    private fun parseSpans(content: String): FormattedLine {
-        val spans = mutableListOf<TextSpan>()
-        var cursor = 0
-        spanRegex.findAll(content).forEach { match ->
-            if (match.range.first > cursor) {
-                spans += TextSpan(content.substring(cursor, match.range.first))
-            }
-            if (match.groups[1] != null) {
-                spans += TextSpan(match.groupValues[1], emphasis = true)
-            } else {
-                val url = match.groupValues[2]
-                val text = tagStripRegex.replace(match.groupValues[3], "")
-                if (text.isNotBlank()) spans += TextSpan(text, url = url)
-            }
-            cursor = match.range.last + 1
-        }
-        if (cursor < content.length) {
-            spans += TextSpan(content.substring(cursor))
-        }
-        return FormattedLine(spans)
-    }
+
 
     private fun extractBinaries(binarySection: String): Map<String, ByteArray> {
         return binarySection.split("</binary>")

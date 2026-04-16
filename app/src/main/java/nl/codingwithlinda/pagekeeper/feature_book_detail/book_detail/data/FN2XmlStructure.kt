@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.FormattedLine
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.TextSpan
+import kotlin.sequences.forEach
 
 
 @Serializable
@@ -67,6 +68,8 @@ class PageBuilder{
     }
 }
 
+
+///presentation really
 fun Section.toPages(): List<Page> {
     return elements.map { it.toPage() }
 }
@@ -75,16 +78,35 @@ fun PageElement.toPage(): Page {
 
     return Page.TextPage(
         lines = listOf(
-            FormattedLine(
-                spans = listOf(
-                    TextSpan(
-                        text = toFormattedText(),
-                        emphasis = toPlainText().contains("<emphasis>"),
-                        url = null
-                    )
-                )
-            )
+            parseSpans(toFormattedText()))
         )
-    )
+
 }
 
+private val spanRegex = Regex(
+    """<emphasis>(.*?)</emphasis>|<a\s[^>]*?\w+:href="([^"]*)"[^>]*?>(.*?)</a>""",
+    RegexOption.DOT_MATCHES_ALL
+)
+private val tagStripRegex = Regex("<[^>]+>")
+
+private fun parseSpans(content: String): FormattedLine {
+    val spans = mutableListOf<TextSpan>()
+    var cursor = 0
+    spanRegex.findAll(content).forEach { match ->
+        if (match.range.first > cursor) {
+            spans += TextSpan(content.substring(cursor, match.range.first))
+        }
+        if (match.groups[1] != null) {
+            spans += TextSpan(match.groupValues[1], emphasis = true)
+        } else {
+            val url = match.groupValues[2]
+            val text = tagStripRegex.replace(match.groupValues[3], "")
+            if (text.isNotBlank()) spans += TextSpan(text, url = url)
+        }
+        cursor = match.range.last + 1
+    }
+    if (cursor < content.length) {
+        spans += TextSpan(content.substring(cursor))
+    }
+    return FormattedLine(spans)
+}

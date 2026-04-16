@@ -46,26 +46,16 @@ class FN2BookPager(
                 context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
                     val bytes = runInterruptible { stream.readBytes() }
                     val body = bytes.sectionBetween("<body>", "</body>") ?: ""
-                    val sections = body.split("</section>").filter { it.isNotBlank() }
-                    println("--- FN2 BOOK PAGER FOUND SECTIONS --- ${sections.size}")
 
+                    val hasTitles = body.contains("<title>")
 
-                    //val binarySection = bytes.sectionAfter("</body>") ?: ""
-                    //val imageMap = extractBinaries(binarySection)
+                    println("--- FN2 BOOK PAGER HAS TITLES --- $hasTitles")
 
-                    //val pages = buildPages(sections, imageMap, book)
-                    //val file = pagesFile(book)
-                    //runInterruptible { file.outputStream().use { json.encodeToStream(pages, it) } }
                     runInterruptible {
                         val sections = parseSection(Section(0), body, book)
                         val file = File(context.filesDir, "${book.ISBN}.json")
-                        val pages = sections.map { (i, section) ->
-                            Page.TextPage(lines = section.map { el ->
-                                FormattedLine(listOf(TextSpan(el.toPlainText())))
-                            })
-                        }
                         file.outputStream().use {
-                            json.encodeToStream<List<Page>>(pages, it)
+                            json.encodeToStream<List<Section>>(sections, it)
                         }
                     }
                 }
@@ -86,7 +76,7 @@ class FN2BookPager(
 
         if (tagSection.isBlank()) return pageBuilder.sections.map { it.value }
 
-        println("--- FN2 BOOK PAGER FOUND SECTION --- length = ${tagSection.length}")
+        //println("--- FN2 BOOK PAGER FOUND SECTION --- length = ${tagSection.length}")
 
         var matchFound: Boolean
 
@@ -103,9 +93,9 @@ class FN2BookPager(
             paragraphCount++
         }
 
-        println("--- FN2 BOOK PAGER FOUND PARAGRAPHS --- $paragraphCount")
-        println("--- FN2 BOOK PAGER HAS SECTIONS --- ${pageBuilder.sections.size}")
-        println("--- FN2 BOOK PAGER LAST ELEMENT --- ${pageBuilder.sections.values.lastOrNull()?.elements?.lastOrNull()}")
+//        println("--- FN2 BOOK PAGER FOUND PARAGRAPHS --- $paragraphCount")
+//        println("--- FN2 BOOK PAGER HAS SECTIONS --- ${pageBuilder.sections.size}")
+//        println("--- FN2 BOOK PAGER LAST ELEMENT --- ${pageBuilder.sections.values.lastOrNull()?.elements?.lastOrNull()}")
 
         val continuation =  body.substringAfter(pageBuilder.sections.values.lastOrNull()?.elements?.lastOrNull()
             ?.toPlainText() ?: "")
@@ -172,7 +162,7 @@ class FN2BookPager(
         }
     }
 
-    private suspend fun buildPages(sections: List<String>, imageMap: Map<String, ByteArray>, book: Book): List<Page> = buildList {
+   /* private suspend fun buildPages(sections: List<String>, imageMap: Map<String, ByteArray>, book: Book): List<Page> = buildList {
         val textBuffer = mutableListOf<FormattedLine>()
 
         fun flushText() {
@@ -198,14 +188,14 @@ class FN2BookPager(
             }
         }
         flushText()
-    }
+    }*/
 
-    override suspend fun readPages(book: Book): List<Page> {
+    override suspend fun readPages(book: Book): List<Section> {
         return withContext(Dispatchers.IO) {
             try {
                 val file = pagesFile(book)
                 if (!file.exists()) return@withContext emptyList()
-                runInterruptible { file.inputStream().use { json.decodeFromStream<List<Page>>(it) } }
+                runInterruptible { file.inputStream().use { json.decodeFromStream<List<Section>>(it) } }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -215,7 +205,7 @@ class FN2BookPager(
         }
     }
 
-    override suspend fun loadPages(book: Book): List<Page> {
+    override suspend fun loadPages(book: Book): List<Section> {
         var pages = readPages(book)
         if (pages.isEmpty()) {
             val uri = Uri.fromFile(File(context.filesDir, "${book.ISBN}.fb2")).toString()

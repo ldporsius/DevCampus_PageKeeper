@@ -1,11 +1,15 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data
 
 import kotlinx.serialization.Serializable
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.FormattedLine
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.TextSpan
 
 
-
-interface PageElement{
+@Serializable
+sealed interface PageElement{
     fun toPlainText(): String
+    fun toFormattedText(): String = toPlainText()
 }
 
 @Serializable
@@ -13,12 +17,14 @@ data class Section(
     val id: Int = 0,
     val elements: List<PageElement> = emptyList()
 ): PageElement {
-    override fun toPlainText(): String  = elements.joinToString("\n")
+    override fun toPlainText(): String  = elements.map { it.toPlainText() }.joinToString("\n")
+    override fun toFormattedText(): String = elements.map { it.toFormattedText() }.joinToString("\n")
 }
 
 @Serializable
 data class Paragraph(val text: String): PageElement{
     override fun toPlainText(): String = text
+    override fun toFormattedText(): String = text.replace(Regex(paragraphTag), "$1")
 }
 
 @Serializable
@@ -60,3 +66,25 @@ class PageBuilder{
         _sections.clear()
     }
 }
+
+fun Section.toPages(): List<Page> {
+    return elements.map { it.toPage() }
+}
+
+fun PageElement.toPage(): Page {
+
+    return Page.TextPage(
+        lines = listOf(
+            FormattedLine(
+                spans = listOf(
+                    TextSpan(
+                        text = toFormattedText(),
+                        emphasis = toPlainText().contains("<emphasis>"),
+                        url = null
+                    )
+                )
+            )
+        )
+    )
+}
+

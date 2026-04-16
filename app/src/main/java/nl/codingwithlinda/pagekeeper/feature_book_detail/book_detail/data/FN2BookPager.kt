@@ -5,21 +5,22 @@ import android.net.Uri
 import android.util.Base64
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
-import nl.codingwithlinda.pagekeeper.core.data.util.sectionAfter
 import nl.codingwithlinda.pagekeeper.core.data.util.sectionBetween
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
-import nl.codingwithlinda.pagekeeper.core.domain.remote.FormattedLine
-import nl.codingwithlinda.pagekeeper.core.domain.remote.Page
-import nl.codingwithlinda.pagekeeper.core.domain.remote.TextSpan
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.FormattedLine
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.TextSpan
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -37,6 +38,7 @@ class FN2BookPager(
         RegexOption.DOT_MATCHES_ALL
     )
     private val tagStripRegex = Regex("<[^>]+>")
+    val pageBuilder = PageBuilder()
 
     override suspend fun writePages(uri: String, book: Book) {
         withContext(Dispatchers.IO) {
@@ -45,20 +47,73 @@ class FN2BookPager(
                     val bytes = runInterruptible { stream.readBytes() }
                     val body = bytes.sectionBetween("<body>", "</body>") ?: ""
                     val sections = body.split("</section>").filter { it.isNotBlank() }
+                    println("--- FN2 BOOK PAGER FOUND SECTIONS --- ${sections.size}")
 
-                    val binarySection = bytes.sectionAfter("</body>") ?: ""
-                    val imageMap = extractBinaries(binarySection)
 
-                    val pages = buildPages(sections, imageMap, book)
-                    val file = pagesFile(book)
-                    runInterruptible { file.outputStream().use { json.encodeToStream(pages, it) } }
+                    //val binarySection = bytes.sectionAfter("</body>") ?: ""
+                    //val imageMap = extractBinaries(binarySection)
+
+                    //val pages = buildPages(sections, imageMap, book)
+                    //val file = pagesFile(book)
+                    //runInterruptible { file.outputStream().use { json.encodeToStream(pages, it) } }
+                    runInterruptible {
+                        val sections = parseSection(Section(0), body, book)
+                        val file = File(context.filesDir, "${book.ISBN}.json")
+                        val pages = sections.map { (i, section) ->
+                            Page.TextPage(lines = section.map { el ->
+                                FormattedLine(listOf(TextSpan(el.toPlainText())))
+                            })
+                        }
+                        file.outputStream().use {
+                            json.encodeToStream<List<Page>>(pages, it)
+                        }
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 e.printStackTrace()
+            }finally {
+                withContext(NonCancellable) { pageBuilder.clear() }
             }
         }
+    }
+
+
+    private tailrec fun parseSection(section: Section, body: String, book: Book): List<Section>{
+
+        val tagSection = body.substringBefore("</section>", "")
+
+        if (tagSection.isBlank()) return pageBuilder.sections.map { it.value }
+
+        println("--- FN2 BOOK PAGER FOUND SECTION --- length = ${tagSection.length}")
+
+        var matchFound: Boolean
+
+        var paragraphCount = 0
+        var  paragraphMatch = pRegex.find(tagSection, 0)
+        matchFound = paragraphMatch != null
+        while ( matchFound && paragraphCount < 100) {
+            paragraphMatch = paragraphMatch?.next()
+
+            matchFound = paragraphMatch != null
+            val paragraph = paragraphMatch?.value ?: break
+
+            pageBuilder.addElementToSection(section, Paragraph(paragraph))
+            paragraphCount++
+        }
+
+        println("--- FN2 BOOK PAGER FOUND PARAGRAPHS --- $paragraphCount")
+        println("--- FN2 BOOK PAGER HAS SECTIONS --- ${pageBuilder.sections.size}")
+        println("--- FN2 BOOK PAGER LAST ELEMENT --- ${pageBuilder.sections.values.lastOrNull()?.elements?.lastOrNull()}")
+
+        val continuation =  body.substringAfter(pageBuilder.sections.values.lastOrNull()?.elements?.lastOrNull()
+            ?.toPlainText() ?: "")
+
+        val startNewSection = continuation.startsWith("<section>")
+        val newSection = if (startNewSection) Section(section.id + 1) else section
+        return parseSection(newSection, continuation, book)
+
     }
 
     private fun parseSpans(content: String): FormattedLine {

@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.core.domain.remote
+package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain
 
 import kotlinx.serialization.Serializable
 

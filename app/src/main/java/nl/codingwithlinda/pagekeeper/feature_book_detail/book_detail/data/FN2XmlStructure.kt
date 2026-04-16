@@ -69,22 +69,20 @@ class PageBuilder{
 }
 
 
-///presentation really
+////////////////////////presentation really////////////////////////////////
 fun Section.toPages(): List<Page> {
     return elements.map { it.toPage() }
 }
 
 fun PageElement.toPage(): Page {
-
     return Page.TextPage(
         lines = listOf(
             parseSpans(toFormattedText()))
         )
-
 }
 
 private val spanRegex = Regex(
-    """<emphasis>(.*?)</emphasis>|<a\s[^>]*?\w+:href="([^"]*)"[^>]*?>(.*?)</a>""",
+    """<emphasis>(.*?)</emphasis>|<a\s[^>]*?\w+:href="([^"]*)"[^>]*?>(.*?)</a>|<strong>(.*?)</strong>""",
     RegexOption.DOT_MATCHES_ALL
 )
 private val tagStripRegex = Regex("<[^>]+>")
@@ -98,6 +96,8 @@ private fun parseSpans(content: String): FormattedLine {
         }
         if (match.groups[1] != null) {
             spans += TextSpan(match.groupValues[1], emphasis = true)
+        } else if (match.groups[4] != null) {
+            spans += TextSpan(match.groupValues[4], bold = true)
         } else {
             val url = match.groupValues[2]
             val text = tagStripRegex.replace(match.groupValues[3], "")

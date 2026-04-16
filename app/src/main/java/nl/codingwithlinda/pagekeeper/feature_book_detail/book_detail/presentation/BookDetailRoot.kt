@@ -14,6 +14,7 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,6 +65,9 @@ fun BookDetailScreen(
                                                 append(span.text)
                                             }
                                             span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                                                append(span.text)
+                                            }
+                                            span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
                                                 append(span.text)
                                             }
                                             else -> append(span.text)

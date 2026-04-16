@@ -25,7 +25,7 @@ data class Section(
 @Serializable
 data class Paragraph(val text: String): PageElement{
     override fun toPlainText(): String = text
-    override fun toFormattedText(): String = text.replace(Regex(paragraphTag), "$1")
+    override fun toFormattedText(): String = text.replace(Regex(paragraphTag), "$1").plus("\n")
 }
 
 @Serializable

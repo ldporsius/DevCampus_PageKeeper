@@ -21,9 +21,31 @@ data class Section(
     val elements: List<PageElement> = emptyList()
 ): PageElement {
     override fun toPlainText(): String  = elements.map { it.toPlainText() }.joinToString("\n")
-    override fun toFormattedText(): String = elements.map { it.toFormattedText() }.joinToString("\n")
+    override fun toFormattedText(): String {
+        //return elements.map { it.toFormattedText() }.joinToString("")
+        return Chapter(
+            title = elements.first().toFormattedText(),
+            elements = elements.drop(1)
+        ).toFormattedText()
+    }
 }
 
+data class Chapter(val title: String, val elements: List<PageElement>): PageElement{
+    override fun toPlainText(): String {
+        return StringBuilder()
+            .appendLine(title)
+            .appendLine(elements.map { it.toPlainText() })
+            .toString()
+    }
+
+    override fun toFormattedText(): String {
+        return StringBuilder()
+            .appendLine(title)
+            .append(elements.map { it.toFormattedText() })
+            .toString()
+    }
+
+}
 @Serializable
 data class Paragraph(val text: String): PageElement{
     override fun toPlainText(): String = text

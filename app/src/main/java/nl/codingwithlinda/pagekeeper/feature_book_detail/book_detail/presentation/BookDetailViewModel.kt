@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -14,6 +16,7 @@ import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.toPage
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.util.toUi
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
@@ -21,7 +24,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 class BookDetailViewModel(
     private val isbn: String,
     private val bookRepository: BookRepository,
-    private val bookPager: BookPager
+    private val bookPager: LazyBookPager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookDetailState())
@@ -30,15 +33,31 @@ class BookDetailViewModel(
     private val _events = Channel<BookDetailEvent>()
     val events = _events.receiveAsFlow()
 
+    private suspend fun book() = bookRepository.getBookByISBN(isbn)
+
     init {
+
         viewModelScope.launch {
-            val book = bookRepository.getBookByISBN(isbn) ?: return@launch
+           val book = book() ?: return@launch
             _state.update {
                 it.copy(
                     book = book.toBookUi()
                 )
             }
-            loadPages(book)
+            if (!bookPager.hasPages(book)){
+                writePages(book)
+            }
+        }
+
+        viewModelScope.launch {
+            val book = book() ?: return@launch
+            bookPager.loadChapter(book, 0).onEach { chapter ->
+                _state.update {
+                    it.copy(
+                        pages = it.pages.plus(chapter.toPage())
+                    )
+                }
+            }.launchIn(viewModelScope)
         }
     }
 
@@ -73,7 +92,6 @@ class BookDetailViewModel(
                 updateUiState(null)
                 viewModelScope.launch {
                     pagesRes.data.onEach {
-                        it.toPage()
                         _state.update { detailState ->
                             detailState.copy(
                                 pages = detailState.pages.plus(it.toPage())
@@ -97,7 +115,7 @@ class BookDetailViewModel(
             is Result.Failure -> {
                 updateUiState(writeRes.error)
             }
-            is Result.Success<*> -> {
+            is Result.Success -> {
                 updateUiState(null)
                 bookPager.loadPages(book)
             }

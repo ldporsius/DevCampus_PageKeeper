@@ -14,6 +14,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Book
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.navigation.DefaultMenuActionController
 import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
@@ -45,7 +46,7 @@ val appDataModule = module {
     }
     single { RoomBookRepository(get<PageKeeperDatabase>().bookDao(), androidContext().filesDir) } bind BookRepository::class
     single { FN2BookParser(androidContext()) } bind BookParser::class
-    single { FN2BookPager(androidContext()) } bind BookPager::class
+    single { FN2BookPager(androidContext()) } bind LazyBookPager::class
     single { ContentResolverBookFormatValidator(androidContext()) } bind BookFormatValidator::class
     single<MenuActionController> { DefaultMenuActionController() }
 }

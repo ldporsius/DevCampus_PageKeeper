@@ -5,8 +5,9 @@ import android.net.Uri
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -18,6 +19,7 @@ import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -56,7 +58,7 @@ internal suspend fun findTopLevelSections(body: String): List<String> = withCont
 @OptIn(ExperimentalSerializationApi::class)
 class FN2BookPager(
     private val context: Context
-): BookPager {
+): LazyBookPager {
     private val pRegex = Regex("<p>(.*?)</p>", RegexOption.DOT_MATCHES_ALL)
     private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
 
@@ -64,7 +66,7 @@ class FN2BookPager(
 
 
     override suspend fun writePages(uri: String, book: Book): Result<Unit, BookParseError> {
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             try {
                 val uri = Uri.fromFile(File(context.filesDir, "${book.ISBN}.fb2")).toString()
                 context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
@@ -106,7 +108,6 @@ class FN2BookPager(
                 withContext(NonCancellable) { pageBuilder.clear() }
             }
         }
-        return Result.Failure(BookParseError.GeneralBookParseError)
     }
 
 
@@ -150,9 +151,26 @@ class FN2BookPager(
         }
     }
 
+    override suspend fun hasPages(book: Book): Boolean = withContext(Dispatchers.IO) {
+        sectionFiles(book).isNotEmpty()
+    }
+
     override suspend fun loadPages(book: Book, sectionIndex: Int): Result<List<Section>, BookParseError> = withContext(Dispatchers.IO) {
         val pagesRes= readPages(book)
         return@withContext pagesRes
+    }
+
+    override suspend fun loadChapter(book: Book, sectionIndex: Int): Flow<Section> {
+        return flow {
+            sectionFiles(book).getOrNull(sectionIndex).let { file ->
+                if (file == null) return@flow
+                file.inputStream().use {
+                    json.decodeFromStream<List<Section>>(it) .forEach { section ->
+                        emit(section)
+                    }
+                }
+            }
+        }
     }
 
     private fun sectionFiles(book: Book): List<File>{

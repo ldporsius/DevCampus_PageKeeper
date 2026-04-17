@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -56,6 +58,10 @@ fun BookDetailScreen(
         .fillMaxSize()
         .safeContentPadding()
         .testTag("book_detail_screen")){
+        if (state.isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
+
         LazyColumn() {
             items(state.pages){ page ->
                 when (page) {

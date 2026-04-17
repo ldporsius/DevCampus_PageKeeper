@@ -3,6 +3,8 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
+import androidx.compose.ui.util.fastFilterNotNull
+import androidx.compose.ui.util.fastJoinToString
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -12,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
@@ -49,13 +52,21 @@ class FN2BookPager(
                     //println("--- FN2 BOOK PAGER HAS TITLES --- $hasTitles")
 
                     runInterruptible {
-                        val sections = parseSection(Section(0), body, book)
-                        val file = File(context.filesDir, "${book.ISBN}.json")
-                        file.outputStream().use {
-                            json.encodeToStream<List<Section>>(sections, it)
+                        val sections = body.split("<section>")
+
+                            sections.onEachIndexed { index, string ->
+                                val res = parseSection(Section(index), string)
+                                val file = File(context.filesDir, "${book.ISBN}_$index.json")
+                                file.outputStream().use {
+                                    json.encodeToStream<List<Section>>(res, it)
+                                }
+                                pageBuilder.clear()
+                            }
+
+
                         }
                     }
-                }
+
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -66,19 +77,53 @@ class FN2BookPager(
         }
     }
 
+    private fun parseSection_claude(body: String): List<Section> {
+        var currentSection = Section(0)
+        var paragraphCount = 0
+        var sectionEnd = body.indexOf("</section>")
+        var match = pRegex.find(body, 0)   // one Matcher for the entire body
 
-    private tailrec fun parseSection(section: Section, body: String, book: Book): List<Section>{
+        println("--- parseSection_claude start: bodyLen=${body.length}, sectionEnd=$sectionEnd, firstMatch=${match?.range?.first}")
 
-        val tagSection = body.substringBefore("</section>", "")
+        while (match != null && sectionEnd != -1) {
+            // Advance past any section boundaries the current match has crossed
+            while (sectionEnd != -1 && match.range.first >= sectionEnd) {
+                sectionEnd = body.indexOf("</section>", sectionEnd + "</section>".length)
+                currentSection = Section(currentSection.id + 1)
+                paragraphCount = 0
+            }
+            if (sectionEnd == -1) break
 
-        if (tagSection.isBlank()) return pageBuilder.sections.map { it.value }
+            pageBuilder.addElementToSection(currentSection, Paragraph(match.value))
+            paragraphCount++
 
+            if (paragraphCount >= 100) {
+                currentSection = Section(currentSection.id + 1)
+                paragraphCount = 0
+            }
+
+            match = match.next()   // reuses the same Matcher — no new allocation
+        }
+
+        println("--- parseSection_claude done: sections=${pageBuilder.sections.size}")
+        return pageBuilder.sections.map { it.value }
+    }
+
+    private tailrec fun parseSection(section: Section, body: String): List<Section>{
+
+        //val tagSection = body.split("</section>").fastFilterNotNull()
+
+        if (body.isEmpty()) {
+            println("--- base case reached, sections in builder: ${pageBuilder.sections.size}")
+            return pageBuilder.sections.map { it.value }
+        }
         //println("--- FN2 BOOK PAGER FOUND SECTION --- length = ${tagSection.length}")
 
+        val nextSection = body
         var matchFound: Boolean
 
         var paragraphCount = 0
-        var  paragraphMatch = pRegex.find(tagSection, 0)
+        var  paragraphMatch = pRegex.find(nextSection, 0)
         matchFound = paragraphMatch != null
         while ( matchFound && paragraphCount < 100) {
             paragraphMatch = paragraphMatch?.next()
@@ -92,14 +137,16 @@ class FN2BookPager(
 
 //        println("--- FN2 BOOK PAGER FOUND PARAGRAPHS --- $paragraphCount")
 //        println("--- FN2 BOOK PAGER HAS SECTIONS --- ${pageBuilder.sections.size}")
-//        println("--- FN2 BOOK PAGER LAST ELEMENT --- ${pageBuilder.sections.values.lastOrNull()?.elements?.lastOrNull()}")
+          println("--- FN2 BOOK PAGER LAST ELEMENT --- ${pageBuilder.sections.values.lastOrNull()?.elements?.lastOrNull()?.toPlainText()}")
 
         val continuation =  body.substringAfter(pageBuilder.sections.values.lastOrNull()?.elements?.lastOrNull()
             ?.toPlainText() ?: "")
 
+        println("--- FN2 BOOK PAGER CONTINUATION --- ${continuation.take(150)}")
+
         val startNewSection = continuation.startsWith("<section>")
         val newSection = if (startNewSection) Section(section.id + 1) else section
-        return parseSection(newSection, continuation, book)
+        return pageBuilder.sections.map { it.value }
 
     }
 
@@ -168,11 +215,21 @@ class FN2BookPager(
     }*/
 
     override suspend fun readPages(book: Book): List<Section> {
+        var sections = mutableListOf<Section>()
         return withContext(Dispatchers.IO) {
             try {
-                val file = pagesFile(book)
-                if (!file.exists()) return@withContext emptyList()
-                runInterruptible { file.inputStream().use { json.decodeFromStream<List<Section>>(it) } }
+                val files = sectionFiles(book)
+                if (files.isEmpty()) return@withContext emptyList()
+                runInterruptible {
+                    files.onEachIndexed { index, file ->
+                        file.inputStream().use {
+                            json.decodeFromStream<List<Section>>(it) .also {
+                                sections.addAll(it)
+                            }
+                        }
+                    }
+                }
+                return@withContext sections
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -182,7 +239,7 @@ class FN2BookPager(
         }
     }
 
-    override suspend fun loadPages(book: Book): List<Section> {
+    override suspend fun loadPages(book: Book, sectionIndex: Int): List<Section> {
         var pages = readPages(book)
         if (pages.isEmpty()) {
             val uri = Uri.fromFile(File(context.filesDir, "${book.ISBN}.fb2")).toString()
@@ -192,6 +249,11 @@ class FN2BookPager(
         return pages
     }
 
-    private fun pagesFile(book: Book): File =
-        File(context.filesDir, "${book.ISBN}.json")
+    fun sectionFiles(book: Book): List<File>{
+        return context.filesDir.listFiles()?.filter { it.name.startsWith("${book.ISBN}_") } ?: emptyList()
+    }
+    private fun pagesFile(book: Book): File{
+        return File(context.filesDir, "${book.ISBN}.json")
+    }
+
 }

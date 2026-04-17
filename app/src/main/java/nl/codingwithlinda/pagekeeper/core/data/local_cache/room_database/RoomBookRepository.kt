@@ -35,5 +35,6 @@ internal class RoomBookRepository(
         dao.deleteBook(ISBN)
         File(filesDir, "$ISBN.png").delete()
         File(filesDir, "$ISBN.fb2").delete()
+        filesDir.listFiles()?.filter { it.name.startsWith(ISBN) }?.forEach { it.delete() }
     }
 }

@@ -9,5 +9,5 @@ interface BookPager {
 
     suspend fun readPages(book: Book): List<Section>
 
-    suspend fun loadPages(book: Book): List<Section>
+    suspend fun loadPages(book: Book, sectionIndex: Int = 0): List<Section>
 }

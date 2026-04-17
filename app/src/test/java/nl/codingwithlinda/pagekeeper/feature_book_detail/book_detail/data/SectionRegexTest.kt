@@ -3,12 +3,13 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data
 import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.hasSize
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
 class FindTopLevelSectionsTest {
 
     @Test
-    fun `flat sections - all are found`() {
+    fun `flat sections - all are found`() = runBlocking{
         val body = """
             <section><p>Chapter one</p></section>
             <section><p>Chapter two</p></section>
@@ -21,7 +22,7 @@ class FindTopLevelSectionsTest {
     }
 
     @Test
-    fun `nested sections - only the outermost section is returned`() {
+    fun `nested sections - only the outermost section is returned`() = runBlocking{
         val body = """
             <section>
                 <p>Outer content</p>
@@ -36,7 +37,7 @@ class FindTopLevelSectionsTest {
     }
 
     @Test
-    fun `nested sections - outer result contains inner section markup`() {
+    fun `nested sections - outer result contains inner section markup`() = runBlocking{
         val body = "<section><p>Outer</p><section><p>Inner</p></section></section>"
 
         val result = findTopLevelSections(body)
@@ -46,7 +47,7 @@ class FindTopLevelSectionsTest {
     }
 
     @Test
-    fun `nested sections - recursive call finds the inner section`() {
+    fun `nested sections - recursive call finds the inner section`() = runBlocking{
         val body = "<section><p>Outer</p><section><p>Inner</p></section></section>"
 
         val outer = findTopLevelSections(body)

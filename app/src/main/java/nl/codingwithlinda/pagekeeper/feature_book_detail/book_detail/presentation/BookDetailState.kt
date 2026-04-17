@@ -7,6 +7,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 data class BookDetailState(
     val book: BookUi? = null,
     val pages: List<Page> = emptyList(),
+    val isWriting: Boolean = false,
     val isLoading: Boolean = true,
     val error: UiText? = null
 )

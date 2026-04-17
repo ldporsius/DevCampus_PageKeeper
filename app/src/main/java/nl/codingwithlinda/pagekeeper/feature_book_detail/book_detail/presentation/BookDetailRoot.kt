@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
@@ -75,7 +76,7 @@ fun BookDetailScreen(
         .fillMaxSize()
         .safeContentPadding()
         .testTag("book_detail_screen")){
-        if (state.isLoading) {
+        if (state.isWriting) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
 
@@ -119,6 +120,17 @@ fun BookDetailScreen(
                             contentDescription = null
                         )
                     }
+                }
+            }
+            if (state.isLoading){
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ){
+                        CircularProgressIndicator()
+                    }
+
                 }
             }
         }

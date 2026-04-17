@@ -17,7 +17,6 @@ import kotlinx.serialization.json.encodeToStream
 import nl.codingwithlinda.pagekeeper.core.data.util.sectionBetween
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
 import java.io.File
@@ -196,8 +195,11 @@ class FN2BookPager(
         }
     }
 
-    private fun sectionFiles(book: Book): List<File>{
-        return context.filesDir.listFiles()?.filter { it.name.startsWith("${book.ISBN}_") } ?: emptyList()
+    private fun sectionFiles(book: Book): List<File> {
+        return context.filesDir.listFiles()
+            ?.filter { it.name.startsWith("${book.ISBN}_") }
+            ?.sortedBy { it.name.removePrefix("${book.ISBN}_").removeSuffix(".json").toIntOrNull() ?: 0 }
+            ?: emptyList()
     }
     private fun pagesFile(book: Book): File{
         return File(context.filesDir, "${book.ISBN}.json")

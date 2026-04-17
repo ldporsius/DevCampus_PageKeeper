@@ -3,6 +3,7 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -33,31 +34,20 @@ class BookDetailViewModel(
     private val _events = Channel<BookDetailEvent>()
     val events = _events.receiveAsFlow()
 
+    private var currentSectionIndex = 0
+
     private suspend fun book() = bookRepository.getBookByISBN(isbn)
 
     init {
-
-        viewModelScope.launch {
-           val book = book() ?: return@launch
-            _state.update {
-                it.copy(
-                    book = book.toBookUi()
-                )
-            }
-            if (!bookPager.hasPages(book)){
-                writePages(book)
-            }
-        }
-
         viewModelScope.launch {
             val book = book() ?: return@launch
-            bookPager.loadChapter(book, 0).onEach { chapter ->
-                _state.update {
-                    it.copy(
-                        pages = it.pages.plus(chapter.toPage())
-                    )
-                }
-            }.launchIn(viewModelScope)
+            _state.update { it.copy(book = book.toBookUi()) }
+            if (!bookPager.hasPages(book)) {
+                writePages(book)
+            }
+            bookPager.loadChapter(book, 0).collect { chapter ->
+                _state.update { it.copy(pages = it.pages.plus(chapter.toPage()), isLoading = false) }
+            }
         }
     }
 
@@ -65,6 +55,17 @@ class BookDetailViewModel(
         when (action) {
             is BookDetailAction.OnBackClick ->
                 viewModelScope.launch { _events.send(BookDetailEvent.NavigateBack) }
+            is BookDetailAction.LoadNextSection ->
+                viewModelScope.launch {
+                    val book = book() ?: return@launch
+                    currentSectionIndex++
+                    _state.update { it.copy(isLoading = true) }
+                    bookPager.loadChapter(book, currentSectionIndex).collect { chapter ->
+                        _state.update { it.copy(pages = it.pages.plus(chapter.toPage())) }
+                    }
+                    delay(5000)
+                    _state.update { it.copy(isLoading = false) }
+                }
         }
     }
 

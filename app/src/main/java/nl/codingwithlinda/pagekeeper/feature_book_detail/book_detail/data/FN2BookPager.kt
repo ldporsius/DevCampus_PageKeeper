@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
@@ -22,7 +23,35 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private val json = Json { ignoreUnknownKeys = true }
 
-internal val sectionRegex = Regex("<section>(.*?)</section>", RegexOption.DOT_MATCHES_ALL)
+internal suspend fun findTopLevelSections(body: String): List<String> = withContext(Dispatchers.Default) {
+    val result = mutableListOf<String>()
+    val open = "<section>"
+    val close = "</section>"
+    var pos = 0
+    while (pos < body.length) {
+        val start = body.indexOf(open, pos)
+        if (start == -1) break
+        var depth = 1
+        var search = start + open.length
+        while (depth > 0 && search < body.length) {
+            val nextOpen = body.indexOf(open, search)
+            val nextClose = body.indexOf(close, search)
+            if (nextClose == -1) break
+            if (nextOpen != -1 && nextOpen < nextClose) {
+                depth++
+                search = nextOpen + open.length
+            } else {
+                depth--
+                search = nextClose + close.length
+            }
+        }
+        if (depth == 0) {
+            result += body.substring(start, search)
+            pos = search
+        } else break
+    }
+    return@withContext result
+}
 
 @OptIn(ExperimentalSerializationApi::class)
 class FN2BookPager(
@@ -34,12 +63,6 @@ class FN2BookPager(
     val pageBuilder = PageBuilder()
 
 
-    suspend fun bookInfo(uri: String) {
-        context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
-            val bytes = runInterruptible { stream.readBytes() }
-            val body = bytes.sectionBetween("<body>", "</body>") ?: ""
-        }
-    }
     override suspend fun writePages(uri: String, book: Book): Result<Unit, BookParseError> {
         withContext(Dispatchers.IO) {
             try {
@@ -48,28 +71,26 @@ class FN2BookPager(
                     val bytes = runInterruptible { stream.readBytes() }
                     val body = bytes.sectionBetween("<body>", "</body>") ?: ""
 
-
                     val hasTitles = body.contains("<title>")
-
                     println("--- FN2 BOOK PAGER HAS TITLES --- $hasTitles")
 
-                    runInterruptible {
-                        val sections = sectionRegex.findAll(body)
+                    val topLevelSections = findTopLevelSections(body)
 
-                        println("--- FN2 BOOK PAGER FOUND SECTIONS --- ${sections.firstOrNull()?.value}")
+                    println("--- FN2 BOOK PAGER FOUND SECTIONS --- ${topLevelSections.size}")
 
-                        sections.forEachIndexed { index, string ->
-                            println("--- FN2 BOOK PAGER PARSING SECTION --- $index")
+                    topLevelSections.forEachIndexed { index, html ->
+                        println("--- FN2 BOOK PAGER PARSING SECTION --- $index")
 
-                            val res = parseSection(Section(index), string.value)
-                            val file = File(context.filesDir, "${book.ISBN}_$index.json")
-                            file.outputStream().use {
-                                json.encodeToStream<List<Section>>(res, it)
-                            }
-                            pageBuilder.clear()
+                        ensureActive()
+                        val inner = html.removePrefix("<section>").removeSuffix("</section>")
+                        val section = parseSection(index, inner)
+                        val file = File(context.filesDir, "${book.ISBN}_$index.json")
+                        file.outputStream().use {
+                            json.encodeToStream<List<Section>>(listOf(section), it)
                         }
                     }
                 }
+
                 return@withContext Result.Success(Unit)
 
             } catch (e: CancellationException) {
@@ -89,41 +110,17 @@ class FN2BookPager(
     }
 
 
-    private fun parseSection(section: Section, body: String): List<Section>{
-
-        if (body.isEmpty()) {
-            println("--- base case reached, sections in builder: ${pageBuilder.sections.size}")
-            return pageBuilder.sections.map { it.value }
+    private suspend fun parseSection(sectionId: Int, body: String): Section {
+        val nestedSections = findTopLevelSections(body)
+        val elements: List<PageElement> = if (nestedSections.isEmpty()) {
+            pRegex.findAll(body).map { Paragraph(it.value) }.toList()
+        } else {
+            nestedSections.mapIndexed { index, html ->
+                val inner = html.removePrefix("<section>").removeSuffix("</section>")
+                parseSection(sectionId * 100 + index, inner)
+            }
         }
-
-        val nextSection = body
-        var matchFound: Boolean
-
-        var paragraphCount = 0
-        var  paragraphMatch = pRegex.find(nextSection, 0)
-        matchFound = paragraphMatch != null
-        while ( matchFound && paragraphCount < 100) {
-            paragraphMatch = paragraphMatch?.next()
-
-            matchFound = paragraphMatch != null
-            val paragraph = paragraphMatch?.value ?: break
-
-            pageBuilder.addElementToSection(section, Paragraph(paragraph))
-            paragraphCount++
-        }
-
-//        println("--- FN2 BOOK PAGER FOUND PARAGRAPHS --- $paragraphCount")
-//        println("--- FN2 BOOK PAGER HAS SECTIONS --- ${pageBuilder.sections.size}")
-        println("--- FN2 BOOK PAGER LAST ELEMENT --- ${pageBuilder.sections.values.lastOrNull()?.elements?.lastOrNull()?.toPlainText()}")
-
-        val continuation =  body.substringAfter(pageBuilder.sections.values.lastOrNull()?.elements?.lastOrNull()
-            ?.toPlainText() ?: "")
-
-        println("--- FN2 BOOK PAGER CONTINUATION --- ${continuation.take(150)}")
-
-        val startNewSection = continuation.startsWith("<section>")
-        val newSection = if (startNewSection) Section(section.id + 1) else section
-        return pageBuilder.sections.map { it.value }
+        return Section(sectionId, elements)
     }
 
 
@@ -134,8 +131,8 @@ class FN2BookPager(
                 val files = sectionFiles(book)
                 if (files.isEmpty()) return@withContext Result.Failure(BookParseError.NoPagesFound)
                 runInterruptible {
-                    ensureActive()
                     files.onEachIndexed { index, file ->
+                        ensureActive()
                         file.inputStream().use {
                             json.decodeFromStream<List<Section>>(it) .also {
                                 sections.addAll(it)
@@ -155,30 +152,10 @@ class FN2BookPager(
 
     override suspend fun loadPages(book: Book, sectionIndex: Int): Result<List<Section>, BookParseError> = withContext(Dispatchers.IO) {
         val pagesRes= readPages(book)
-
-        when(pagesRes){
-            is Result.Failure-> {
-                return@withContext pagesRes
-
-               /* when(pagesRes.error){
-
-                    BookParseError.NoPagesFound -> {
-                        val uri = Uri.fromFile(File(context.filesDir, "${book.ISBN}.fb2")).toString()
-                        //writePages(uri, book)
-                        return@withContext Result.Success(emptyList())
-                    }
-                    else ->{
-                        return@withContext Result.Failure(BookParseError.GeneralBookParseError)
-                    }
-                }*/
-            }
-            is Result.Success -> {
-                return@withContext pagesRes
-            }
-        }
+        return@withContext pagesRes
     }
 
-    fun sectionFiles(book: Book): List<File>{
+    private fun sectionFiles(book: Book): List<File>{
         return context.filesDir.listFiles()?.filter { it.name.startsWith("${book.ISBN}_") } ?: emptyList()
     }
     private fun pagesFile(book: Book): File{

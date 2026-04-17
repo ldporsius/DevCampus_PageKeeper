@@ -88,6 +88,7 @@ class BookDetailViewModel(
     private suspend fun writePages(book: Book){
         _state.update {
             it.copy(
+                isLoading = false,
                 isWriting = true
             )
         }

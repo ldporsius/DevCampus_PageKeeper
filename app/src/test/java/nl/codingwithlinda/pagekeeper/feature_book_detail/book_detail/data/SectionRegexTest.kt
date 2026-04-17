@@ -1,10 +1,11 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data
 
 import assertk.assertThat
+import assertk.assertions.contains
 import assertk.assertions.hasSize
 import org.junit.Test
 
-class SectionRegexTest {
+class FindTopLevelSectionsTest {
 
     @Test
     fun `flat sections - all are found`() {
@@ -14,13 +15,13 @@ class SectionRegexTest {
             <section><p>Chapter three</p></section>
         """.trimIndent()
 
-        val matches = sectionRegex.findAll(body).toList()
+        val result = findTopLevelSections(body)
 
-        assertThat(matches).hasSize(3)
+        assertThat(result).hasSize(3)
     }
 
     @Test
-    fun `nested sections - outer and inner are both found`() {
+    fun `nested sections - only the outermost section is returned`() {
         val body = """
             <section>
                 <p>Outer content</p>
@@ -29,20 +30,30 @@ class SectionRegexTest {
             </section>
         """.trimIndent()
 
-        val matches = sectionRegex.findAll(body).toList()
+        val result = findTopLevelSections(body)
 
-        // Should find both the outer section and the inner section
-        assertThat(matches).hasSize(2)
+        assertThat(result).hasSize(1)
     }
 
     @Test
-    fun `nested sections - inner content is captured`() {
+    fun `nested sections - outer result contains inner section markup`() {
         val body = "<section><p>Outer</p><section><p>Inner</p></section></section>"
 
-        val matches = sectionRegex.findAll(body).toList()
-        val allContent = matches.map { it.groupValues[1] }
+        val result = findTopLevelSections(body)
 
-        assertThat(matches).hasSize(2)
-        assertThat(allContent.filter { it.contains("Inner") }).hasSize(1)
+        assertThat(result).hasSize(1)
+        assertThat(result.first()).contains("<section><p>Inner</p></section>")
+    }
+
+    @Test
+    fun `nested sections - recursive call finds the inner section`() {
+        val body = "<section><p>Outer</p><section><p>Inner</p></section></section>"
+
+        val outer = findTopLevelSections(body)
+        val outerContent = outer.first().removePrefix("<section>").removeSuffix("</section>")
+        val inner = findTopLevelSections(outerContent)
+
+        assertThat(inner).hasSize(1)
+        assertThat(inner.first()).contains("Inner")
     }
 }

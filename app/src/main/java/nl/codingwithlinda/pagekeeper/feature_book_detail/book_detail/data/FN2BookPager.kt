@@ -22,12 +22,12 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private val json = Json { ignoreUnknownKeys = true }
 
+internal val sectionRegex = Regex("<section>(.*?)</section>", RegexOption.DOT_MATCHES_ALL)
+
 @OptIn(ExperimentalSerializationApi::class)
 class FN2BookPager(
     private val context: Context
 ): BookPager {
-
-    private val sectionRegex = Regex("<section>(.*?)</section>", RegexOption.DOT_MATCHES_ALL)
     private val pRegex = Regex("<p>(.*?)</p>", RegexOption.DOT_MATCHES_ALL)
     private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
 

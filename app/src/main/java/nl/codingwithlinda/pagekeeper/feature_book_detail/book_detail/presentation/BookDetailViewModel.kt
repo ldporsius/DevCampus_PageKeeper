@@ -9,10 +9,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
+import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.toPage
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.toPages
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.util.toUi
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 
 class BookDetailViewModel(
@@ -30,10 +31,26 @@ class BookDetailViewModel(
     init {
         viewModelScope.launch {
             val book = bookRepository.getBookByISBN(isbn) ?: return@launch
-            val pages = bookPager.loadPages(book).map {
-                it.toPages()
-            }.flatten()
-            _state.update { it.copy(book = book.toBookUi(), pages = pages, isLoading = false) }
+            when (val pagesRes = bookPager.loadPages(book)) {
+                is Result.Failure -> {
+                    _state.update {
+                        it.copy(
+                            book = book.toBookUi(),
+                            isLoading = false,
+                            error = pagesRes.error.toUi()
+                        )
+                    }
+                }
+                is Result.Success -> {
+                    _state.update {
+                        it.copy(
+                            book = book.toBookUi(),
+                            pages = pagesRes.data.map { page -> page.toPage() },
+                            isLoading = false
+                        )
+                    }
+                }
+            }
         }
     }
 

@@ -1,5 +1,7 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.FormattedLine
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
@@ -70,11 +72,11 @@ class PageBuilder{
 
 
 ////////////////////////presentation really////////////////////////////////
-fun Section.toPages(): List<Page> {
+suspend fun Section.toPages(): List<Page> {
     return elements.map { it.toPage() }
 }
 
-fun PageElement.toPage(): Page {
+suspend fun PageElement.toPage(): Page {
     return Page.TextPage(
         lines = listOf(
             parseSpans(toFormattedText()))
@@ -87,7 +89,7 @@ private val spanRegex = Regex(
 )
 private val tagStripRegex = Regex("<[^>]+>")
 
-private fun parseSpans(content: String): FormattedLine {
+private suspend fun parseSpans(content: String): FormattedLine = withContext(Dispatchers.Default){
     val spans = mutableListOf<TextSpan>()
     var cursor = 0
     spanRegex.findAll(content).forEach { match ->
@@ -108,5 +110,5 @@ private fun parseSpans(content: String): FormattedLine {
     if (cursor < content.length) {
         spans += TextSpan(content.substring(cursor))
     }
-    return FormattedLine(spans)
+    return@withContext FormattedLine(spans)
 }

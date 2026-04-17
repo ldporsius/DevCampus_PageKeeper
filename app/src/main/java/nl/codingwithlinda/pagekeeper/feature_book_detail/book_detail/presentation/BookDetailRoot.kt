@@ -1,29 +1,46 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
+import nl.codingwithlinda.pagekeeper.R
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
+import nl.codingwithlinda.pagekeeper.core.presentation.util.UiText
+import nl.codingwithlinda.pagekeeper.core.presentation.util.asString
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.FormattedLine
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.TextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -62,6 +79,14 @@ fun BookDetailScreen(
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
 
+        state.error?.let { error ->
+            BookParseErrorContent(
+                error = error,
+                modifier = Modifier.align(Alignment.Center)
+            )
+            return@Box
+        }
+
         LazyColumn() {
             items(state.pages){ page ->
                 when (page) {
@@ -96,6 +121,86 @@ fun BookDetailScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun BookParseErrorContent(
+    error: UiText,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.emoticon_sad_outline),
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.error
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = error.asString(),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BookDetailScreenPreview() {
+    PageKeeperTheme {
+        BookDetailScreen(
+            state = BookDetailState(
+                pages = listOf(
+                    Page.TextPage(
+                        lines = listOf(
+                            FormattedLine(
+                                spans = listOf(
+                                    TextSpan(text = "The Great Gatsby", bold = true)
+                                )
+                            ),
+                            FormattedLine(
+                                spans = listOf(
+                                    TextSpan(text = "by ", emphasis = true),
+                                    TextSpan(text = "F. Scott Fitzgerald")
+                                )
+                            )
+                        )
+                    ),
+                    Page.TextPage(
+                        lines = listOf(
+                            FormattedLine(
+                                spans = listOf(
+                                    TextSpan(text = "In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since.")
+                                )
+                            )
+                        )
+                    )
+                ),
+                isLoading = false
+            ),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BookParseErrorContentPreview() {
+    PageKeeperTheme {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            BookParseErrorContent(
+                error = UiText.DynamicString("Could not parse book content. Please try again later.")
+            )
         }
     }
 }

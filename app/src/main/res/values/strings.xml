@@ -5,4 +5,7 @@
     <string name="empty_library_import_button">Import Book</string>
     <string name="cd_empty_library_illustration">Open book illustration</string>
     <string name="search_books_placeholder">Search books</string>
+    <string name="error_book_parse_general">Failed to open book. The file may be corrupted or unsupported.</string>
+    <string name="error_book_parse_no_pages">No pages found in this book.</string>
+    <string name="error_book_parse_oom">Not enough memory to open this book. Try closing other apps and retry.</string>
 </resources>

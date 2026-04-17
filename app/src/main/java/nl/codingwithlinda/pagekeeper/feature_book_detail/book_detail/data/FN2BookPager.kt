@@ -25,6 +25,26 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private val json = Json { ignoreUnknownKeys = true }
 
+private val pRegex = Regex("<p>(.*?)</p>", RegexOption.DOT_MATCHES_ALL)
+private val titleRegex = Regex("<title>(.*?)</title>", RegexOption.DOT_MATCHES_ALL)
+
+private val elementParsers: List<Pair<Regex, (MatchResult) -> PageElement>> = listOf(
+    titleRegex to { m -> Title(pRegex.replace(m.groupValues[1], "$1").trim()) },
+    pRegex     to { m -> Paragraph(m.value) }
+)
+
+internal fun parseElements(body: String): List<PageElement> {
+    val candidates = elementParsers
+        .flatMap { (regex, factory) -> regex.findAll(body).map { Triple(it.range.first, it.range.last, factory(it)) } }
+        .sortedBy { it.first }
+    val result = mutableListOf<Triple<Int, Int, PageElement>>()
+    for (candidate in candidates) {
+        val containedByExisting = result.any { existing -> candidate.first >= existing.first && candidate.second <= existing.second }
+        if (!containedByExisting) result += candidate
+    }
+    return result.map { it.third }
+}
+
 internal suspend fun findTopLevelSections(body: String): List<String> = withContext(Dispatchers.Default) {
     val result = mutableListOf<String>()
     val open = "<section>"
@@ -59,7 +79,6 @@ internal suspend fun findTopLevelSections(body: String): List<String> = withCont
 class FN2BookPager(
     private val context: Context
 ): LazyBookPager {
-    private val pRegex = Regex("<p>(.*?)</p>", RegexOption.DOT_MATCHES_ALL)
     private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
 
     val pageBuilder = PageBuilder()
@@ -111,10 +130,10 @@ class FN2BookPager(
     }
 
 
-    private suspend fun parseSection(sectionId: Int, body: String): Section {
+    internal suspend fun parseSection(sectionId: Int, body: String): Section {
         val nestedSections = findTopLevelSections(body)
         val elements: List<PageElement> = if (nestedSections.isEmpty()) {
-            pRegex.findAll(body).map { Paragraph(it.value) }.toList()
+            parseElements(body)
         } else {
             nestedSections.mapIndexed { index, html ->
                 val inner = html.removePrefix("<section>").removeSuffix("</section>")

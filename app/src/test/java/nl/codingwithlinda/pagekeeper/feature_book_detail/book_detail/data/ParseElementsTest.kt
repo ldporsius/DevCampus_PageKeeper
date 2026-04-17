@@ -1,0 +1,56 @@
+package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data
+
+import assertk.assertThat
+import assertk.assertions.containsExactly
+import assertk.assertions.hasSize
+import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
+import org.junit.Test
+
+class ParseElementsTest {
+
+    @Test
+    fun `title element is parsed as Title`() {
+        val body = "<title><p>Chapter One</p></title>"
+
+        val result = parseElements(body)
+
+        assertThat(result).hasSize(1)
+        assertThat(result.first()).isInstanceOf(Title::class)
+    }
+
+    @Test
+    fun `title text has p tags stripped`() {
+        val body = "<title><p>Chapter One</p></title>"
+
+        val result = parseElements(body)
+
+        assertThat((result.first() as Title).text).isEqualTo("Chapter One")
+    }
+
+    @Test
+    fun `title appears before paragraphs when it comes first`() {
+        val body = """
+            <title><p>Chapter One</p></title>
+            <p>First paragraph.</p>
+            <p>Second paragraph.</p>
+        """.trimIndent()
+
+        val result = parseElements(body)
+
+        assertThat(result).containsExactly(
+            Title("Chapter One"),
+            Paragraph("<p>First paragraph.</p>"),
+            Paragraph("<p>Second paragraph.</p>")
+        )
+    }
+
+    @Test
+    fun `section without title produces only paragraphs`() {
+        val body = "<p>Only text.</p>"
+
+        val result = parseElements(body)
+
+        assertThat(result).containsExactly(Paragraph("<p>Only text.</p>"))
+    }
+}

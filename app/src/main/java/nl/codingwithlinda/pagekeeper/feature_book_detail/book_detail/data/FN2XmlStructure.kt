@@ -83,32 +83,61 @@ suspend fun PageElement.toPage(): Page {
         )
 }
 
-private val spanRegex = Regex(
-    """<emphasis>(.*?)</emphasis>|<a\s[^>]*?\w+:href="([^"]*)"[^>]*?>(.*?)</a>|<strong>(.*?)</strong>""",
-    RegexOption.DOT_MATCHES_ALL
-)
 private val tagStripRegex = Regex("<[^>]+>")
 
-private suspend fun parseSpans(content: String): FormattedLine = withContext(Dispatchers.Default){
-    val spans = mutableListOf<TextSpan>()
+private fun interface SpanDecorator {
+    fun decorate(spans: List<TextSpan>): List<TextSpan>
+}
+
+private fun splitByPattern(
+    span: TextSpan,
+    regex: Regex,
+    transform: (match: MatchResult, parent: TextSpan) -> TextSpan
+): List<TextSpan> {
+    val result = mutableListOf<TextSpan>()
     var cursor = 0
-    spanRegex.findAll(content).forEach { match ->
+    regex.findAll(span.text).forEach { match ->
         if (match.range.first > cursor) {
-            spans += TextSpan(content.substring(cursor, match.range.first))
+            result += span.copy(text = span.text.substring(cursor, match.range.first))
         }
-        if (match.groups[1] != null) {
-            spans += TextSpan(match.groupValues[1], emphasis = true)
-        } else if (match.groups[4] != null) {
-            spans += TextSpan(match.groupValues[4], bold = true)
-        } else {
-            val url = match.groupValues[2]
-            val text = tagStripRegex.replace(match.groupValues[3], "")
-            if (text.isNotBlank()) spans += TextSpan(text, url = url)
-        }
+        result += transform(match, span)
         cursor = match.range.last + 1
     }
-    if (cursor < content.length) {
-        spans += TextSpan(content.substring(cursor))
+    if (cursor < span.text.length) {
+        result += span.copy(text = span.text.substring(cursor))
     }
-    return@withContext FormattedLine(spans)
+    return result.ifEmpty { listOf(span) }
+}
+
+private val strongDecorator = SpanDecorator { spans ->
+    val regex = Regex("<strong>(.*?)</strong>", RegexOption.DOT_MATCHES_ALL)
+    spans.flatMap { span -> splitByPattern(span, regex) { match, parent ->
+        parent.copy(text = match.groupValues[1], bold = true)
+    }}
+}
+
+private val emphasisDecorator = SpanDecorator { spans ->
+    val regex = Regex("<emphasis>(.*?)</emphasis>", RegexOption.DOT_MATCHES_ALL)
+    spans.flatMap { span -> splitByPattern(span, regex) { match, parent ->
+        parent.copy(text = match.groupValues[1], emphasis = true)
+    }}
+}
+
+private val urlDecorator = SpanDecorator { spans ->
+    val regex = Regex("""<a\s[^>]*?\w+:href="([^"]*)"[^>]*?>(.*?)</a>""", RegexOption.DOT_MATCHES_ALL)
+    spans.flatMap { span -> splitByPattern(span, regex) { match, parent ->
+        val text = tagStripRegex.replace(match.groupValues[2], "")
+        parent.copy(text = text, url = match.groupValues[1])
+    }}
+}
+
+// strong before emphasis so nested <strong><emphasis> inherits bold when emphasis is processed
+private val spanDecorators = listOf(strongDecorator, emphasisDecorator, urlDecorator)
+
+private suspend fun parseSpans(content: String): FormattedLine = withContext(Dispatchers.Default) {
+    val spans = spanDecorators
+        .fold(listOf(TextSpan(content))) { acc, decorator -> decorator.decorate(acc) }
+        .map { span -> span.copy(text = tagStripRegex.replace(span.text, "")) }
+        //.filter { it.text.isNotBlank() }
+    FormattedLine(spans)
 }

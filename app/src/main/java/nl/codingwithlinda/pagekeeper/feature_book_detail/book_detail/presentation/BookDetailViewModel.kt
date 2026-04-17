@@ -71,10 +71,15 @@ class BookDetailViewModel(
             }
             is Result.Success -> {
                 updateUiState(null)
-                _state.update { detailState ->
-                    detailState.copy(
-                       pages = pagesRes.data.map { it.toPage() }
-                    )
+                viewModelScope.launch {
+                    pagesRes.data.onEach {
+                        it.toPage()
+                        _state.update { detailState ->
+                            detailState.copy(
+                                pages = detailState.pages.plus(it.toPage())
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -53,4 +53,39 @@ class ParseElementsTest {
 
         assertThat(result).containsExactly(Paragraph("<p>Only text.</p>"))
     }
+
+    @Test
+    fun `cite element is parsed as Citation`() {
+        val body = "<cite><p>To be or not to be.</p></cite>"
+
+        val result = parseElements(body)
+
+        assertThat(result).containsExactly(Citation("To be or not to be."))
+    }
+
+    @Test
+    fun `epigraph element is parsed as Epigraph`() {
+        val body = "<epigraph><p>It was a dark and stormy night.</p></epigraph>"
+
+        val result = parseElements(body)
+
+        assertThat(result).containsExactly(Epigraph("It was a dark and stormy night."))
+    }
+
+    @Test
+    fun `cite and epigraph inner p tags do not produce extra paragraphs`() {
+        val body = """
+            <epigraph><p>Quote.</p></epigraph>
+            <cite><p>Source.</p></cite>
+            <p>Body text.</p>
+        """.trimIndent()
+
+        val result = parseElements(body)
+
+        assertThat(result).containsExactly(
+            Epigraph("Quote."),
+            Citation("Source."),
+            Paragraph("<p>Body text.</p>")
+        )
+    }
 }

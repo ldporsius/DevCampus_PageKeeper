@@ -25,12 +25,16 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private val json = Json { ignoreUnknownKeys = true }
 
-private val pRegex = Regex("<p>(.*?)</p>", RegexOption.DOT_MATCHES_ALL)
-private val titleRegex = Regex("<title>(.*?)</title>", RegexOption.DOT_MATCHES_ALL)
+private val pRegex        = Regex("<p>(.*?)</p>",                     RegexOption.DOT_MATCHES_ALL)
+private val titleRegex    = Regex("<title>(.*?)</title>",             RegexOption.DOT_MATCHES_ALL)
+private val citeRegex     = Regex("<cite[^>]*?>(.*?)</cite>",         RegexOption.DOT_MATCHES_ALL)
+private val epigraphRegex = Regex("<epigraph[^>]*?>(.*?)</epigraph>", RegexOption.DOT_MATCHES_ALL)
 
 private val elementParsers: List<Pair<Regex, (MatchResult) -> PageElement>> = listOf(
-    titleRegex to { m -> Title(pRegex.replace(m.groupValues[1], "$1").trim()) },
-    pRegex     to { m -> Paragraph(m.value) }
+    titleRegex    to { m -> Title(pRegex.replace(m.groupValues[1], "$1").trim()) },
+    citeRegex     to { m -> Citation(pRegex.replace(m.groupValues[1], "$1").trim()) },
+    epigraphRegex to { m -> Epigraph(pRegex.replace(m.groupValues[1], "$1").trim()) },
+    pRegex        to { m -> Paragraph(m.value) }
 )
 
 internal fun parseElements(body: String): List<PageElement> {

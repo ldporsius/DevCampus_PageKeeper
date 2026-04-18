@@ -199,7 +199,6 @@ fun BookDetailScaffold(
                     // The 4dp gap is the only intentional design constant here.
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
                             .alpha(if (indicatorNaturalBounds == Rect.Zero) 0f else 1f)
                             .onGloballyPositioned { indicatorNaturalBounds = it.boundsInRoot() }
                             .offset {
@@ -214,7 +213,7 @@ fun BookDetailScaffold(
                     ) {
                         val baseSp = MaterialTheme.typography.bodyMedium.fontSize.value
                         val actualSp = sliderValueToActualSp(readingSettings.fontSize, baseSp)
-                        Text("${actualSp.roundToInt()} sp")
+                        Text("${actualSp.roundToInt()}")
                     }
                 }
 

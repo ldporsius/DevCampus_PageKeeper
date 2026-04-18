@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
@@ -29,7 +30,8 @@ fun ReadingControls(
     onAction: (ReadingControlAction) -> Unit,
     readingSettings: ReadingSettings,
     showAdjustFontSize: Boolean,
-    toggleAdjustFontSize: () -> Unit
+    toggleAdjustFontSize: () -> Unit,
+    onThumbPositioned: (Rect) -> Unit = {}
 ) {
 
     AnimatedContent(showAdjustFontSize) { show ->
@@ -42,9 +44,8 @@ fun ReadingControls(
                     FontSizeSlider(
                         modifier = Modifier,
                         currentFontSize = readingSettings.fontSize,
-                        onSizeChange = {
-                            onAction(ReadingControlAction.AdjustFontSize(it))
-                        }
+                        onSizeChange = { onAction(ReadingControlAction.AdjustFontSize(it)) },
+                        onThumbPositioned = onThumbPositioned
                     )
                 }
             }
@@ -125,7 +126,7 @@ private fun ReadingControlsPreview() {
         readingSettings = ReadingSettings(),
         showAdjustFontSize = false,
         toggleAdjustFontSize = {},
-        onAction = {}
+        onAction = {},
     )
 
 }

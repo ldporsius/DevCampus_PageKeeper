@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.shadow
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -208,7 +209,9 @@ fun BookDetailScaffold(
                                 val dy = thumbBounds.top - indicatorNaturalBounds.bottom - 4.dp.toPx()
                                 IntOffset(dx.roundToInt(), dy.roundToInt())
                             }
-                            .background(MaterialTheme.colorScheme.primaryContainer, shape = CircleShape),
+                            .shadow(elevation = 3.dp, shape = CircleShape)
+                            .background(MaterialTheme.colorScheme.surface, shape = CircleShape)
+                            .padding(12.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         val baseSp = MaterialTheme.typography.bodyMedium.fontSize.value

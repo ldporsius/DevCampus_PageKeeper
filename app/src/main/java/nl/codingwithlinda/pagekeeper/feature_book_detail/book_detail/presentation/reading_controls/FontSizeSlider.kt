@@ -1,13 +1,17 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -22,13 +26,14 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FontSizeSlider(
     modifier: Modifier = Modifier,
-    currentFontSize: Float = 1f,
+    currentFontSize: Float = 0f,
     onSizeChange: (Float) -> Unit,
     onThumbPositioned: (Rect) -> Unit = {}
 ) {
@@ -54,9 +59,10 @@ fun FontSizeSlider(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { onSizeChange((sliderState.value - 0.01f).coerceAtLeast(-5f)) }) {
-            Text("−", fontSize = 16.sp)
-        }
+        StepButton(
+            symbol = "−",
+            onClick = { onSizeChange((sliderState.value - 0.01f).coerceAtLeast(-5f)) }
+        )
 
         Slider(
             modifier = Modifier.weight(1f),
@@ -74,8 +80,32 @@ fun FontSizeSlider(
             }
         )
 
-        IconButton(onClick = { onSizeChange((sliderState.value + 0.01f).coerceAtMost(5f)) }) {
-            Text("+", fontSize = 16.sp)
+        StepButton(
+            symbol = "+",
+            onClick = { onSizeChange((sliderState.value + 0.01f).coerceAtMost(5f)) }
+        )
+    }
+}
+
+@Composable
+private fun StepButton(
+    symbol: String,
+    onClick: () -> Unit
+) {
+    // 48dp touch target wrapping a 32dp outlined circle
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(symbol, fontSize = 16.sp, lineHeight = 16.sp)
         }
     }
 }
@@ -83,8 +113,5 @@ fun FontSizeSlider(
 @Preview
 @Composable
 private fun FontSizeSliderPreview() {
-    FontSizeSlider(
-        modifier = Modifier,
-        onSizeChange = {}
-    )
+    FontSizeSlider(onSizeChange = {})
 }

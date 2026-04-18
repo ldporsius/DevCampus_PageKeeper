@@ -19,6 +19,9 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Book
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.ReadingMode
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.util.toUi
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 
@@ -66,6 +69,16 @@ class BookDetailViewModel(
                     delay(5000)
                     _state.update { it.copy(isLoading = false) }
                 }
+
+            BookDetailAction.ToggleReadingMode ->{
+                val currentMode = _state.value.readingMode
+                val newMode = if (currentMode == ReadingMode.IMMERSIVE) ReadingMode.CONTROLS else ReadingMode.IMMERSIVE
+                _state.update {
+                    it.copy(
+                        readingMode = newMode
+                    )
+                }
+            }
         }
     }
 

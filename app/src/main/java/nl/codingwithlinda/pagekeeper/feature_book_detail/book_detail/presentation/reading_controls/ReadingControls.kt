@@ -1,6 +1,7 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -21,9 +26,48 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 fun ReadingControls(
     modifier: Modifier = Modifier,
     readingOrientation: ReadingOrientation,
-    onAction: (ReadingControlAction) -> Unit
+    onAction: (ReadingControlAction) -> Unit,
+    showAdjustFontSize: Boolean,
+    toggleAdjustFontSize: () -> Unit
 ) {
 
+    AnimatedContent(showAdjustFontSize) { show ->
+        when(show){
+            true -> {
+                Row(modifier = modifier,
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    FontSizeSlider(
+                        modifier = Modifier,
+                        onSizeChange = {
+                            onAction(ReadingControlAction.AdjustFontSize(it))
+                        }
+                    )
+                }
+            }
+            false -> {
+                ControlsRow(
+                    modifier = modifier,
+                    readingOrientation = readingOrientation,
+                    onAction = onAction,
+                    showAdjustFontSize = {
+                        toggleAdjustFontSize()
+                    }
+                )
+            }
+        }
+    }
+
+}
+
+@Composable
+fun ControlsRow(
+    modifier: Modifier = Modifier,
+    readingOrientation: ReadingOrientation,
+    onAction: (ReadingControlAction) -> Unit,
+    showAdjustFontSize: ()-> Unit
+) {
     Row(modifier = modifier,
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.Top
@@ -33,7 +77,7 @@ fun ReadingControls(
                 .clickable(){
                     onAction(ReadingControlAction.ToggleAutoRotate)
                 }
-                ,
+            ,
             icon = readingOrientation.toUi().icon,
             contentDescription = "",
             text = readingOrientation.toUi().text
@@ -41,8 +85,7 @@ fun ReadingControls(
 
         ReadingControlItem(
             modifier = Modifier.clickable(){
-                onAction(ReadingControlAction.AdjustFontSize(0.5f))
-
+                showAdjustFontSize()
             },
             icon = R.drawable.font_size,
             contentDescription = "adjust_font_size",
@@ -78,6 +121,8 @@ private fun ReadingControlsPreview() {
     ReadingControls(
         modifier = Modifier.fillMaxWidth(),
         readingOrientation = ReadingOrientation.AUTO_ROTATE,
+        showAdjustFontSize = false,
+        toggleAdjustFontSize = {},
         onAction = {}
     )
 

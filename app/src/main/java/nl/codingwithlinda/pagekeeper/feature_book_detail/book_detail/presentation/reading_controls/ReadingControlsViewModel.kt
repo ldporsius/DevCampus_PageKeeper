@@ -23,8 +23,9 @@ class ReadingControlsViewModel(
         when(action){
             is ReadingControlAction.AdjustFontSize -> {
                 viewModelScope.launch {
-                    val current = state.value.fontSize
-                    readingSettingsRepository.setFontSize(current + action.factor)
+                    println("--- READING CONTROLS --- ACTION: AdjustFontSize : ${action.factor}")
+
+                    readingSettingsRepository.setFontSize(action.factor)
                 }
             }
             ReadingControlAction.ToggleAutoRotate -> {

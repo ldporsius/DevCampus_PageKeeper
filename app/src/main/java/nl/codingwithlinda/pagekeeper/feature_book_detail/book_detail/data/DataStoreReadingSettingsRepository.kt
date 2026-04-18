@@ -21,7 +21,7 @@ class DataStoreReadingSettingsRepository(
             orientation = prefs[KEY_ORIENTATION]
                 ?.let { runCatching { ReadingOrientation.valueOf(it) }.getOrNull() }
                 ?: ReadingOrientation.AUTO_ROTATE,
-            fontSize = prefs[KEY_FONT_SIZE] ?: 16f,
+            fontSize = prefs[KEY_FONT_SIZE] ?: 1f,
             currentSection = prefs[KEY_CURRENT_SECTION] ?: 0,
         )
     }

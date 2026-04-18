@@ -29,7 +29,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -46,6 +49,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
@@ -54,6 +58,7 @@ import nl.codingwithlinda.pagekeeper.core.presentation.util.UiText
 import nl.codingwithlinda.pagekeeper.core.presentation.util.asString
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.FormattedLine
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.TextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
@@ -92,40 +97,33 @@ fun BookDetailRoot(
         }
     }
 
-    when(state.readingMode){
-        ReadingMode.IMMERSIVE -> {
-            BookDetailScreen(
-                state = state,
-                onAction = viewModel::onAction,
-                modifier = Modifier.pointerInput(true){
-                    detectTapGestures(
-                        onTap = {
-                            viewModel.onAction(BookDetailAction.ToggleReadingMode)
-                        }
-                    )
+    @Composable
+    fun content() =  BookDetailScreen(
+        state = state,
+        readingSettings = readingSettings,
+        onAction = viewModel::onAction,
+        modifier = Modifier.pointerInput(true){
+            detectTapGestures(
+                onTap = {
+                    viewModel.onAction(BookDetailAction.ToggleReadingMode)
                 }
             )
         }
-        ReadingMode.CONTROLS -> {
+    )
 
+    when(state.readingMode){
+        ReadingMode.IMMERSIVE -> {
+            content()
+        }
+        ReadingMode.CONTROLS -> {
             state.book?.let { book ->
                 BookDetailScaffold(
-                    modifier = Modifier,
+                    modifier = Modifier.fillMaxSize(),
                     state = state,
                     readingOrientation = readingSettings.orientation,
                     onAction = readingControlsViewModel::onAction,
                     content = {
-                        BookDetailScreen(
-                            state = state,
-                            onAction = viewModel::onAction,
-                            modifier = Modifier.pointerInput(true) {
-                                detectTapGestures(
-                                    onTap = {
-                                        viewModel.onAction(BookDetailAction.ToggleReadingMode)
-                                    }
-                                )
-                            }
-                        )
+                        content()
                     }
                 )
             }
@@ -144,10 +142,11 @@ fun BookDetailScaffold(
     content: @Composable () -> Unit
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                   state.book?.title ?: ""
+                    state.book?.title ?: ""
                 },
                 navigationIcon = {
                     IconButton(onClick = {}) {
@@ -168,17 +167,25 @@ fun BookDetailScaffold(
             )
         },
 
-    ) {innerPadding ->
-        Box(modifier = modifier.padding(innerPadding)){
-            content()
+        ) {innerPadding ->
+
+        var showAdjustFontSize by rememberSaveable(state.readingMode) {
+            mutableStateOf(false)
+        }
+        Column(modifier = Modifier.padding(innerPadding)) {
+            Box(modifier = Modifier.weight(1f)) {
+                content()
+            }
             ReadingControls(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp)
-                ,
+                    .padding(16.dp),
                 readingOrientation = readingOrientation,
+                showAdjustFontSize = showAdjustFontSize,
+                toggleAdjustFontSize = {
+                    showAdjustFontSize = true
+                },
                 onAction = onAction
 
             )
@@ -190,6 +197,7 @@ fun BookDetailScaffold(
 @Composable
 fun BookDetailScreen(
     state: BookDetailState,
+    readingSettings: ReadingSettings,
     onAction: (BookDetailAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -222,24 +230,35 @@ fun BookDetailScreen(
         }
 
         LazyColumn(state = listState) {
-            items(state.pages){ page ->
+            items(
+                state.pages,
+                key = { page -> page.hashCode() }
+
+            ){ page ->
                 when (page) {
                     is Page.TextPage -> {
                         Column() {
                             page.lines.forEach { line ->
                                 Text(text = buildAnnotatedString {
-                                    line.spans.forEach { span ->
-                                        when {
-                                            span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
-                                                append(span.text)
+                                    withStyle(SpanStyle(
+                                        fontSize = MaterialTheme.typography.bodyMedium.fontSize.times(readingSettings.fontSize)
+                                    )) {
+                                        line.spans.forEach { span ->
+                                            when {
+                                                span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
+                                                    append(span.text)
+                                                }
+
+                                                span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                                                    append(span.text)
+                                                }
+
+                                                span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                                                    append(span.text)
+                                                }
+
+                                                else -> append(span.text)
                                             }
-                                            span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                                append(span.text)
-                                            }
-                                            span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
-                                                append(span.text)
-                                            }
-                                            else -> append(span.text)
                                         }
                                     }
                                 })
@@ -330,6 +349,7 @@ private fun BookDetailScreenPreview() {
                 ),
                 isLoading = false
             ),
+            readingSettings = ReadingSettings(),
             onAction = {}
         )
     }

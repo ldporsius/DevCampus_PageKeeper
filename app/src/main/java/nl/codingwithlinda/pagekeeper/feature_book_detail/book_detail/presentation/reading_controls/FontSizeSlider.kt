@@ -3,14 +3,13 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Label
-import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -25,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FontSizeSlider(
     modifier: Modifier = Modifier,
@@ -63,18 +62,14 @@ fun FontSizeSlider(
             state = sliderState,
             interactionSource = interactionSource,
             thumb = {
-                Label(
-                    label = {
-                        PlainTooltip(
-                            modifier = Modifier
-                                .sizeIn(minWidth = 45.dp, minHeight = 25.dp)
-                                .wrapContentWidth()
-                        ) {
-                            Text(sliderState.value.toInt().toString())
-                        }
-                    },
-                    interactionSource = interactionSource
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
+                    Text(
+                        text = "%.2f".format(sliderState.value),
+                        style = MaterialTheme.typography.labelSmall
+                    )
                     SliderDefaults.Thumb(interactionSource = interactionSource)
                 }
             }

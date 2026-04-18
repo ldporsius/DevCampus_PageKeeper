@@ -66,6 +66,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Form
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.ProvideReadingTextStyle
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.sliderValueToActualSp
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.TextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
@@ -211,7 +212,9 @@ fun BookDetailScaffold(
                             .background(MaterialTheme.colorScheme.primaryContainer, shape = CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("%.2f".format(readingSettings.fontSize))
+                        val baseSp = MaterialTheme.typography.bodyMedium.fontSize.value
+                        val actualSp = sliderValueToActualSp(readingSettings.fontSize, baseSp)
+                        Text("${actualSp.roundToInt()} sp")
                     }
                 }
 

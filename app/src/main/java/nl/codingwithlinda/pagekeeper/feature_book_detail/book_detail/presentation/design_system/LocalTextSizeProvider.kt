@@ -24,6 +24,19 @@ private const val SLIDER_HALF_RANGE = 5f
  * min/max scales are derived from [MaterialTheme.typography.bodyMedium]
  * at composition time, so they adapt to any theme or device configuration.
  */
+fun sliderValueToScale(rawSliderValue: Float, baseSp: Float): Float {
+    val minScale = MIN_FONT_SP / baseSp
+    val maxScale = MAX_FONT_SP / baseSp
+    return if (rawSliderValue <= 0f) {
+        1f + rawSliderValue * ((1f - minScale) / SLIDER_HALF_RANGE)
+    } else {
+        1f + rawSliderValue * ((maxScale - 1f) / SLIDER_HALF_RANGE)
+    }
+}
+
+fun sliderValueToActualSp(rawSliderValue: Float, baseSp: Float): Float =
+    baseSp * sliderValueToScale(rawSliderValue, baseSp)
+
 @Composable
 fun ProvideReadingTextStyle(
     rawSliderValue: Float,
@@ -31,15 +44,7 @@ fun ProvideReadingTextStyle(
 ) {
     val baseStyle = MaterialTheme.typography.bodyMedium
     val baseSp = baseStyle.fontSize.value
-
-    val minScale = MIN_FONT_SP / baseSp
-    val maxScale = MAX_FONT_SP / baseSp
-
-    val scale = if (rawSliderValue <= 0f) {
-        1f + rawSliderValue * ((1f - minScale) / SLIDER_HALF_RANGE)
-    } else {
-        1f + rawSliderValue * ((maxScale - 1f) / SLIDER_HALF_RANGE)
-    }
+    val scale = sliderValueToScale(rawSliderValue, baseSp)
 
     val scaledStyle = baseStyle.copy(
         fontSize = baseStyle.fontSize * scale,

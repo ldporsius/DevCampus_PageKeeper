@@ -1,5 +1,7 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation
 
+import android.content.pm.ActivityInfo
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -12,21 +14,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -35,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -49,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import nl.codingwithlinda.pagekeeper.R
-import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.core.presentation.util.UiText
@@ -65,7 +63,6 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControlsViewModel
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingOrientation
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlAction
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -73,9 +70,21 @@ import org.koin.core.parameter.parametersOf
 fun BookDetailRoot(
     isbn: String,
     onNavigateBack: () -> Unit,
-    viewModel: BookDetailViewModel = koinViewModel(key = isbn) { parametersOf(isbn) }
+    viewModel: BookDetailViewModel = koinViewModel(key = isbn) { parametersOf(isbn) },
+    readingControlsViewModel: ReadingControlsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    val readingSettings by readingControlsViewModel.state.collectAsStateWithLifecycle()
+
+    val activity = LocalActivity.current
+
+    activity?.let{
+        it.requestedOrientation = when(readingSettings.orientation){
+            ReadingOrientation.AUTO_ROTATE -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            ReadingOrientation.LOCKED_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+        }
+    }
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
@@ -98,8 +107,7 @@ fun BookDetailRoot(
             )
         }
         ReadingMode.CONTROLS -> {
-            val readingControlsViewModel: ReadingControlsViewModel = koinViewModel()
-            val readingSettings by readingControlsViewModel.state.collectAsStateWithLifecycle()
+
             state.book?.let { book ->
                 BookDetailScaffold(
                     modifier = Modifier,

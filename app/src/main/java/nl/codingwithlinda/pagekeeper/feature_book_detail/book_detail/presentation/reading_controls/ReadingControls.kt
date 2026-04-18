@@ -20,13 +20,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import nl.codingwithlinda.pagekeeper.R
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlAction
 
 @Composable
 fun ReadingControls(
     modifier: Modifier = Modifier,
-    readingOrientation: ReadingOrientation,
     onAction: (ReadingControlAction) -> Unit,
+    readingSettings: ReadingSettings,
     showAdjustFontSize: Boolean,
     toggleAdjustFontSize: () -> Unit
 ) {
@@ -40,6 +41,7 @@ fun ReadingControls(
                 ) {
                     FontSizeSlider(
                         modifier = Modifier,
+                        currentFontSize = readingSettings.fontSize,
                         onSizeChange = {
                             onAction(ReadingControlAction.AdjustFontSize(it))
                         }
@@ -49,7 +51,7 @@ fun ReadingControls(
             false -> {
                 ControlsRow(
                     modifier = modifier,
-                    readingOrientation = readingOrientation,
+                    readingOrientation = readingSettings.orientation,
                     onAction = onAction,
                     showAdjustFontSize = {
                         toggleAdjustFontSize()
@@ -120,7 +122,7 @@ fun ReadingControlItem(
 private fun ReadingControlsPreview() {
     ReadingControls(
         modifier = Modifier.fillMaxWidth(),
-        readingOrientation = ReadingOrientation.AUTO_ROTATE,
+        readingSettings = ReadingSettings(),
         showAdjustFontSize = false,
         toggleAdjustFontSize = {},
         onAction = {}

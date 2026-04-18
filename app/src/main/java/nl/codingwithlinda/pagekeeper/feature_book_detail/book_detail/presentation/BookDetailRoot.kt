@@ -49,7 +49,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
@@ -120,7 +119,7 @@ fun BookDetailRoot(
                 BookDetailScaffold(
                     modifier = Modifier.fillMaxSize(),
                     state = state,
-                    readingOrientation = readingSettings.orientation,
+                    readingSettings = readingSettings,
                     onAction = readingControlsViewModel::onAction,
                     content = {
                         content()
@@ -137,7 +136,7 @@ fun BookDetailRoot(
 fun BookDetailScaffold(
     modifier: Modifier = Modifier,
     state: BookDetailState,
-    readingOrientation: ReadingOrientation,
+    readingSettings: ReadingSettings,
     onAction: (ReadingControlAction) -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -181,7 +180,7 @@ fun BookDetailScaffold(
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp),
-                readingOrientation = readingOrientation,
+                readingSettings = readingSettings,
                 showAdjustFontSize = showAdjustFontSize,
                 toggleAdjustFontSize = {
                     showAdjustFontSize = true

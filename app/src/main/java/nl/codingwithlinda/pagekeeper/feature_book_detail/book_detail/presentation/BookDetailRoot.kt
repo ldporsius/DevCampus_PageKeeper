@@ -62,6 +62,8 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.ReadingMode
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControls
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControlsViewModel
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingOrientation
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlAction
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 import org.koin.androidx.compose.koinViewModel
@@ -96,13 +98,14 @@ fun BookDetailRoot(
             )
         }
         ReadingMode.CONTROLS -> {
+            val readingControlsViewModel: ReadingControlsViewModel = koinViewModel()
+            val readingSettings by readingControlsViewModel.state.collectAsStateWithLifecycle()
             state.book?.let { book ->
                 BookDetailScaffold(
                     modifier = Modifier,
                     state = state,
-                    onAction = {
-                       // viewModel.onAction(it)
-                    },
+                    readingOrientation = readingSettings.orientation,
+                    onAction = readingControlsViewModel::onAction,
                     content = {
                         BookDetailScreen(
                             state = state,
@@ -128,6 +131,7 @@ fun BookDetailRoot(
 fun BookDetailScaffold(
     modifier: Modifier = Modifier,
     state: BookDetailState,
+    readingOrientation: ReadingOrientation,
     onAction: (ReadingControlAction) -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -155,9 +159,7 @@ fun BookDetailScaffold(
                 }
             )
         },
-        bottomBar = {
 
-        }
     ) {innerPadding ->
         Box(modifier = modifier.padding(innerPadding)){
             content()
@@ -168,7 +170,7 @@ fun BookDetailScaffold(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
                 ,
-                readingOrientation = state.orientation,
+                readingOrientation = readingOrientation,
                 onAction = onAction
 
             )

@@ -12,5 +12,4 @@ data class BookDetailState(
     val isLoading: Boolean = true,
     val error: UiText? = null,
     val readingMode: ReadingMode = ReadingMode.IMMERSIVE,
-    val orientation: ReadingOrientation = ReadingOrientation.AUTO_ROTATE
 )

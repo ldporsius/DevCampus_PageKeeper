@@ -1,11 +1,16 @@
 package nl.codingwithlinda.pagekeeper.core.di
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.PageKeeperDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.RoomBookRepository
 import nl.codingwithlinda.pagekeeper.core.data.remote.ContentResolverBookFormatValidator
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.DataStoreReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FN2BookPager
 import nl.codingwithlinda.pagekeeper.core.data.remote.FN2BookParser
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
@@ -15,7 +20,9 @@ import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.navigation.DefaultMenuActionController
 import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailViewModel
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControlsViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.search.SearchViewModel
@@ -49,6 +56,13 @@ val appDataModule = module {
     single { FN2BookPager(androidContext()) } bind LazyBookPager::class
     single { ContentResolverBookFormatValidator(androidContext()) } bind BookFormatValidator::class
     single<MenuActionController> { DefaultMenuActionController() }
+
+    single<DataStore<Preferences>> {
+        PreferenceDataStoreFactory.create(
+            produceFile = { androidContext().preferencesDataStoreFile("reading_settings") }
+        )
+    }
+    single<ReadingSettingsRepository> { DataStoreReadingSettingsRepository(get()) }
 }
 
 val appPresentationModule = module {
@@ -59,5 +73,6 @@ val appPresentationModule = module {
     viewModelOf(::LibraryViewModel)
     viewModelOf(::SearchViewModel)
     viewModelOf(::MultiSelectViewModel)
+    viewModelOf(::ReadingControlsViewModel)
     viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get()) }
 }

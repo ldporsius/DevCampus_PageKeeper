@@ -88,6 +88,8 @@ dependencies {
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.androidx.compose)
 
+    implementation(libs.androidx.datastore.preferences)
+
 
     testImplementation(libs.junit)
     testImplementation(libs.assertK)

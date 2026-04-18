@@ -210,7 +210,7 @@ fun BookDetailScaffold(
                                 IntOffset(dx.roundToInt(), dy.roundToInt())
                             }
                             .shadow(elevation = 3.dp, shape = CircleShape)
-                            .background(MaterialTheme.colorScheme.surface, shape = CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerLowest, shape = CircleShape)
                             .padding(12.dp),
                         contentAlignment = Alignment.Center
                     ) {

@@ -76,7 +76,13 @@ fun FontSizeSlider(
                 }
             },
             track = {
-                SliderDefaults.CenteredTrack(sliderState)
+                SliderDefaults.CenteredTrack(
+                    sliderState = sliderState,
+                    colors = SliderDefaults.colors(
+                        activeTrackColor = MaterialTheme.colorScheme.outlineVariant,
+                        inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
+                    )
+                )
             }
         )
 
@@ -102,7 +108,7 @@ private fun StepButton(
         Box(
             modifier = Modifier
                 .size(32.dp)
-                .border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape),
+                .border(1.5.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Text(symbol, fontSize = 16.sp, lineHeight = 16.sp)

@@ -65,6 +65,7 @@ import nl.codingwithlinda.pagekeeper.core.presentation.util.asString
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.FormattedLine
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.ProvideReadingTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.TextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
@@ -105,18 +106,17 @@ fun BookDetailRoot(
     }
 
     @Composable
-    fun content() =  BookDetailScreen(
-        state = state,
-        readingSettings = readingSettings,
-        onAction = viewModel::onAction,
-        modifier = Modifier.pointerInput(true){
-            detectTapGestures(
-                onTap = {
-                    viewModel.onAction(BookDetailAction.ToggleReadingMode)
-                }
-            )
-        }
-    )
+    fun content() = ProvideReadingTextStyle(rawSliderValue = readingSettings.fontSize) {
+        BookDetailScreen(
+            state = state,
+            onAction = viewModel::onAction,
+            modifier = Modifier.pointerInput(true) {
+                detectTapGestures(
+                    onTap = { viewModel.onAction(BookDetailAction.ToggleReadingMode) }
+                )
+            }
+        )
+    }
 
     when(state.readingMode){
         ReadingMode.IMMERSIVE -> {
@@ -233,7 +233,6 @@ fun BookDetailScaffold(
 @Composable
 fun BookDetailScreen(
     state: BookDetailState,
-    readingSettings: ReadingSettings,
     onAction: (BookDetailAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -276,25 +275,18 @@ fun BookDetailScreen(
                         Column() {
                             page.lines.forEach { line ->
                                 Text(text = buildAnnotatedString {
-                                    withStyle(SpanStyle(
-                                        fontSize = MaterialTheme.typography.bodyMedium.fontSize.times(readingSettings.fontSize)
-                                    )) {
-                                        line.spans.forEach { span ->
-                                            when {
-                                                span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
-                                                    append(span.text)
-                                                }
-
-                                                span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                                    append(span.text)
-                                                }
-
-                                                span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
-                                                    append(span.text)
-                                                }
-
-                                                else -> append(span.text)
+                                    line.spans.forEach { span ->
+                                        when {
+                                            span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
+                                                append(span.text)
                                             }
+                                            span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                                                append(span.text)
+                                            }
+                                            span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                                                append(span.text)
+                                            }
+                                            else -> append(span.text)
                                         }
                                     }
                                 })
@@ -385,7 +377,6 @@ private fun BookDetailScreenPreview() {
                 ),
                 isLoading = false
             ),
-            readingSettings = ReadingSettings(),
             onAction = {}
         )
     }

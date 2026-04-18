@@ -40,6 +40,10 @@ fun FontSizeSlider(
     val isDragged by interactionSource.collectIsDraggedAsState()
     val isPressed by interactionSource.collectIsPressedAsState()
 
+    LaunchedEffect(currentFontSize) {
+        sliderState.value = currentFontSize
+    }
+
     LaunchedEffect(isDragged, isPressed) {
         if (!isDragged && !isPressed) {
             onSizeChange(sliderState.value)

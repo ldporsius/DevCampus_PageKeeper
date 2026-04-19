@@ -4,8 +4,17 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.isSpecified
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.Typography
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Chapter
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Citation
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Epigraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.PageElement
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Paragraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Section
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Title
 
 // Design-intent bounds for the reading font size range.
 // These express what the smallest and largest readable text should be,
@@ -14,7 +23,11 @@ private const val MIN_FONT_SP = 10f
 private const val MAX_FONT_SP = 40f
 
 // Must match the half-range of the slider in FontSizeSlider (-N..N).
-private const val SLIDER_HALF_RANGE = 5f
+private const val SLIDER_HALF_RANGE = 0f
+
+
+fun sliderValueRange(baseSp: Float): ClosedFloatingPointRange<Float> =
+    MIN_FONT_SP / baseSp..MAX_FONT_SP / baseSp
 
 /**
  * Provides a scaled [LocalTextStyle] to all composables in [content].
@@ -27,22 +40,41 @@ private const val SLIDER_HALF_RANGE = 5f
 fun sliderValueToScale(rawSliderValue: Float, baseSp: Float): Float {
     val minScale = MIN_FONT_SP / baseSp
     val maxScale = MAX_FONT_SP / baseSp
-    return if (rawSliderValue <= 0f) {
+    /*return if (rawSliderValue <= 0f) {
         1f + rawSliderValue * ((1f - minScale) / SLIDER_HALF_RANGE)
     } else {
         1f + rawSliderValue * ((maxScale - 1f) / SLIDER_HALF_RANGE)
-    }
+    }*/
+
+    return rawSliderValue.coerceIn(minScale, maxScale)
+
 }
 
 fun sliderValueToActualSp(rawSliderValue: Float, baseSp: Float): Float =
     baseSp * sliderValueToScale(rawSliderValue, baseSp)
+
+
+val LocalDefaultTextStyle = staticCompositionLocalOf {
+    Typography.bodyMedium
+}
+
+
+fun PageElement.toTextStyle() = when(this){
+    is Chapter -> Typography.bodyMedium
+    is Citation -> Typography.bodyMedium
+    is Epigraph -> Typography.bodyMedium
+    is Paragraph -> Typography.bodyMedium
+    is Section -> Typography.bodyMedium
+    is Title -> Typography.titleLarge
+}
+
 
 @Composable
 fun ProvideReadingTextStyle(
     rawSliderValue: Float,
     content: @Composable () -> Unit
 ) {
-    val baseStyle = MaterialTheme.typography.bodyMedium
+    val baseStyle = LocalDefaultTextStyle.current
     val baseSp = baseStyle.fontSize.value
     val scale = sliderValueToScale(rawSliderValue, baseSp)
 

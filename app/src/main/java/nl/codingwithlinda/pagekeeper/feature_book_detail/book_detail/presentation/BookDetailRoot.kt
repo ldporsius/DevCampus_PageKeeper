@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -32,10 +33,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.drop
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -46,6 +51,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.Paragraph
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -63,13 +69,18 @@ import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.Pa
 import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.core.presentation.util.UiText
 import nl.codingwithlinda.pagekeeper.core.presentation.util.asString
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Title
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ElementTextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.FormattedLine
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page.ElementPage
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.ProvideReadingTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.sliderValueToActualSp
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.TextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.LocalDefaultTextStyle
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.ReadingMode
@@ -80,6 +91,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.math.roundToInt
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.BookParagraph as BookParagraph1
 
 @Composable
 fun BookDetailRoot(
@@ -107,10 +119,36 @@ fun BookDetailRoot(
         }
     }
 
+    val listState = rememberLazyListState()
+
+    var anchorIndex by remember { mutableIntStateOf(0) }
+    var anchorRatio by remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) ->
+                val itemSize = listState.layoutInfo.visibleItemsInfo
+                    .firstOrNull { it.index == index }?.size ?: return@collect
+                anchorIndex = index
+                anchorRatio = if (itemSize > 0) offset.toFloat() / itemSize else 0f
+            }
+    }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { readingSettings.fontSize }
+            .drop(1)
+            .collect {
+                val itemSize = listState.layoutInfo.visibleItemsInfo
+                    .firstOrNull { it.index == anchorIndex }?.size ?: return@collect
+                listState.scrollToItem(anchorIndex, (anchorRatio * itemSize).toInt())
+            }
+    }
+
     @Composable
     fun content() = ProvideReadingTextStyle(rawSliderValue = readingSettings.fontSize) {
         BookDetailScreen(
             state = state,
+            listState = listState,
             onAction = viewModel::onAction,
             modifier = Modifier.pointerInput(true) {
                 detectTapGestures(
@@ -214,7 +252,7 @@ fun BookDetailScaffold(
                             .padding(12.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        val baseSp = MaterialTheme.typography.bodyMedium.fontSize.value
+                        val baseSp = LocalDefaultTextStyle.current.fontSize.value
                         val actualSp = sliderValueToActualSp(readingSettings.fontSize, baseSp)
                         Text("${actualSp.roundToInt()}")
                     }
@@ -239,7 +277,8 @@ fun BookDetailScaffold(
 fun BookDetailScreen(
     state: BookDetailState,
     onAction: (BookDetailAction) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState()
 ) {
     Box(modifier = modifier
         .fillMaxSize()
@@ -257,7 +296,6 @@ fun BookDetailScreen(
             return@Box
         }
 
-        val listState = rememberLazyListState()
         val nearBottom by remember {
             derivedStateOf {
                 val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: return@derivedStateOf false
@@ -276,6 +314,34 @@ fun BookDetailScreen(
 
             ){ page ->
                 when (page) {
+                    is ElementPage -> {
+                        page.elements.forEach { element ->
+                            element.lines.forEach { line ->
+                                line.spans.forEach { span ->
+                                    Text(
+                                        text = buildAnnotatedString {
+                                            when {
+                                                span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
+                                                    append(span.text)
+                                                }
+
+                                                span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                                                    append(span.text)
+                                                }
+
+                                                span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                                                    append(span.text)
+                                                }
+
+                                                else -> append(span.text)
+                                            }
+                                        },
+                                        style = element.element.toTextStyle(),
+                                    )
+                                }
+                            }
+                        }
+                    }
                     is Page.TextPage -> {
                         Column() {
                             page.lines.forEach { line ->
@@ -355,19 +421,19 @@ private fun BookDetailScreenPreview() {
         BookDetailScreen(
             state = BookDetailState(
                 pages = listOf(
-                    Page.TextPage(
-                        lines = listOf(
-                            FormattedLine(
-                                spans = listOf(
-                                    TextSpan(text = "The Great Gatsby", bold = true)
-                                )
+                    ElementPage(
+                        elements = listOf(
+                            ElementTextSpan(
+                                element = Title("The Great Gatsby"),
+                                lines = listOf(FormattedLine(listOf(TextSpan(text = "The Great Gatsby"))))
                             ),
-                            FormattedLine(
-                                spans = listOf(
+                            ElementTextSpan(
+                                element = nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.BookParagraph("by F. Scott Fitzgerald"),
+                                lines = listOf(FormattedLine(listOf(
                                     TextSpan(text = "by ", emphasis = true),
                                     TextSpan(text = "F. Scott Fitzgerald")
-                                )
-                            )
+                                )))
+                            ),
                         )
                     ),
                     Page.TextPage(

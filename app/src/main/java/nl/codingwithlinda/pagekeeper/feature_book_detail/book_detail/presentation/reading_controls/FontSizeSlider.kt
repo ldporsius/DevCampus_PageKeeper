@@ -1,5 +1,6 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -8,6 +9,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -28,18 +30,20 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FontSizeSlider(
     modifier: Modifier = Modifier,
-    currentFontSize: Float = 0f,
+    currentFontSize: Float = 1f,
+    valueRange: ClosedFloatingPointRange<Float> = 1f..3f,
     onSizeChange: (Float) -> Unit,
     onThumbPositioned: (Rect) -> Unit = {}
 ) {
     val sliderState = rememberSliderState(
         value = currentFontSize,
-        valueRange = -5f..5f
+        valueRange = valueRange
     )
     val interactionSource = remember { MutableInteractionSource() }
     val isDragged by interactionSource.collectIsDraggedAsState()
@@ -56,12 +60,13 @@ fun FontSizeSlider(
     }
 
     Row(
-        modifier = modifier,
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest, ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         StepButton(
             symbol = "−",
-            onClick = { onSizeChange((sliderState.value - 0.01f).coerceAtLeast(-5f)) }
+            onClick = { onSizeChange((sliderState.value - 0.1f).coerceAtLeast(-5f)) }
         )
 
         Slider(
@@ -79,8 +84,8 @@ fun FontSizeSlider(
                 SliderDefaults.CenteredTrack(
                     sliderState = sliderState,
                     colors = SliderDefaults.colors(
-                        activeTrackColor = MaterialTheme.colorScheme.outlineVariant,
-                        inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.inverseOnSurface,
                     )
                 )
             }
@@ -88,7 +93,7 @@ fun FontSizeSlider(
 
         StepButton(
             symbol = "+",
-            onClick = { onSizeChange((sliderState.value + 0.01f).coerceAtMost(5f)) }
+            onClick = { onSizeChange((sliderState.value + 0.1f).coerceAtMost(5f)) }
         )
     }
 }
@@ -107,11 +112,16 @@ private fun StepButton(
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
-                .border(1.5.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
+                .width(36.dp)
+                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                ,
             contentAlignment = Alignment.Center
         ) {
-            Text(symbol, fontSize = 16.sp, lineHeight = 16.sp)
+            Text(symbol,
+                fontSize = 16.sp,
+                lineHeight = 28.sp,
+                color = MaterialTheme.colorScheme.onPrimary
+                )
         }
     }
 }
@@ -119,5 +129,9 @@ private fun StepButton(
 @Preview
 @Composable
 private fun FontSizeSliderPreview() {
-    FontSizeSlider(onSizeChange = {})
+    PageKeeperTheme() {
+        FontSizeSlider(
+            currentFontSize = 1f,
+            onSizeChange = {})
+    }
 }

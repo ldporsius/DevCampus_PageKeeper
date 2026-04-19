@@ -1,8 +1,10 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data
 
+import androidx.compose.ui.util.fastJoinToString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ElementTextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.FormattedLine
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.TextSpan
@@ -12,7 +14,6 @@ import kotlin.sequences.forEach
 @Serializable
 sealed interface PageElement{
     fun toPlainText(): String
-    fun toFormattedText(): String = toPlainText()
 }
 
 @Serializable
@@ -21,13 +22,7 @@ data class Section(
     val elements: List<PageElement> = emptyList()
 ): PageElement {
     override fun toPlainText(): String  = elements.map { it.toPlainText() }.joinToString("\n")
-    override fun toFormattedText(): String {
-        //return elements.map { it.toFormattedText() }.joinToString("")
-        return Chapter(
-            title = elements.first().toFormattedText(),
-            elements = elements.drop(1)
-        ).toFormattedText()
-    }
+
 }
 
 data class Chapter(val title: String, val elements: List<PageElement>): PageElement{
@@ -35,15 +30,12 @@ data class Chapter(val title: String, val elements: List<PageElement>): PageElem
         return title + "\n" + elements.map { it.toPlainText() }.joinToString("\n")
     }
 
-    override fun toFormattedText(): String {
-        return title + "\n" + elements.map{ it.toFormattedText() }.joinToString("")
-    }
-
 }
+
+typealias BookParagraph = Paragraph
 @Serializable
 data class Paragraph(val text: String): PageElement{
     override fun toPlainText(): String = text
-    override fun toFormattedText(): String = text.replace(Regex(paragraphTag), "$1").plus("\n")
 }
 
 @Serializable
@@ -93,10 +85,14 @@ suspend fun Section.toPages(): List<Page> {
 }
 
 suspend fun PageElement.toPage(): Page {
-    return Page.TextPage(
-        lines = listOf(
-            parseSpans(toFormattedText()))
-        )
+
+    val lines =
+        ElementTextSpan(element = this,)
+
+    return Page.ElementPage(
+        elements = listOf(lines)
+    )
+
 }
 
 private val tagStripRegex = Regex("<[^>]+>")

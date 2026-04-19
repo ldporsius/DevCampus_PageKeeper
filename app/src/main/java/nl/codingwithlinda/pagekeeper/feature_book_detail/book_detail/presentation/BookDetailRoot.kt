@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.shadow
@@ -41,6 +42,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -134,14 +136,12 @@ fun BookDetailRoot(
             }
     }
 
-    LaunchedEffect(Unit) {
-        snapshotFlow { readingSettings.fontSize }
-            .drop(1)
-            .collect {
-                val itemSize = listState.layoutInfo.visibleItemsInfo
-                    .firstOrNull { it.index == anchorIndex }?.size ?: return@collect
-                listState.scrollToItem(anchorIndex, (anchorRatio * itemSize).toInt())
-            }
+    LaunchedEffect(readingSettings.fontSize) {
+        val layout = snapshotFlow { listState.layoutInfo }
+            .first { it.visibleItemsInfo.any { item -> item.index == anchorIndex } }
+        val itemSize = layout.visibleItemsInfo
+            .firstOrNull { it.index == anchorIndex }?.size ?: return@LaunchedEffect
+        listState.scrollToItem(anchorIndex, (anchorRatio * itemSize).toInt())
     }
 
     @Composable
@@ -150,7 +150,7 @@ fun BookDetailRoot(
             state = state,
             listState = listState,
             onAction = viewModel::onAction,
-            modifier = Modifier.pointerInput(true) {
+modifier = Modifier.pointerInput(true) {
                 detectTapGestures(
                     onTap = { viewModel.onAction(BookDetailAction.ToggleReadingMode) }
                 )
@@ -278,7 +278,7 @@ fun BookDetailScreen(
     state: BookDetailState,
     onAction: (BookDetailAction) -> Unit,
     modifier: Modifier = Modifier,
-    listState: LazyListState = rememberLazyListState()
+    listState: LazyListState = rememberLazyListState(),
 ) {
     Box(modifier = modifier
         .fillMaxSize()
@@ -308,40 +308,41 @@ fun BookDetailScreen(
         }
 
         LazyColumn(state = listState) {
-            items(
+            itemsIndexed(
                 state.pages,
-                key = { page -> page.hashCode() }
-
-            ){ page ->
+                key = { _, page -> page.hashCode() }
+            ) { index, page ->
                 when (page) {
                     is ElementPage -> {
-                        page.elements.forEach { element ->
-                            val style = element.element.toScaledTextStyle()
-                            element.lines.forEach { line ->
-                                line.spans.forEach { span ->
-                                    Text(
-                                        text = buildAnnotatedString {
-                                            when {
-                                                span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
-                                                    append(span.text)
+                        Column {
+                            page.elements.forEach { element ->
+                                val style = element.element.toScaledTextStyle()
+                                element.lines.forEach { line ->
+                                    line.spans.forEach { span ->
+                                        Text(
+                                            text = buildAnnotatedString {
+                                                when {
+                                                    span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
+                                                        append(span.text)
+                                                    }
+                                                    span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                                                        append(span.text)
+                                                    }
+                                                    span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                                                        append(span.text)
+                                                    }
+                                                    else -> append(span.text)
                                                 }
-                                                span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                                    append(span.text)
-                                                }
-                                                span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
-                                                    append(span.text)
-                                                }
-                                                else -> append(span.text)
-                                            }
-                                        },
-                                        style = style,
-                                    )
+                                            },
+                                            style = style,
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                     is Page.TextPage -> {
-                        Column() {
+                        Column {
                             page.lines.forEach { line ->
                                 Text(text = buildAnnotatedString {
                                     line.spans.forEach { span ->
@@ -363,9 +364,8 @@ fun BookDetailScreen(
                         }
                     }
                     is Page.ImagePage -> {
-                        val img = page.href
                         AsyncImage(
-                            model = img,
+                            model = page.href,
                             contentDescription = null
                         )
                     }

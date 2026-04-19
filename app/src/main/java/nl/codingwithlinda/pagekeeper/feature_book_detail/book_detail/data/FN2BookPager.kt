@@ -16,6 +16,12 @@ import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import nl.codingwithlinda.pagekeeper.core.data.util.sectionBetween
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Citation
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Epigraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.PageElement
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager

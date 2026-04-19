@@ -66,7 +66,7 @@ fun FontSizeSlider(
     ) {
         StepButton(
             symbol = "−",
-            onClick = { onSizeChange((sliderState.value - 0.1f).coerceAtLeast(-5f)) }
+            onClick = { onSizeChange((sliderState.value - 0.1f).coerceAtLeast(valueRange.start)) }
         )
 
         Slider(
@@ -93,7 +93,7 @@ fun FontSizeSlider(
 
         StepButton(
             symbol = "+",
-            onClick = { onSizeChange((sliderState.value + 0.1f).coerceAtMost(5f)) }
+            onClick = { onSizeChange((sliderState.value + 0.1f).coerceAtMost(valueRange.endInclusive)) }
         )
     }
 }

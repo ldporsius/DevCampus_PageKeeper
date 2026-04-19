@@ -3,8 +3,6 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain
 import kotlinx.coroutines.flow.Flow
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Chapter
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Section
 
 interface BookPager {
 

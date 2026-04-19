@@ -22,6 +22,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.typographySliderRange
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlAction
 
 @Composable
@@ -41,9 +42,11 @@ fun ReadingControls(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.Top
                 ) {
+                    val range = typographySliderRange()
                     FontSizeSlider(
                         modifier = Modifier,
                         currentFontSize = readingSettings.fontSize,
+                        valueRange = range,
                         onSizeChange = { onAction(ReadingControlAction.AdjustFontSize(it)) },
                         onThumbPositioned = onThumbPositioned
                     )

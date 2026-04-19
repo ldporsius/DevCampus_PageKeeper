@@ -4,6 +4,6 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 
 data class ReadingSettings(
     val orientation: ReadingOrientation = ReadingOrientation.AUTO_ROTATE,
-    val fontSize: Float = 0f,
+    val fontSize: Float = 1f,
     val currentSection: Int = 0,
 )

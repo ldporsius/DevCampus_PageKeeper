@@ -1,27 +1,28 @@
-package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain
+package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model
 
 import kotlinx.serialization.Serializable
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.PageElement
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.PageElement
 
-
-interface ITextSpan{
+interface ITextSpan {
     val text: String
 }
-@Serializable
-data class ElementTextSpan(
-    val element: PageElement,
-    val lines: List<FormattedLine> = emptyList()
-)
 
 @Serializable
 data class TextSpan(
     override val text: String,
     val emphasis: Boolean = false,
     val bold: Boolean = false,
-    val url: String? = null): ITextSpan
+    val url: String? = null
+) : ITextSpan
 
 @Serializable
 data class FormattedLine(val spans: List<TextSpan>)
+
+@Serializable
+data class ElementTextSpan(
+    val element: PageElement,
+    val lines: List<FormattedLine> = emptyList()
+)
 
 @Serializable
 sealed interface Page {

@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.toPage
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.toPage
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager

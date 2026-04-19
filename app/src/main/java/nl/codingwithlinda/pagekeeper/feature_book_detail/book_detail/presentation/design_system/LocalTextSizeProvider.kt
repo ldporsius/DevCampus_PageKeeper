@@ -8,13 +8,13 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.isSpecified
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.Typography
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Chapter
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Citation
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Epigraph
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.PageElement
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Paragraph
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Section
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Title
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Chapter
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Citation
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Epigraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.PageElement
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 
 // Design-intent bounds for the reading font size range.
 // These express what the smallest and largest readable text should be,
@@ -58,6 +58,11 @@ val LocalDefaultTextStyle = staticCompositionLocalOf {
     Typography.bodyMedium
 }
 
+fun typographySliderRange(): ClosedFloatingPointRange<Float> {
+    val bodyBaseSp = Typography.bodyMedium.fontSize.value
+    return Typography.bodySmall.fontSize.value / bodyBaseSp..Typography.headlineMedium.fontSize.value / bodyBaseSp
+}
+
 
 fun PageElement.toTextStyle() = when(this){
     is Chapter -> Typography.bodyMedium
@@ -66,6 +71,14 @@ fun PageElement.toTextStyle() = when(this){
     is Paragraph -> Typography.bodyMedium
     is Section -> Typography.bodyMedium
     is Title -> Typography.titleLarge
+}
+
+@Composable
+fun PageElement.toScaledTextStyle(): androidx.compose.ui.text.TextStyle {
+    val base = LocalTextStyle.current
+    val bodyBaseSp = LocalDefaultTextStyle.current.fontSize.value
+    val ratio = toTextStyle().fontSize.value / bodyBaseSp
+    return base.copy(fontSize = base.fontSize * ratio)
 }
 
 

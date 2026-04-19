@@ -69,18 +69,18 @@ import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.Pa
 import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.core.presentation.util.UiText
 import nl.codingwithlinda.pagekeeper.core.presentation.util.asString
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.Title
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ElementTextSpan
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.FormattedLine
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page.ElementPage
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.ElementTextSpan
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.FormattedLine
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page.ElementPage
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.ProvideReadingTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.sliderValueToActualSp
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.TextSpan
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.TextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.LocalDefaultTextStyle
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toTextStyle
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toScaledTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.ReadingMode
@@ -91,7 +91,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.math.roundToInt
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.BookParagraph as BookParagraph1
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParagraph
 
 @Composable
 fun BookDetailRoot(
@@ -316,6 +316,7 @@ fun BookDetailScreen(
                 when (page) {
                     is ElementPage -> {
                         page.elements.forEach { element ->
+                            val style = element.element.toScaledTextStyle()
                             element.lines.forEach { line ->
                                 line.spans.forEach { span ->
                                     Text(
@@ -324,19 +325,16 @@ fun BookDetailScreen(
                                                 span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
                                                     append(span.text)
                                                 }
-
                                                 span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
                                                     append(span.text)
                                                 }
-
                                                 span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
                                                     append(span.text)
                                                 }
-
                                                 else -> append(span.text)
                                             }
                                         },
-                                        style = element.element.toTextStyle(),
+                                        style = style,
                                     )
                                 }
                             }
@@ -428,7 +426,7 @@ private fun BookDetailScreenPreview() {
                                 lines = listOf(FormattedLine(listOf(TextSpan(text = "The Great Gatsby"))))
                             ),
                             ElementTextSpan(
-                                element = nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.BookParagraph("by F. Scott Fitzgerald"),
+                                element = BookParagraph("by F. Scott Fitzgerald"),
                                 lines = listOf(FormattedLine(listOf(
                                     TextSpan(text = "by ", emphasis = true),
                                     TextSpan(text = "F. Scott Fitzgerald")

@@ -75,7 +75,7 @@ fun PageElement.toTextStyle() = when(this){
 
 @Composable
 fun PageElement.toScaledTextStyle(): androidx.compose.ui.text.TextStyle {
-    val base = LocalTextStyle.current
+    val base = toTextStyle()
     val bodyBaseSp = LocalDefaultTextStyle.current.fontSize.value
     val ratio = toTextStyle().fontSize.value / bodyBaseSp
     return base.copy(fontSize = base.fontSize * ratio)

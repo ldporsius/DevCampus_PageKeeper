@@ -94,6 +94,7 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.math.roundToInt
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParagraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toTextStyle
 
 @Composable
 fun BookDetailRoot(
@@ -438,7 +439,9 @@ private fun BookDetailScreenPreview() {
                         lines = listOf(
                             FormattedLine(
                                 spans = listOf(
-                                    TextSpan(text = "In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since.")
+                                    TextSpan(text = "In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since."),
+                                    TextSpan(text = "<empty-line/>", ),
+                                    TextSpan(text = "— Abraham Lincoln",)
                                 )
                             )
                         )

@@ -66,7 +66,7 @@ class BookDetailViewModel(
                     bookPager.loadChapter(book, currentSectionIndex).collect { chapter ->
                         _state.update { it.copy(pages = it.pages.plus(chapter.toPage())) }
                     }
-                    delay(5000)
+                    delay(500)//artificial
                     _state.update { it.copy(isLoading = false) }
                 }
 

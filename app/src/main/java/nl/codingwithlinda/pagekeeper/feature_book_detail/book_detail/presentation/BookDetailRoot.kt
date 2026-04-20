@@ -318,8 +318,11 @@ fun BookDetailScreen(
                         Column {
                             page.elements.forEach { element ->
                                 val style = element.element.toScaledTextStyle()
+                                Text("")
                                 element.lines.forEach { line ->
+
                                     line.spans.forEach { span ->
+                                        Text("")
                                         Text(
                                             text = buildAnnotatedString {
                                                 when {
@@ -332,7 +335,9 @@ fun BookDetailScreen(
                                                     span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
                                                         append(span.text)
                                                     }
-                                                    else -> append(span.text)
+                                                    else -> {
+                                                        append(span.text)
+                                                    }
                                                 }
                                             },
                                             style = style,
@@ -433,6 +438,7 @@ private fun BookDetailScreenPreview() {
                                     TextSpan(text = "F. Scott Fitzgerald")
                                 )))
                             ),
+
                         )
                     ),
                     Page.TextPage(

@@ -80,6 +80,10 @@ fun PageElement.toScaledTextStyle(): androidx.compose.ui.text.TextStyle {
     val ratio = toTextStyle().fontSize.value / bodyBaseSp
     return base.copy(
         fontFamily = toTextStyle().fontFamily,
+        fontWeight = toTextStyle().fontWeight,
+        fontStyle = toTextStyle().fontStyle,
+        letterSpacing = toTextStyle().letterSpacing,
+        lineHeight = toTextStyle().lineHeight,
         fontSize = base.fontSize * ratio)
 }
 

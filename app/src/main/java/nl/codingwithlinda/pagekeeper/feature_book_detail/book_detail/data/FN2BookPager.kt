@@ -212,8 +212,6 @@ class FN2BookPager(
             ?.sortedBy { it.name.removePrefix("${book.ISBN}_").removeSuffix(".json").toIntOrNull() ?: 0 }
             ?: emptyList()
     }
-    private fun pagesFile(book: Book): File{
-        return File(context.filesDir, "${book.ISBN}.json")
-    }
+
 
 }

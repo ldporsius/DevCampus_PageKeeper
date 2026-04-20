@@ -1,9 +1,11 @@
 package nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme
 
+import android.graphics.fonts.FontStyle
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle.Companion.Italic
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import nl.codingwithlinda.pagekeeper.R
@@ -40,6 +42,7 @@ val Typography = Typography(
     titleLarge = TextStyle(
         fontFamily = lora,
         fontWeight = FontWeight.Bold,
+        fontStyle = Italic,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp

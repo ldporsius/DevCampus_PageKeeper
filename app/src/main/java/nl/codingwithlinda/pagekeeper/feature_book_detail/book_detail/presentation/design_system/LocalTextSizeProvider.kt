@@ -65,20 +65,22 @@ fun typographySliderRange(): ClosedFloatingPointRange<Float> {
 
 
 fun PageElement.toTextStyle() = when(this){
+    is Section -> Typography.bodyMedium
     is Chapter -> Typography.bodyMedium
+    is Title -> Typography.titleLarge
     is Citation -> Typography.bodyMedium
     is Epigraph -> Typography.bodyMedium
     is Paragraph -> Typography.bodyMedium
-    is Section -> Typography.bodyMedium
-    is Title -> Typography.titleLarge
 }
 
 @Composable
 fun PageElement.toScaledTextStyle(): androidx.compose.ui.text.TextStyle {
-    val base = toTextStyle()
+    val base = LocalTextStyle.current
     val bodyBaseSp = LocalDefaultTextStyle.current.fontSize.value
     val ratio = toTextStyle().fontSize.value / bodyBaseSp
-    return base.copy(fontSize = base.fontSize * ratio)
+    return base.copy(
+        fontFamily = toTextStyle().fontFamily,
+        fontSize = base.fontSize * ratio)
 }
 
 

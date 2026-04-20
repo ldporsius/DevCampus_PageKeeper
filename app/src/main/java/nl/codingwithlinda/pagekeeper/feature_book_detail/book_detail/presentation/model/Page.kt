@@ -29,7 +29,5 @@ sealed interface Page {
     @Serializable
     data class ElementPage(val elements: List<ElementTextSpan>) : Page
     @Serializable
-    data class TextPage(val lines: List<FormattedLine>) : Page
-    @Serializable
     data class ImagePage(val href: String) : Page
 }

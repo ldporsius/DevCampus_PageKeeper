@@ -347,28 +347,6 @@ fun BookDetailScreen(
                             }
                         }
                     }
-                    is Page.TextPage -> {
-                        Column {
-                            page.lines.forEach { line ->
-                                Text(text = buildAnnotatedString {
-                                    line.spans.forEach { span ->
-                                        when {
-                                            span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
-                                                append(span.text)
-                                            }
-                                            span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                                append(span.text)
-                                            }
-                                            span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
-                                                append(span.text)
-                                            }
-                                            else -> append(span.text)
-                                        }
-                                    }
-                                })
-                            }
-                        }
-                    }
                     is Page.ImagePage -> {
                         AsyncImage(
                             model = page.href,
@@ -441,17 +419,6 @@ private fun BookDetailScreenPreview() {
 
                         )
                     ),
-                    Page.TextPage(
-                        lines = listOf(
-                            FormattedLine(
-                                spans = listOf(
-                                    TextSpan(text = "In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since."),
-                                    TextSpan(text = "<empty-line/>", ),
-                                    TextSpan(text = "— Abraham Lincoln",)
-                                )
-                            )
-                        )
-                    )
                 ),
                 isLoading = false
             ),

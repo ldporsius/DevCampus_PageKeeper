@@ -5,12 +5,14 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlAction
 
 class ReadingControlsViewModel(
-    private val readingSettingsRepository: ReadingSettingsRepository
+    private val readingSettingsRepository: ReadingSettingsRepository,
+    private val bookRepository: BookRepository
 ): ViewModel() {
 
     val state = readingSettingsRepository.settings.stateIn(
@@ -23,8 +25,6 @@ class ReadingControlsViewModel(
         when(action){
             is ReadingControlAction.AdjustFontSize -> {
                 viewModelScope.launch {
-                    println("--- READING CONTROLS --- ACTION: AdjustFontSize : ${action.factor}")
-
                     readingSettingsRepository.setFontSize(action.factor)
                 }
             }
@@ -42,6 +42,16 @@ class ReadingControlsViewModel(
                     readingSettingsRepository.setCurrentSection(action.section)
                 }
             }
+            is ReadingControlAction.ToggleFavorite -> {
+                println("--- READING CONTROLS VIEWMODEL --- TOGGLE FAVORITE ISBN ${action.isbn}")
+                viewModelScope.launch {
+                    bookRepository.getBookByISBN(action.isbn)?.let { book ->
+                        println("--- READING CONTROLS VIEWMODEL --- TOGGLE FAVORITE BOOK ${book.title}, favorite = /eff${book.isFavorite}")
+                        bookRepository.upsertBook(book.copy(isFavorite = !book.isFavorite))
+                    }
+                }
+            }
+
         }
     }
 }

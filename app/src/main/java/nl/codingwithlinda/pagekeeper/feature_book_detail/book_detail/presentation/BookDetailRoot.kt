@@ -3,12 +3,8 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 import android.content.pm.ActivityInfo
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.draggable2D
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,6 +57,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -71,18 +68,16 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.first
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
-import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.core.presentation.util.UiText
 import nl.codingwithlinda.pagekeeper.core.presentation.util.asString
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParagraph
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.LocalDefaultTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.ProvideReadingTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.sliderValueToActualSp
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.typographySliderRange
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toScaledTextStyle
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.typographySliderRange
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.ReadingMode
@@ -116,12 +111,6 @@ fun BookDetailRoot(
         it.requestedOrientation = when(readingSettings.orientation){
             ReadingOrientation.AUTO_ROTATE -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             ReadingOrientation.LOCKED_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
-        }
-    }
-
-    ObserveAsEvents(viewModel.events) { event ->
-        when (event) {
-            is BookDetailEvent.NavigateBack -> onNavigateBack()
         }
     }
 
@@ -173,6 +162,7 @@ fun BookDetailRoot(
                     state = state,
                     readingSettings = readingSettings,
                     onAction = readingControlsViewModel::onAction,
+                    onNavBack = onNavigateBack,
                     content = {
                         content()
                     }
@@ -190,17 +180,24 @@ fun BookDetailScaffold(
     state: BookDetailState,
     readingSettings: ReadingSettings,
     onAction: (ReadingControlAction) -> Unit,
+    onNavBack: () -> Unit = {},
     content: @Composable () -> Unit
 ) {
+    if (state.book == null) return
     Scaffold(
         modifier = modifier,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    state.book?.title ?: ""
+                    Text(state.book.title,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 },
                 navigationIcon = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = {
+                        onNavBack()
+                    }) {
                         Icon(
                             painter = painterResource(R.drawable.back),
                             contentDescription = "back_to_library"
@@ -208,9 +205,13 @@ fun BookDetailScaffold(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = {
+                        onAction(ReadingControlAction.ToggleFavorite(state.book.isbn ))
+
+                    }) {
+                        val icon = if (state.book.isFavorite) R.drawable.menu_favorites_active else R.drawable.favorites
                         Icon(
-                            painter = painterResource(R.drawable.favorites),
+                            painter = painterResource(icon),
                             contentDescription = "mark_favorite"
                         )
                     }

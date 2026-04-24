@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
@@ -36,16 +37,16 @@ import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.Pa
 @Composable
 fun FontSizeSlider(
     modifier: Modifier = Modifier,
+    sliderState: SliderState,
     currentFontSize: Float = 1f,
     valueRange: ClosedFloatingPointRange<Float> = 1f..3f,
     onSizeChange: (Float) -> Unit,
-    onThumbPositioned: (Rect) -> Unit = {}
+    onThumbPositioned: (Rect) -> Unit = {},
+    onTrackPositioned: (Rect) -> Unit = {}
 ) {
-    val sliderState = rememberSliderState(
-        value = currentFontSize,
-        valueRange = valueRange
-    )
+
     val interactionSource = remember { MutableInteractionSource() }
+
     val isDragged by interactionSource.collectIsDraggedAsState()
     val isPressed by interactionSource.collectIsPressedAsState()
 
@@ -66,11 +67,13 @@ fun FontSizeSlider(
     ) {
         StepButton(
             symbol = "−",
-            onClick = { onSizeChange((sliderState.value - 0.1f).coerceAtLeast(valueRange.start)) }
+            onClick = { onSizeChange((sliderState.value - 0.05f).coerceAtLeast(valueRange.start)) }
         )
 
         Slider(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .onGloballyPositioned { onTrackPositioned(it.boundsInRoot()) },
             state = sliderState,
             interactionSource = interactionSource,
             thumb = {
@@ -93,7 +96,7 @@ fun FontSizeSlider(
 
         StepButton(
             symbol = "+",
-            onClick = { onSizeChange((sliderState.value + 0.1f).coerceAtMost(valueRange.endInclusive)) }
+            onClick = { onSizeChange((sliderState.value + 0.05f).coerceAtMost(valueRange.endInclusive)) }
         )
     }
 }
@@ -132,6 +135,7 @@ private fun FontSizeSliderPreview() {
     PageKeeperTheme() {
         FontSizeSlider(
             currentFontSize = 1f,
+            sliderState = SliderState(),
             onSizeChange = {})
     }
 }

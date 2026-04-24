@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,11 +29,13 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 @Composable
 fun ReadingControls(
     modifier: Modifier = Modifier,
+    sliderState: SliderState,
     onAction: (ReadingControlAction) -> Unit,
     readingSettings: ReadingSettings,
     showAdjustFontSize: Boolean,
     toggleAdjustFontSize: () -> Unit,
-    onThumbPositioned: (Rect) -> Unit = {}
+    onThumbPositioned: (Rect) -> Unit = {},
+    onTrackPositioned: (Rect) -> Unit = {}
 ) {
 
     AnimatedContent(showAdjustFontSize) { show ->
@@ -45,10 +48,12 @@ fun ReadingControls(
                     val range = typographySliderRange()
                     FontSizeSlider(
                         modifier = Modifier,
+                        sliderState = sliderState,
                         currentFontSize = readingSettings.fontSize,
                         valueRange = range,
                         onSizeChange = { onAction(ReadingControlAction.AdjustFontSize(it)) },
-                        onThumbPositioned = onThumbPositioned
+                        onThumbPositioned = onThumbPositioned,
+                        onTrackPositioned = onTrackPositioned
                     )
                 }
             }
@@ -126,6 +131,7 @@ fun ReadingControlItem(
 private fun ReadingControlsPreview() {
     ReadingControls(
         modifier = Modifier.fillMaxWidth(),
+        sliderState = SliderState(),
         readingSettings = ReadingSettings(),
         showAdjustFontSize = false,
         toggleAdjustFontSize = {},

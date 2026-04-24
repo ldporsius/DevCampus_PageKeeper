@@ -3,7 +3,12 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 import android.content.pm.ActivityInfo
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.draggable2D
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,11 +22,9 @@ import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.shadow
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -41,11 +45,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
@@ -53,7 +56,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.Paragraph
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -66,26 +68,29 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.flow.first
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.core.presentation.util.UiText
 import nl.codingwithlinda.pagekeeper.core.presentation.util.asString
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.ElementTextSpan
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.FormattedLine
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page.ElementPage
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParagraph
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.ProvideReadingTextStyle
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.sliderValueToActualSp
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.TextSpan
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.navigation.BookDetailEvent
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.LocalDefaultTextStyle
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.ProvideReadingTextStyle
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.sliderValueToActualSp
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.typographySliderRange
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toScaledTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.ReadingMode
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.ElementTextSpan
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.FormattedLine
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page.ElementPage
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.TextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControls
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControlsViewModel
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingOrientation
@@ -93,8 +98,6 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.math.roundToInt
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParagraph
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toTextStyle
 
 @Composable
 fun BookDetailRoot(
@@ -151,7 +154,7 @@ fun BookDetailRoot(
             state = state,
             listState = listState,
             onAction = viewModel::onAction,
-modifier = Modifier.pointerInput(true) {
+            modifier = Modifier.pointerInput(true) {
                 detectTapGestures(
                     onTap = { viewModel.onAction(BookDetailAction.ToggleReadingMode) }
                 )
@@ -221,7 +224,19 @@ fun BookDetailScaffold(
             mutableStateOf(false)
         }
         var thumbBounds by remember { mutableStateOf(Rect.Zero) }
+        var trackBounds by remember { mutableStateOf(Rect.Zero) }
         var indicatorNaturalBounds by remember { mutableStateOf(Rect.Zero) }
+
+        val valueRange = typographySliderRange()
+
+        val sliderState = rememberSliderState(
+            value = readingSettings.fontSize,
+            valueRange = valueRange,
+        )
+
+        LaunchedEffect(readingSettings.fontSize) {
+            sliderState.value = readingSettings.fontSize
+        }
 
         Column(modifier = Modifier.padding(innerPadding)) {
             Box(modifier = Modifier.weight(1f)) {
@@ -248,6 +263,20 @@ fun BookDetailScaffold(
                                 val dy = thumbBounds.top - indicatorNaturalBounds.bottom - 4.dp.toPx()
                                 IntOffset(dx.roundToInt(), dy.roundToInt())
                             }
+                            .pointerInput(true){
+                                this.detectHorizontalDragGestures(
+                                    onHorizontalDrag = { _, dragAmount ->
+                                        val rangeSize = valueRange.endInclusive - valueRange.start
+                                        val valueDelta = dragAmount / trackBounds.width * rangeSize
+                                        val newFontSize = (sliderState.value + valueDelta)
+                                            .coerceIn(valueRange.start, valueRange.endInclusive)
+                                        sliderState.value = newFontSize
+                                    },
+                                    onDragEnd = {
+                                        onAction(ReadingControlAction.AdjustFontSize(sliderState.value))
+                                    }
+                                )
+                            }
                             .shadow(elevation = 3.dp, shape = CircleShape)
                             .background(MaterialTheme.colorScheme.surfaceContainerLowest, shape = CircleShape)
                             .padding(12.dp),
@@ -263,11 +292,13 @@ fun BookDetailScaffold(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
+                    sliderState = sliderState,
                     readingSettings = readingSettings,
                     showAdjustFontSize = showAdjustFontSize,
                     toggleAdjustFontSize = { showAdjustFontSize = true },
                     onAction = onAction,
-                    onThumbPositioned = { thumbBounds = it }
+                    onThumbPositioned = { thumbBounds = it },
+                    onTrackPositioned = { trackBounds = it }
                 )
             }
         }
@@ -341,7 +372,8 @@ fun BookDetailScreen(
                                                 }
                                             },
                                             style = style,
-                                        )
+
+                                            )
                                     }
                                 }
                             }
@@ -417,7 +449,7 @@ private fun BookDetailScreenPreview() {
                                 )))
                             ),
 
-                        )
+                            )
                     ),
                 ),
                 isLoading = false

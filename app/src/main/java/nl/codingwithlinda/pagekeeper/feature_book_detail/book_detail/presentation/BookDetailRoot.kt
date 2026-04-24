@@ -350,11 +350,10 @@ fun BookDetailScreen(
                         Column {
                             page.elements.forEach { element ->
                                 val style = element.element.toScaledTextStyle()
-                                Text("")
+                                Text("-".repeat(100))
                                 element.lines.forEach { line ->
 
                                     line.spans.forEach { span ->
-                                        Text("")
                                         Text(
                                             text = buildAnnotatedString {
                                                 when {

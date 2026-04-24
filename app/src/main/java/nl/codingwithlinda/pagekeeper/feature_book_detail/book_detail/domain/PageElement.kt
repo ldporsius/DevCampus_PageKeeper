@@ -12,11 +12,11 @@ data class Section(
     val id: Int = 0,
     val elements: List<PageElement> = emptyList()
 ) : PageElement {
-    override fun toPlainText(): String = elements.joinToString("\n") { it.toPlainText() }
+    override fun toPlainText(): String = elements.joinToString("") { it.toPlainText() }
 }
 
 data class Chapter(val title: String, val elements: List<PageElement>) : PageElement {
-    override fun toPlainText(): String = title + "\n" + elements.joinToString("\n") { it.toPlainText() }
+    override fun toPlainText(): String = title + "\n" + elements.joinToString("") { it.toPlainText() }
 }
 
 typealias BookParagraph = Paragraph

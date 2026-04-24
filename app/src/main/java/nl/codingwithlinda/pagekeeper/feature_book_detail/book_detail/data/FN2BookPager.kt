@@ -95,8 +95,6 @@ class FN2BookPager(
 ): LazyBookPager {
     private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
 
-    val pageBuilder = PageBuilder()
-
 
     override suspend fun writePages(uri: String, book: Book): Result<Unit, BookParseError> {
         return withContext(Dispatchers.IO) {
@@ -137,8 +135,6 @@ class FN2BookPager(
             catch (e: Exception) {
                 e.printStackTrace()
                 return@withContext Result.Failure(BookParseError.GeneralBookParseError)
-            }finally {
-                withContext(NonCancellable) { pageBuilder.clear() }
             }
         }
     }

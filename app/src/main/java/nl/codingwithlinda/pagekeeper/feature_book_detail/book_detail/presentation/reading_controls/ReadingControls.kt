@@ -24,89 +24,96 @@ import androidx.compose.ui.unit.dp
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.typographySliderRange
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.AutoRotateControl
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlAction
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlItem
+
 
 @Composable
-fun ReadingControls(
+fun ReadingControlsAdaptive(
+    collapsed: Boolean,
+    contentCollapsed: @Composable () -> Unit,
+    contentExpanded: @Composable () -> Unit,
+) {
+    AnimatedContent(targetState = collapsed) {
+        when (it) {
+            true -> contentCollapsed()
+            false -> contentExpanded()
+        }
+    }
+}
+
+
+@Composable
+private fun ReadingControlsExpanded(
     modifier: Modifier = Modifier,
     sliderState: SliderState,
     onAction: (ReadingControlAction) -> Unit,
     readingSettings: ReadingSettings,
-    showAdjustFontSize: Boolean,
-    toggleAdjustFontSize: () -> Unit,
     onThumbPositioned: (Rect) -> Unit = {},
     onTrackPositioned: (Rect) -> Unit = {}
 ) {
 
-    AnimatedContent(showAdjustFontSize) { show ->
-        when(show){
-            true -> {
-                Row(modifier = modifier,
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    val range = typographySliderRange()
-                    FontSizeSlider(
-                        modifier = Modifier,
-                        sliderState = sliderState,
-                        currentFontSize = readingSettings.fontSize,
-                        valueRange = range,
-                        onSizeChange = { onAction(ReadingControlAction.AdjustFontSize(it)) },
-                        onThumbPositioned = onThumbPositioned,
-                        onTrackPositioned = onTrackPositioned
-                    )
-                }
-            }
-            false -> {
-                ControlsRow(
-                    modifier = modifier,
-                    readingOrientation = readingSettings.orientation,
-                    onAction = onAction,
-                    showAdjustFontSize = {
-                        toggleAdjustFontSize()
-                    }
-                )
-            }
-        }
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.Top
+    ) {
+        val range = typographySliderRange()
+        FontSizeSlider(
+            modifier = Modifier,
+            sliderState = sliderState,
+            currentFontSize = readingSettings.fontSize,
+            valueRange = range,
+            onSizeChange = { onAction(ReadingControlAction.AdjustFontSize(it)) },
+            onThumbPositioned = onThumbPositioned,
+            onTrackPositioned = onTrackPositioned
+        )
     }
+}
 
+@Composable
+private fun ReadingControlsCollapsed(
+    modifier: Modifier = Modifier,
+    readingSettings: ReadingSettings,
+    onAction: (ReadingControlAction) -> Unit,
+) {
+    ControlsRow(
+        modifier = modifier,
+        items = listOf(
+            AutoRotateControl(
+                setting = readingSettings.orientation,
+                onAction = { onAction(ReadingControlAction.ToggleAutoRotate) }
+            )
+        )
+    )
 }
 
 @Composable
 fun ControlsRow(
     modifier: Modifier = Modifier,
-    readingOrientation: ReadingOrientation,
-    onAction: (ReadingControlAction) -> Unit,
-    showAdjustFontSize: ()-> Unit
+    items: List<ReadingControlItem>,
 ) {
-    Row(modifier = modifier,
+    Row(
+        modifier = modifier,
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.Top
     ) {
-        ReadingControlItem(
-            modifier = Modifier
-                .clickable(){
-                    onAction(ReadingControlAction.ToggleAutoRotate)
-                }
-            ,
-            icon = readingOrientation.toUi().icon,
-            contentDescription = "",
-            text = readingOrientation.toUi().text
-        )
-
-        ReadingControlItem(
-            modifier = Modifier.clickable(){
-                showAdjustFontSize()
-            },
-            icon = R.drawable.font_size,
-            contentDescription = "adjust_font_size",
-            text = "Font Size"
-        )
+        items.forEach { item ->
+            ReadingControlComp(
+                modifier = Modifier.clickable {
+                    item.onAction()
+                },
+                icon = item.icon,
+                contentDescription = item.contentDescription,
+                text = item.text
+            )
+        }
     }
 }
 
 @Composable
-fun ReadingControlItem(
+private fun ReadingControlComp(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     contentDescription: String,
@@ -129,13 +136,23 @@ fun ReadingControlItem(
 @Preview
 @Composable
 private fun ReadingControlsPreview() {
-    ReadingControls(
-        modifier = Modifier.fillMaxWidth(),
-        sliderState = SliderState(),
-        readingSettings = ReadingSettings(),
-        showAdjustFontSize = false,
-        toggleAdjustFontSize = {},
-        onAction = {},
+    ReadingControlsAdaptive(
+       collapsed = true,
+        contentCollapsed = {
+            ReadingControlsCollapsed(
+                modifier = Modifier.fillMaxWidth(),
+                readingSettings = ReadingSettings(),
+                onAction = {}
+            )
+        },
+        contentExpanded = {
+            ReadingControlsExpanded(
+                modifier = Modifier.fillMaxWidth(),
+                sliderState = SliderState(),
+                readingSettings = ReadingSettings(),
+                onAction = {}
+            )
+        }
     )
 
 }

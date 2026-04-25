@@ -37,17 +37,24 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.first
 import nl.codingwithlinda.pagekeeper.R
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScreen
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.FontSizeIndicator
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.FormFactorWrapper
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toReadingControls
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.typographySliderRange
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.ReadingMode
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControls
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ControlsRow
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.FontSizeSlider
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControlsAdaptive
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControlsViewModel
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingOrientation
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.AutoRotateControl
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.FontSizeControl
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControl
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlAction
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -208,6 +215,23 @@ fun BookDetailScaffold(
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
             ) {
+
+                val device = rememberDeviceConfig()
+                val listControls = device.deviceType.toReadingControls().map {
+                    when(it){
+                        ReadingControl.AUTO_ROTATE -> {
+                            AutoRotateControl(
+                                setting = readingSettings.orientation,
+                                onAction = { onAction(ReadingControlAction.ToggleAutoRotate) }
+                            )
+                        }
+                        ReadingControl.FONT_SIZE -> {
+                            FontSizeControl(
+                                onAction = { showAdjustFontSize = true }
+                            )
+                        }
+                    }
+                }
                 if (showAdjustFontSize) {
                     FontSizeIndicator(
                         fontSize = readingSettings.fontSize,
@@ -219,17 +243,26 @@ fun BookDetailScaffold(
                     )
                 }
 
-                ReadingControls(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    sliderState = sliderState,
-                    readingSettings = readingSettings,
-                    showAdjustFontSize = showAdjustFontSize,
-                    toggleAdjustFontSize = { showAdjustFontSize = true },
-                    onAction = onAction,
-                    onThumbPositioned = { thumbBounds = it },
-                    onTrackPositioned = { trackBounds = it }
+                ReadingControlsAdaptive(
+                    collapsed = !showAdjustFontSize,
+                    contentCollapsed = {
+                        ControlsRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            items = listControls
+                        )
+                    },
+                    contentExpanded = {
+                        FontSizeSlider(
+                            modifier = Modifier,
+                            sliderState = sliderState,
+                            currentFontSize = readingSettings.fontSize,
+                            valueRange = valueRange,
+                            onSizeChange = { onAction(ReadingControlAction.AdjustFontSize(it)) },
+                            onThumbPositioned = { thumbBounds = it },
+                            onTrackPositioned = { trackBounds = it }
+                        )
+                    }
+
                 )
             }
         }

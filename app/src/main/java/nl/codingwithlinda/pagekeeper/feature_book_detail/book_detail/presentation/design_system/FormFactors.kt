@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.DeviceType
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControl
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlItem
 
 @Composable
 fun PhoneLayout(
@@ -65,5 +67,16 @@ fun FormFactorWrapper(
         DeviceType.Tablet -> TabletLayout(modifier = modifier) {
             content()
         }
+    }
+}
+
+fun DeviceType.toReadingControls(): List<ReadingControl> = when(this){
+    DeviceType.Phone -> listOf(
+        ReadingControl.AUTO_ROTATE, ReadingControl.FONT_SIZE
+    )
+    DeviceType.Tablet -> {
+        listOf(
+            ReadingControl.FONT_SIZE
+        )
     }
 }

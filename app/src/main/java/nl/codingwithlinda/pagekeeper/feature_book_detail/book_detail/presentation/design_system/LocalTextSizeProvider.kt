@@ -1,7 +1,6 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system
 
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -60,27 +59,6 @@ fun PageElement.toTextStyle() = when(this){
 }
 
 
-/*
-@Composable
-fun ProvideReadingTextStyle(
-    rawSliderValue: Float,
-    content: @Composable () -> Unit
-) {
-    val baseStyle = LocalDefaultTextStyle.current
-    val baseSp = baseStyle.fontSize.value
-    val scale = sliderValueToScale(rawSliderValue, baseSp)
-
-    val scaledStyle = baseStyle.copy(
-        fontSize = baseStyle.fontSize * scale,
-        lineHeight = if (baseStyle.lineHeight.isSpecified) baseStyle.lineHeight * scale
-        else TextUnit.Unspecified
-    )
-
-    CompositionLocalProvider(LocalTextStyle provides scaledStyle) {
-        content()
-    }
-}*/
-
 @Composable
 fun Page.ElementPage.toScaledText(
     rawSliderValue: Float,
@@ -98,9 +76,9 @@ fun Page.ElementPage.toScaledText(
 
         CompositionLocalProvider(LocalTextStyle provides scaledStyle) {
             element.lines.forEach { line ->
-                line.spans.forEach {  span ->
-                    Text(
-                        text = buildAnnotatedString {
+                Text(
+                    text = buildAnnotatedString {
+                        line.spans.forEach { span ->
                             when {
                                 span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
                                     append(span.text)
@@ -111,15 +89,11 @@ fun Page.ElementPage.toScaledText(
                                 span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
                                     append(span.text)
                                 }
-                                else -> {
-                                    append(span.text)
-                                }
+                                else -> append(span.text)
                             }
-                        },
-
-                        )
-                }
-
+                        }
+                    }
+                )
             }
         }
     }

@@ -1,10 +1,22 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -13,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.Typography
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Citation
@@ -21,6 +34,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.FormattedLine
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page
 
 // Design-intent bounds for the reading font size range.
@@ -63,8 +77,7 @@ fun PageElement.toTextStyle() = when(this){
 fun Page.ElementPage.toScaledText(
     rawSliderValue: Float,
 ) {
-
-    this.elements.forEach {element ->
+    this.elements.forEach { element ->
         val el = element.element
         val baseStyle = el.toTextStyle()
 
@@ -75,27 +88,80 @@ fun Page.ElementPage.toScaledText(
         )
 
         CompositionLocalProvider(LocalTextStyle provides scaledStyle) {
-            element.lines.forEach { line ->
-                Text(
-                    text = buildAnnotatedString {
-                        line.spans.forEach { span ->
-                            when {
-                                span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
-                                    append(span.text)
-                                }
-                                span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                    append(span.text)
-                                }
-                                span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
-                                    append(span.text)
-                                }
-                                else -> append(span.text)
-                            }
-                        }
-                    }
-                )
+            when (el) {
+                is Title -> TitleElement(element.lines)
+                is Citation -> CitationElement(element.lines)
+                is Paragraph -> ParagraphElement(element.lines)
+                else -> element.lines.forEach { line -> ElementLine(line) }
             }
         }
     }
+}
 
+@Composable
+private fun HalfLineSpace() {
+    val style = LocalTextStyle.current
+    Text(
+        " ",
+        style = style.copy(
+            fontSize = style.fontSize * 0.5f,
+            lineHeight = if (style.lineHeight.isSpecified) style.lineHeight * 0.5f else TextUnit.Unspecified
+        )
+    )
+}
+
+@Composable
+private fun TitleElement(lines: List<FormattedLine>) {
+    HalfLineSpace()
+    lines.forEach { line -> ElementLine(line) }
+}
+
+@Composable
+private fun ParagraphElement(lines: List<FormattedLine>) {
+    lines.forEach { line -> ElementLine(line) }
+    HalfLineSpace()
+}
+
+@Composable
+private fun CitationElement(lines: List<FormattedLine>) {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .height(IntrinsicSize.Min)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(3.dp)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.primary)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            lines.forEach { line -> ElementLine(line) }
+        }
+    }
+}
+
+
+
+@Composable
+private fun ElementLine(line: FormattedLine) {
+    Text(
+        text = buildAnnotatedString {
+            line.spans.forEach { span ->
+                when {
+                    span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
+                        append(span.text)
+                    }
+                    span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                        append(span.text)
+                    }
+                    span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                        append(span.text)
+                    }
+                    else -> append(span.text)
+                }
+            }
+        }
+    )
 }

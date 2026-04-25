@@ -74,5 +74,5 @@ val appPresentationModule = module {
     viewModelOf(::SearchViewModel)
     viewModelOf(::MultiSelectViewModel)
     viewModelOf(::ReadingControlsViewModel)
-    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get()) }
+    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get(), get()) }
 }

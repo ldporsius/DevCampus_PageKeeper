@@ -14,6 +14,7 @@ import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.ReadingMode
@@ -24,7 +25,8 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 class BookDetailViewModel(
     private val isbn: String,
     private val bookRepository: BookRepository,
-    private val bookPager: LazyBookPager
+    private val bookPager: LazyBookPager,
+    private val readingSettingsRepository: ReadingSettingsRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookDetailState())

@@ -185,8 +185,27 @@ class FN2BookPager(
     }
 
     override suspend fun loadPages(book: Book, sectionIndex: Int): Result<List<Section>, BookParseError> = withContext(Dispatchers.IO) {
-        val pagesRes= readPages(book)
-        return@withContext pagesRes
+       try {
+           val pagesRes= sectionFiles(book).getOrNull(sectionIndex).let { file ->
+               if (file == null) return@let Result.Failure(BookParseError.NoPagesFound)
+               val list = file.inputStream().use {
+                   ensureActive()
+                   json.decodeFromStream<List<Section>>(it)
+               }
+               Result.Success(list)
+           }
+
+           return@withContext pagesRes
+
+
+       }catch (e: CancellationException){
+           throw e
+       }
+        catch (e: Exception) {
+            e.printStackTrace()
+            return@withContext Result.Failure(BookParseError.GeneralBookParseError)
+        }
+
     }
 
     override suspend fun loadChapter(book: Book, sectionIndex: Int): Flow<Section> {

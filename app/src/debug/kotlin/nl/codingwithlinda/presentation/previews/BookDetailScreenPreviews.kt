@@ -8,8 +8,10 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Cita
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailRoot
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailScaffold
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScreen
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.FormFactorWrapper
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.ElementTextSpan
@@ -101,11 +103,13 @@ private fun BookDetailPhonePortraitPreview() {
             readingSettings = ReadingSettings(),
             onAction = {},
         ) {
-            BookDetailScreen(
-                state = previewState,
-                readingSettings = ReadingSettings(),
-                onAction = {},
-            )
+            FormFactorWrapper() {
+                BookDetailScreen(
+                    state = previewState,
+                    readingSettings = ReadingSettings(),
+                    onAction = {},
+                )
+            }
         }
     }
 }
@@ -114,16 +118,19 @@ private fun BookDetailPhonePortraitPreview() {
 @Composable
 private fun BookDetailPhoneLandscapePreview() {
     PageKeeperTheme {
+
         BookDetailScaffold(
             state = previewState,
             readingSettings = ReadingSettings(),
             onAction = {},
         ) {
-            BookDetailScreen(
-                state = previewState,
-                readingSettings = ReadingSettings(),
-                onAction = {},
-            )
+            FormFactorWrapper() {
+                BookDetailScreen(
+                    state = previewState,
+                    readingSettings = ReadingSettings(),
+                    onAction = {},
+                )
+            }
         }
     }
 }
@@ -132,16 +139,20 @@ private fun BookDetailPhoneLandscapePreview() {
 @Composable
 private fun BookDetailTabletPreview() {
     PageKeeperTheme {
-        BookDetailScaffold(
-            state = previewState,
-            readingSettings = ReadingSettings(),
-            onAction = {},
-        ) {
-            BookDetailScreen(
+
+            BookDetailScaffold(
                 state = previewState,
                 readingSettings = ReadingSettings(),
                 onAction = {},
-            )
+            ) {
+                FormFactorWrapper() {
+
+                BookDetailScreen(
+                    state = previewState,
+                    readingSettings = ReadingSettings(),
+                    onAction = {},
+                )
+            }
         }
     }
 }

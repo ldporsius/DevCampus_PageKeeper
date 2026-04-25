@@ -3,16 +3,13 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 import android.content.pm.ActivityInfo
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,25 +28,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.first
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScreen
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.LocalDefaultTextStyle
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.sliderValueToActualSp
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.FontSizeIndicator
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.FormFactorWrapper
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.typographySliderRange
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
@@ -60,7 +51,6 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlAction
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
-import kotlin.math.roundToInt
 
 @Composable
 fun BookDetailRoot(
@@ -107,17 +97,19 @@ fun BookDetailRoot(
 
     @Composable
     fun content() =
-        BookDetailScreen(
-            state = state,
-            readingSettings = readingSettings,
-            listState = listState,
-            onAction = viewModel::onAction,
-            modifier = Modifier.pointerInput(true) {
-                detectTapGestures(
-                    onTap = { viewModel.onAction(BookDetailAction.ToggleReadingMode) }
-                )
-            }
-        )
+        FormFactorWrapper() {
+            BookDetailScreen(
+                state = state,
+                readingSettings = readingSettings,
+                listState = listState,
+                onAction = viewModel::onAction,
+                modifier = Modifier.pointerInput(true) {
+                    detectTapGestures(
+                        onTap = { viewModel.onAction(BookDetailAction.ToggleReadingMode) }
+                    )
+                }
+            )
+        }
 
 
     when(state.readingMode){
@@ -195,7 +187,6 @@ fun BookDetailScaffold(
         }
         var thumbBounds by remember { mutableStateOf(Rect.Zero) }
         var trackBounds by remember { mutableStateOf(Rect.Zero) }
-        var indicatorNaturalBounds by remember { mutableStateOf(Rect.Zero) }
 
         val valueRange = typographySliderRange()
 
@@ -218,44 +209,14 @@ fun BookDetailScaffold(
                     .background(MaterialTheme.colorScheme.surface)
             ) {
                 if (showAdjustFontSize) {
-                    // onGloballyPositioned before offset → reports natural (pre-offset) bounds.
-                    // offset then moves the indicator so its center-x aligns with the thumb
-                    // center-x and its bottom sits just above the thumb top.
-                    // The 4dp gap is the only intentional design constant here.
-                    Box(
-                        modifier = Modifier
-                            .alpha(if (indicatorNaturalBounds == Rect.Zero) 0f else 1f)
-                            .onGloballyPositioned { indicatorNaturalBounds = it.boundsInRoot() }
-                            .offset {
-                                if (thumbBounds == Rect.Zero || indicatorNaturalBounds == Rect.Zero)
-                                    return@offset IntOffset.Zero
-                                val dx = thumbBounds.center.x - indicatorNaturalBounds.center.x
-                                val dy = thumbBounds.top - indicatorNaturalBounds.bottom - 4.dp.toPx()
-                                IntOffset(dx.roundToInt(), dy.roundToInt())
-                            }
-                            .pointerInput(true){
-                                this.detectHorizontalDragGestures(
-                                    onHorizontalDrag = { _, dragAmount ->
-                                        val rangeSize = valueRange.endInclusive - valueRange.start
-                                        val valueDelta = dragAmount / trackBounds.width * rangeSize
-                                        val newFontSize = (sliderState.value + valueDelta)
-                                            .coerceIn(valueRange.start, valueRange.endInclusive)
-                                        sliderState.value = newFontSize
-                                    },
-                                    onDragEnd = {
-                                        onAction(ReadingControlAction.AdjustFontSize(sliderState.value))
-                                    }
-                                )
-                            }
-                            .shadow(elevation = 3.dp, shape = CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceContainerLowest, shape = CircleShape)
-                            .padding(12.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val baseSp = LocalDefaultTextStyle.current.fontSize.value
-                        val actualSp = sliderValueToActualSp(readingSettings.fontSize, baseSp)
-                        Text("${actualSp.roundToInt()}")
-                    }
+                    FontSizeIndicator(
+                        fontSize = readingSettings.fontSize,
+                        thumbBounds = thumbBounds,
+                        trackBounds = trackBounds,
+                        valueRange = valueRange,
+                        sliderState = sliderState,
+                        onAction = onAction,
+                    )
                 }
 
                 ReadingControls(

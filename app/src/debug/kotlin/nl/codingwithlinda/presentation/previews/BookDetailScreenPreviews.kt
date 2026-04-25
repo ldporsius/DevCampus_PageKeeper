@@ -9,7 +9,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Para
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailScaffold
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailScreen
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScreen
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.ElementTextSpan

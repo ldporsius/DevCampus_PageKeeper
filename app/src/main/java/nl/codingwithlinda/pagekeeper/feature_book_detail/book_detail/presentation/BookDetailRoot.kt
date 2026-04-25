@@ -51,15 +51,8 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withLink
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -74,9 +67,8 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Book
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.LocalDefaultTextStyle
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.ProvideReadingTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.sliderValueToActualSp
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toScaledTextStyle
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toScaledText
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.typographySliderRange
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
@@ -138,9 +130,10 @@ fun BookDetailRoot(
     }
 
     @Composable
-    fun content() = ProvideReadingTextStyle(rawSliderValue = readingSettings.fontSize) {
+    fun content() =
         BookDetailScreen(
             state = state,
+            readingSettings = readingSettings,
             listState = listState,
             onAction = viewModel::onAction,
             modifier = Modifier.pointerInput(true) {
@@ -149,7 +142,7 @@ fun BookDetailRoot(
                 )
             }
         )
-    }
+
 
     when(state.readingMode){
         ReadingMode.IMMERSIVE -> {
@@ -309,6 +302,7 @@ fun BookDetailScaffold(
 @Composable
 fun BookDetailScreen(
     state: BookDetailState,
+    readingSettings: ReadingSettings,
     onAction: (BookDetailAction) -> Unit,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
@@ -347,37 +341,7 @@ fun BookDetailScreen(
             ) { index, page ->
                 when (page) {
                     is ElementPage -> {
-                        Column {
-                            page.elements.forEach { element ->
-                                val style = element.element.toScaledTextStyle()
-                                Text("-".repeat(100))
-                                element.lines.forEach { line ->
-
-                                    line.spans.forEach { span ->
-                                        Text(
-                                            text = buildAnnotatedString {
-                                                when {
-                                                    span.url != null -> withLink(LinkAnnotation.Url(span.url)) {
-                                                        append(span.text)
-                                                    }
-                                                    span.emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                                        append(span.text)
-                                                    }
-                                                    span.bold -> withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
-                                                        append(span.text)
-                                                    }
-                                                    else -> {
-                                                        append(span.text)
-                                                    }
-                                                }
-                                            },
-                                            style = style,
-
-                                            )
-                                    }
-                                }
-                            }
-                        }
+                       page.toScaledText(readingSettings.fontSize)
                     }
                     is Page.ImagePage -> {
                         AsyncImage(
@@ -454,6 +418,7 @@ private fun BookDetailScreenPreview() {
                 ),
                 isLoading = false
             ),
+            readingSettings = ReadingSettings(),
             onAction = {}
         )
     }

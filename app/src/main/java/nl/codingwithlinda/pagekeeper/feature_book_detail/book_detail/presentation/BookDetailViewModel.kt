@@ -21,6 +21,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.toPage
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.util.toUi
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 
 class BookDetailViewModel(
     private val isbn: String,
@@ -46,6 +47,8 @@ class BookDetailViewModel(
     init {
         viewModelScope.launch {
             val book = book() ?: return@launch
+
+            _state.update { it.copy(book = book.toBookUi()) }
 
             if (!bookPager.hasPages(book)) {
                 writePages(book)
@@ -104,7 +107,13 @@ class BookDetailViewModel(
 
     private suspend fun writePages(book: Book) {
         _state.update { it.copy(isLoading = false, isWriting = true) }
-        when (val result = bookPager.writePages(book.ISBN, book)) {
+        when (val result = bookPager.writePages(book.ISBN, book) { written, total ->
+            _state.update { it.copy(
+                writingProgress = written.toFloat() / total,
+                writingSectionsWritten = written,
+                writingSectionsTotal = total,
+            ) }
+        }) {
             is Result.Failure -> updateUiState(result.error)
             is Result.Success -> updateUiState(null)
         }

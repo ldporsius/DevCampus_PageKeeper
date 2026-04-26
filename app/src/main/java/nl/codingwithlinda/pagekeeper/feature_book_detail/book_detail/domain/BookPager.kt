@@ -6,7 +6,7 @@ import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 
 interface BookPager {
 
-    suspend fun writePages(uri: String, book: Book): Result<Unit, BookParseError>
+    suspend fun writePages(uri: String, book: Book, onProgress: suspend (written: Int, total: Int) -> Unit = { _, _ -> }): Result<Unit, BookParseError>
 
     suspend fun readPages(book: Book): Result<List<Section>, BookParseError>
 

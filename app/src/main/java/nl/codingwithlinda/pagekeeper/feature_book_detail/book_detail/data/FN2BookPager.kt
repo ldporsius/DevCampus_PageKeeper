@@ -96,7 +96,7 @@ class FN2BookPager(
     private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
 
 
-    override suspend fun writePages(uri: String, book: Book): Result<Unit, BookParseError> {
+    override suspend fun writePages(uri: String, book: Book, onProgress: suspend (written: Int, total: Int) -> Unit): Result<Unit, BookParseError> {
         return withContext(Dispatchers.IO) {
             try {
                 val uri = Uri.fromFile(File(context.filesDir, "${book.ISBN}.fb2")).toString()
@@ -121,6 +121,7 @@ class FN2BookPager(
                         file.outputStream().use {
                             json.encodeToStream<List<Section>>(listOf(section), it)
                         }
+                        onProgress(index + 1, topLevelSections.size)
                     }
                 }
 

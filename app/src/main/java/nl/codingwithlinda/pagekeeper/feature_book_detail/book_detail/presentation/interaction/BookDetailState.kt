@@ -7,12 +7,11 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 
 data class BookDetailState(
     val book: BookUi? = null,
-    val pages: List<Page> = emptyList(),
+    val pages: Map<Int, Page> = emptyMap(),
     val currentSection: Int = -1,
     val totalSections: Int = 0,
     val isWriting: Boolean = false,
     val isLoading: Boolean = true,
-    val initScroll: Boolean = true,
     val error: UiText? = null,
     val readingMode: ReadingMode = ReadingMode.IMMERSIVE,
 )

@@ -1,19 +1,17 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components
 
-import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
@@ -21,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.debounce
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
@@ -43,11 +42,14 @@ fun BookDetailScreen(
     onAction: (BookDetailAction) -> Unit,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
+    scrollSettled: Boolean = false,
 ) {
-    Box(modifier = modifier
-        .fillMaxSize()
-        .safeContentPadding()
-        .testTag("book_detail_screen")){
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .safeContentPadding()
+            .testTag("book_detail_screen")
+    ) {
         if (state.isWriting) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
@@ -60,68 +62,43 @@ fun BookDetailScreen(
             return@Box
         }
 
-        val nearTop by remember {
-            derivedStateOf {
-                val firstVisible = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: return@derivedStateOf false
-                firstVisible == 0
-            }
-        }
-        LaunchedEffect(nearTop, state.pages, state.initScroll) {
-            if (state.initScroll) return@LaunchedEffect
-            if (nearTop && state.pages.isNotEmpty()) {
-                onAction(BookDetailAction.LoadPreviousSection)
-            }
-        }
-
-        val nearBottom by remember {
-            derivedStateOf {
-                val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: return@derivedStateOf false
-                val total = listState.layoutInfo.totalItemsCount
-                total > 0 && lastVisible >= total - 2
-            }
-        }
-        LaunchedEffect(nearBottom, state.initScroll, state.isLoading) {
-            if (state.initScroll) return@LaunchedEffect
-            if (nearBottom && !state.isLoading) onAction(BookDetailAction.LoadNextSection)
-        }
-
-        LaunchedEffect(listState, state.initScroll) {
-            if (state.initScroll) return@LaunchedEffect
+        // Save reading position once the initial scroll has settled
+        LaunchedEffect(listState, scrollSettled) {
+            if (!scrollSettled) return@LaunchedEffect
             snapshotFlow {
-                listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: -1
+                listState.layoutInfo.visibleItemsInfo.firstOrNull()?.key as? Int ?: -1
             }.debounce(500)
-                .collect { index ->
-                    println("--- FIRST VISIBLE ITEM INFO --- index: $index")
-                    onAction(BookDetailAction.PlaceBookmark(index))
+                .collect { sectionId ->
+                    if (sectionId != -1) {
+                        println("--- FIRST VISIBLE ITEM INFO --- sectionId: $sectionId")
+                        onAction(BookDetailAction.PlaceBookmark(sectionId))
+                    }
                 }
         }
 
+        val sortedPages = remember(state.pages) { state.pages.values.sortedBy { it.sectionId } }
 
         LazyColumn(state = listState) {
-            itemsIndexed(
-                state.pages,
-                key = { _, page -> page.sectionId }
-            ) { _, page ->
+            items(sortedPages, key = { page -> page.sectionId }) { page ->
                 when (page) {
-                    is ElementPage -> {
-                        page.toScaledText(readingSettings.fontSize)
+                    is Page.Loading -> {
+                        LaunchedEffect(page.sectionId) {
+                            onAction(BookDetailAction.LoadSection(page.sectionId))
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
-                    is Page.ImagePage -> {
-                        AsyncImage(
-                            model = page.href,
-                            contentDescription = null
-                        )
-                    }
-                }
-            }
-            if (state.isLoading){
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ){
-                        CircularProgressIndicator()
-                    }
+                    is ElementPage -> page.toScaledText(readingSettings.fontSize)
+                    is Page.ImagePage -> AsyncImage(
+                        model = page.href,
+                        contentDescription = null
+                    )
                 }
             }
         }
@@ -134,8 +111,9 @@ private fun BookDetailScreenPreview() {
     PageKeeperTheme {
         BookDetailScreen(
             state = BookDetailState(
-                pages = listOf(
-                    ElementPage(
+                pages = mapOf(
+                    0 to ElementPage(
+                        sectionId = 0,
                         elements = listOf(
                             ElementTextSpan(
                                 element = Title("The Great Gatsby"),
@@ -154,7 +132,8 @@ private fun BookDetailScreenPreview() {
                 isLoading = false
             ),
             readingSettings = ReadingSettings(),
-            onAction = {}
+            onAction = {},
+            scrollSettled = true,
         )
     }
 }

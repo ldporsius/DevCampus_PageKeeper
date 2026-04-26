@@ -90,7 +90,7 @@ private val tomSawyerPage = ElementPage(
 
 private val previewState = BookDetailState(
     book = tomSawyerBook,
-    pages = listOf(tomSawyerPage),
+    pages = mapOf(tomSawyerPage.sectionId to tomSawyerPage),
     isLoading = false,
 )
 

@@ -83,15 +83,13 @@ fun BookDetailRoot(
         }
     }
 
-    val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = 0
-    )
-    LaunchedEffect(state.initScroll, state.pages, state.currentSection) {
-        if (state.initScroll) {
-            val index = state.pages.indexOfFirst { it.sectionId == state.currentSection }
-            if (index == -1) return@LaunchedEffect
-            listState.animateScrollToItem(index)
-            viewModel.onAction(BookDetailAction.PageIsLoaded)
+    val listState = rememberLazyListState()
+
+    var scrollSettled by remember { mutableStateOf(false) }
+    LaunchedEffect(state.pages, state.currentSection) {
+        if (!scrollSettled && state.pages.isNotEmpty() && state.currentSection >= 0) {
+            listState.scrollToItem(state.currentSection.coerceAtMost(state.pages.size - 1))
+            scrollSettled = true
         }
     }
 
@@ -124,6 +122,7 @@ fun BookDetailRoot(
                 state = state,
                 readingSettings = readingSettings,
                 listState = listState,
+                scrollSettled = scrollSettled,
                 onAction = viewModel::onAction,
                 modifier = Modifier.pointerInput(true) {
                     detectTapGestures(

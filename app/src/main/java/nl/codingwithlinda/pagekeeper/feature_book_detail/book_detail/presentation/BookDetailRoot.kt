@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -85,7 +86,7 @@ fun BookDetailRoot(
 
     val listState = rememberLazyListState()
 
-    var scrollSettled by remember { mutableStateOf(false) }
+    var scrollSettled by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(state.pages, state.currentSection) {
         if (!scrollSettled && state.pages.isNotEmpty() && state.currentSection >= 0) {
             listState.scrollToItem(
@@ -96,8 +97,11 @@ fun BookDetailRoot(
         }
     }
 
-    var anchorIndex by remember { mutableIntStateOf(0) }
-    var anchorRatio by remember { mutableFloatStateOf(0f) }
+    // anchorIndex/anchorRatio track the first visible item and how far into it the top of
+    // the viewport falls. rememberSaveable keeps them across rotation so the orientation
+    // effect below can re-pin the same line without touching the DB.
+    var anchorIndex by rememberSaveable { mutableIntStateOf(0) }
+    var anchorRatio by rememberSaveable { mutableFloatStateOf(0f) }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
@@ -107,6 +111,17 @@ fun BookDetailRoot(
                 anchorIndex = index
                 anchorRatio = if (itemSize > 0) offset.toFloat() / itemSize else 0f
             }
+    }
+
+    // Re-pin the first visible line when orientation or font size changes (items reflow).
+    val configuration = LocalConfiguration.current
+    LaunchedEffect(configuration.orientation) {
+        if (!scrollSettled) return@LaunchedEffect
+        val layout = snapshotFlow { listState.layoutInfo }
+            .first { it.visibleItemsInfo.any { item -> item.index == anchorIndex } }
+        val itemSize = layout.visibleItemsInfo
+            .firstOrNull { it.index == anchorIndex }?.size ?: return@LaunchedEffect
+        listState.scrollToItem(anchorIndex, (anchorRatio * itemSize).toInt())
     }
 
     LaunchedEffect(readingSettings.fontSize) {

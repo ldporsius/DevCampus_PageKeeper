@@ -128,7 +128,9 @@ private fun ReadingControlComp(
             painter = painterResource(id = icon),
             contentDescription = contentDescription
         )
-        Text(text)
+        Text(text,
+            style = androidx.compose.material3.MaterialTheme.typography.labelSmall
+        )
 
     }
 }

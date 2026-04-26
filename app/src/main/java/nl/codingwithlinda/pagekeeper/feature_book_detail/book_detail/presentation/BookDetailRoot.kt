@@ -261,7 +261,8 @@ fun BookDetailScaffold(
                     collapsed = !showAdjustFontSize,
                     contentCollapsed = {
                         ControlsRow(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(vertical = 8.dp),
                             items = listControls
                         )
                     },

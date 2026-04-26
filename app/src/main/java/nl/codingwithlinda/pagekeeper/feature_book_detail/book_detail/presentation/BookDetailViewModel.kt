@@ -56,6 +56,7 @@ class BookDetailViewModel(
 
             val totalSections = bookPager.countPages(book)
             val initialSection = book.currentSection
+            val initialSectionOffset = book.currentSectionOffset
 
             val loadingPages = (0 until totalSections).associate { i -> i to Page.Loading(i) }
 
@@ -63,6 +64,7 @@ class BookDetailViewModel(
                 it.copy(
                     pages = loadingPages,
                     currentSection = initialSection,
+                    currentSectionOffset = initialSectionOffset,
                     totalSections = totalSections,
                     isLoading = false,
                 )
@@ -91,9 +93,8 @@ class BookDetailViewModel(
             is BookDetailAction.PlaceBookmark -> {
                 viewModelScope.launch {
                     val book = book() ?: return@launch
-                    println("---BOOK DETAIL VIEW MODEL --- UPSERTING BOOK SECTION: ${action.sectionId}")
-                    _state.update { it.copy(currentSection = action.sectionId) }
-                    bookRepository.upsertBook(book.copy(currentSection = action.sectionId))
+                    _state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
+                    bookRepository.upsertBook(book.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset))
                 }
             }
 

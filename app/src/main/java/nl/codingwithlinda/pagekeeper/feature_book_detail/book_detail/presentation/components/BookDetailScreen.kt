@@ -3,7 +3,6 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -12,7 +11,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -95,12 +94,14 @@ fun BookDetailScreen(
         LaunchedEffect(listState, scrollSettled) {
             if (!scrollSettled) return@LaunchedEffect
             snapshotFlow {
-                listState.layoutInfo.visibleItemsInfo.firstOrNull()?.key as? Int ?: -1
+                val firstItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
+                val sectionId = firstItem?.key as? Int ?: -1
+                val offset = listState.firstVisibleItemScrollOffset
+                sectionId to offset
             }.debounce(500)
-                .collect { sectionId ->
+                .collect { (sectionId, offset) ->
                     if (sectionId != -1) {
-                        println("--- FIRST VISIBLE ITEM INFO --- sectionId: $sectionId")
-                        onAction(BookDetailAction.PlaceBookmark(sectionId))
+                        onAction(BookDetailAction.PlaceBookmark(sectionId, offset))
                     }
                 }
         }
@@ -114,14 +115,7 @@ fun BookDetailScreen(
                         LaunchedEffect(page.sectionId) {
                             onAction(BookDetailAction.LoadSection(page.sectionId))
                         }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
+                        Spacer(modifier = Modifier.height(400.dp))
                     }
                     is ElementPage -> page.toScaledText(readingSettings.fontSize)
                     is Page.ImagePage -> AsyncImage(

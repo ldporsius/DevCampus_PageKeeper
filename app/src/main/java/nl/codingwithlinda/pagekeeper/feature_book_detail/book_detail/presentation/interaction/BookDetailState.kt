@@ -9,6 +9,7 @@ data class BookDetailState(
     val book: BookUi? = null,
     val pages: Map<Int, Page> = emptyMap(),
     val currentSection: Int = -1,
+    val currentSectionOffset: Int = 0,
     val totalSections: Int = 0,
     val isWriting: Boolean = false,
     val writingProgress: Float = 0f,

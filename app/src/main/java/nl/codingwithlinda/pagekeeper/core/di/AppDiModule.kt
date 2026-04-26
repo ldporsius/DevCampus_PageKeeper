@@ -49,7 +49,7 @@ val appDataModule = module {
             androidContext(),
             PageKeeperDatabase::class.java,
             "pagekeeper.db"
-        ).addMigrations(MIGRATION_2_3, PageKeeperDatabase.MIGRATION_3_4).fallbackToDestructiveMigration(false).build()
+        ).addMigrations(MIGRATION_2_3, PageKeeperDatabase.MIGRATION_3_4, PageKeeperDatabase.MIGRATION_4_5).fallbackToDestructiveMigration(false).build()
     }
     single { RoomBookRepository(get<PageKeeperDatabase>().bookDao(), androidContext().filesDir) } bind BookRepository::class
     single { FN2BookParser(androidContext()) } bind BookParser::class

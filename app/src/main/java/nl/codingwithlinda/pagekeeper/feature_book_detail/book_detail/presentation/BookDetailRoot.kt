@@ -88,7 +88,10 @@ fun BookDetailRoot(
     var scrollSettled by remember { mutableStateOf(false) }
     LaunchedEffect(state.pages, state.currentSection) {
         if (!scrollSettled && state.pages.isNotEmpty() && state.currentSection >= 0) {
-            listState.scrollToItem(state.currentSection.coerceAtMost(state.pages.size - 1))
+            listState.scrollToItem(
+                index = state.currentSection.coerceAtMost(state.pages.size - 1),
+                scrollOffset = state.currentSectionOffset
+            )
             scrollSettled = true
         }
     }

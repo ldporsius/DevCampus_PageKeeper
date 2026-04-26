@@ -2,6 +2,6 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 
 sealed interface BookDetailAction {
     data class LoadSection(val sectionId: Int) : BookDetailAction
-    data class PlaceBookmark(val sectionId: Int) : BookDetailAction
+    data class PlaceBookmark(val sectionId: Int, val scrollOffset: Int = 0) : BookDetailAction
     data object ToggleReadingMode : BookDetailAction
 }

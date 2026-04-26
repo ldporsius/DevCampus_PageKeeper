@@ -9,4 +9,5 @@ data class Book(
     val isFavorite: Boolean = false,
     val isFinished: Boolean = false,
     val currentSection: Int = 0,
+    val currentSectionOffset: Int = 0,
 )

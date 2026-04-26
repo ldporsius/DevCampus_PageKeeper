@@ -9,7 +9,7 @@ import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.model.B
 
 @Database(
     entities = [BookEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 internal abstract class PageKeeperDatabase : RoomDatabase() {
@@ -19,6 +19,11 @@ internal abstract class PageKeeperDatabase : RoomDatabase() {
         val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE books ADD COLUMN currentSection INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE books ADD COLUMN currentSectionOffset INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

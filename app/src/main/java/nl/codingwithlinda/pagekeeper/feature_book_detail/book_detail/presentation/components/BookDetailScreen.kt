@@ -1,5 +1,6 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components
 
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,14 +12,17 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.flow.debounce
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParagraph
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
@@ -56,6 +60,19 @@ fun BookDetailScreen(
             return@Box
         }
 
+        val nearTop by remember {
+            derivedStateOf {
+                val firstVisible = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: return@derivedStateOf false
+                firstVisible == 0
+            }
+        }
+        LaunchedEffect(nearTop, state.pages, state.initScroll) {
+            if (state.initScroll) return@LaunchedEffect
+            if (nearTop && state.pages.isNotEmpty()) {
+                onAction(BookDetailAction.LoadPreviousSection)
+            }
+        }
+
         val nearBottom by remember {
             derivedStateOf {
                 val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: return@derivedStateOf false
@@ -63,18 +80,31 @@ fun BookDetailScreen(
                 total > 0 && lastVisible >= total - 2
             }
         }
-        LaunchedEffect(nearBottom, state.isLoading) {
+        LaunchedEffect(nearBottom, state.initScroll, state.isLoading) {
+            if (state.initScroll) return@LaunchedEffect
             if (nearBottom && !state.isLoading) onAction(BookDetailAction.LoadNextSection)
         }
+
+        LaunchedEffect(listState, state.initScroll) {
+            if (state.initScroll) return@LaunchedEffect
+            snapshotFlow {
+                listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: -1
+            }.debounce(500)
+                .collect { index ->
+                    println("--- FIRST VISIBLE ITEM INFO --- index: $index")
+                    onAction(BookDetailAction.PlaceBookmark(index))
+                }
+        }
+
 
         LazyColumn(state = listState) {
             itemsIndexed(
                 state.pages,
-                key = { _, page -> page.hashCode() }
-            ) { index, page ->
+                key = { _, page -> page.sectionId }
+            ) { _, page ->
                 when (page) {
                     is ElementPage -> {
-                       page.toScaledText(readingSettings.fontSize)
+                        page.toScaledText(readingSettings.fontSize)
                     }
                     is Page.ImagePage -> {
                         AsyncImage(

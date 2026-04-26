@@ -61,6 +61,7 @@ class NavigationTest {
                         isbn,
                         bookRepository = get(),
                         bookPager = get(),
+                        readingSettingsRepository = get()
                     ) }
                 }
             )

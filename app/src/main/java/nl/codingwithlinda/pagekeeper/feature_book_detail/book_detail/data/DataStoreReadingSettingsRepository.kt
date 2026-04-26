@@ -4,7 +4,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -22,7 +21,6 @@ class DataStoreReadingSettingsRepository(
                 ?.let { runCatching { ReadingOrientation.valueOf(it) }.getOrNull() }
                 ?: ReadingOrientation.AUTO_ROTATE,
             fontSize = prefs[KEY_FONT_SIZE] ?: 0f,
-            currentSection = prefs[KEY_CURRENT_SECTION] ?: 0,
         )
     }
 
@@ -34,13 +32,8 @@ class DataStoreReadingSettingsRepository(
         dataStore.edit { it[KEY_FONT_SIZE] = fontSize }
     }
 
-    override suspend fun setCurrentSection(section: Int) {
-        dataStore.edit { it[KEY_CURRENT_SECTION] = section }
-    }
-
     private companion object {
         val KEY_ORIENTATION = stringPreferencesKey("reading_orientation")
         val KEY_FONT_SIZE = floatPreferencesKey("reading_font_size")
-        val KEY_CURRENT_SECTION = intPreferencesKey("reading_current_section")
     }
 }

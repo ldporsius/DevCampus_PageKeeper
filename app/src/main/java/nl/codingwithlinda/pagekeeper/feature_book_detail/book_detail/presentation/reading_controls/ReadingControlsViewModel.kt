@@ -37,11 +37,6 @@ class ReadingControlsViewModel(
                     readingSettingsRepository.setOrientation(next)
                 }
             }
-            is ReadingControlAction.SetCurrentSection -> {
-                viewModelScope.launch {
-                    readingSettingsRepository.setCurrentSection(action.section)
-                }
-            }
             is ReadingControlAction.ToggleFavorite -> {
                 println("--- READING CONTROLS VIEWMODEL --- TOGGLE FAVORITE ISBN ${action.isbn}")
                 viewModelScope.launch {

@@ -9,7 +9,6 @@ import assertk.assertions.isEmpty
 import assertk.assertions.isNotEmpty
 import kotlinx.coroutines.runBlocking
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FN2BookPager
 import org.junit.Test
 import java.io.File

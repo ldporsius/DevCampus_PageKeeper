@@ -86,7 +86,8 @@ class NavigationChromeVisibilityTest {
                 viewModelOf(::SearchViewModel)
                 viewModel { (isbn: String) -> BookDetailViewModel(
                     isbn, bookRepository = get(),
-                    bookPager = get()
+                    bookPager = get(),
+                    readingSettingsRepository = get()
                 ) }
             })
         }

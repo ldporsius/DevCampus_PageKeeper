@@ -7,5 +7,6 @@ data class Book(
     val imgUrl: String,
     val dateCreated: Long,
     val isFavorite: Boolean = false,
-    val isFinished: Boolean = false
+    val isFinished: Boolean = false,
+    val currentSection: Int = 0,
 )

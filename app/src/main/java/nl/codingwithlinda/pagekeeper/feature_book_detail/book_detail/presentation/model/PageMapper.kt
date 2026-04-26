@@ -4,7 +4,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
 
 suspend fun Section.toPage(): Page =
-    Page.ElementPage(elements = elements.map { it.toElementTextSpan() })
+    Page.ElementPage(elements = elements.map { it.toElementTextSpan() }, sectionId = id)
 
 suspend fun PageElement.toElementTextSpan() =
     ElementTextSpan(

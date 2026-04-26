@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -36,7 +37,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.R
+import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScreen
@@ -67,6 +70,7 @@ fun BookDetailRoot(
     readingControlsViewModel: ReadingControlsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
 
     val readingSettings by readingControlsViewModel.state.collectAsStateWithLifecycle()
 
@@ -79,7 +83,17 @@ fun BookDetailRoot(
         }
     }
 
-    val listState = rememberLazyListState()
+    val listState = rememberLazyListState(
+        initialFirstVisibleItemIndex = 0
+    )
+    LaunchedEffect(state.initScroll, state.pages, state.currentSection) {
+        if (state.initScroll) {
+            val index = state.pages.indexOfFirst { it.sectionId == state.currentSection }
+            if (index == -1) return@LaunchedEffect
+            listState.animateScrollToItem(index)
+            viewModel.onAction(BookDetailAction.PageIsLoaded)
+        }
+    }
 
     var anchorIndex by remember { mutableIntStateOf(0) }
     var anchorRatio by remember { mutableFloatStateOf(0f) }
@@ -101,6 +115,7 @@ fun BookDetailRoot(
             .firstOrNull { it.index == anchorIndex }?.size ?: return@LaunchedEffect
         listState.scrollToItem(anchorIndex, (anchorRatio * itemSize).toInt())
     }
+
 
     @Composable
     fun content() =

@@ -15,5 +15,6 @@ interface BookPager {
 
 interface LazyBookPager: BookPager{
     suspend fun hasPages(book: Book): Boolean
+    suspend fun countPages(book: Book): Int
     suspend fun loadChapter(book: Book, sectionIndex: Int): Flow<Section>
 }

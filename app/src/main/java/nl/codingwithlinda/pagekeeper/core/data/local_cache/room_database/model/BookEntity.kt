@@ -13,7 +13,8 @@ data class BookEntity(
     val imgUrl: String,
     val dateCreated: Long,
     val isFavorite: Boolean = false,
-    val isFinished: Boolean = false
+    val isFinished: Boolean = false,
+    val currentSection: Int = 0,
 )
 
 fun BookEntity.toDomain(): Book = Book(
@@ -23,7 +24,8 @@ fun BookEntity.toDomain(): Book = Book(
     imgUrl = imgUrl,
     dateCreated = dateCreated,
     isFavorite = isFavorite,
-    isFinished = isFinished
+    isFinished = isFinished,
+    currentSection = currentSection,
 )
 
 fun Book.toEntity(): BookEntity = BookEntity(
@@ -33,5 +35,6 @@ fun Book.toEntity(): BookEntity = BookEntity(
     imgUrl = imgUrl,
     dateCreated = dateCreated,
     isFavorite = isFavorite,
-    isFinished = isFinished
+    isFinished = isFinished,
+    currentSection = currentSection,
 )

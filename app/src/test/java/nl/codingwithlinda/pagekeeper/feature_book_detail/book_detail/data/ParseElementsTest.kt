@@ -5,6 +5,10 @@ import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Citation
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Epigraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import org.junit.Test
 
 class ParseElementsTest {

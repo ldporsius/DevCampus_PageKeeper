@@ -4,6 +4,8 @@ import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
 import org.junit.Assert.*
 import org.junit.Test
 

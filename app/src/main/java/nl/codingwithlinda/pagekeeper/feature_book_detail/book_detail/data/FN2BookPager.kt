@@ -184,6 +184,10 @@ class FN2BookPager(
         sectionFiles(book).isNotEmpty()
     }
 
+    override suspend fun countPages(book: Book): Int = withContext(Dispatchers.IO) {
+        sectionFiles(book).size
+    }
+
     override suspend fun loadPages(book: Book, sectionIndex: Int): Result<List<Section>, BookParseError> = withContext(Dispatchers.IO) {
        try {
            val pagesRes= sectionFiles(book).getOrNull(sectionIndex).let { file ->

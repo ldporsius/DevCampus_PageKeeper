@@ -26,8 +26,10 @@ data class ElementTextSpan(
 
 @Serializable
 sealed interface Page {
+    val sectionId: Int
+
     @Serializable
-    data class ElementPage(val elements: List<ElementTextSpan>) : Page
+    data class ElementPage(val elements: List<ElementTextSpan>, override val sectionId: Int = 0) : Page
     @Serializable
-    data class ImagePage(val href: String) : Page
+    data class ImagePage(val href: String, override val sectionId: Int = 0) : Page
 }

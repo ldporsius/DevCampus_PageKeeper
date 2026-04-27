@@ -55,7 +55,6 @@ fun BookDetailScreen(
     onAction: (BookDetailAction) -> Unit,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
-    scrollSettled: Boolean = false,
 ) {
     Box(
         modifier = modifier
@@ -98,21 +97,7 @@ fun BookDetailScreen(
             return@Box
         }
 
-        // Save reading position once the initial scroll has settled
-        LaunchedEffect(listState, scrollSettled) {
-            if (!scrollSettled) return@LaunchedEffect
-            snapshotFlow {
-                val firstItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
-                val sectionId = firstItem?.key as? Int ?: -1
-                val offset = listState.firstVisibleItemScrollOffset
-                sectionId to offset
-            }.debounce(500)
-                .collect { (sectionId, offset) ->
-                    if (sectionId != -1) {
-                        onAction(BookDetailAction.PlaceBookmark(sectionId, offset))
-                    }
-                }
-        }
+
 
         val sortedPages = remember(state.pages) { state.pages.values.sortedBy { it.sectionId } }
 
@@ -181,7 +166,6 @@ private fun BookDetailScreenPreview() {
             ),
             readingSettings = ReadingSettings(),
             onAction = {},
-            scrollSettled = true,
         )
     }
 }

@@ -74,7 +74,6 @@ fun BookDetailRoot(
     readingControlsViewModel: ReadingControlsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val scope = rememberCoroutineScope()
 
     val readingSettings by readingControlsViewModel.state.collectAsStateWithLifecycle()
 

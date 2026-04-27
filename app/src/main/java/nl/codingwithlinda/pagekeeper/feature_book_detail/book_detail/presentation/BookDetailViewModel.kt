@@ -35,10 +35,7 @@ class BookDetailViewModel(
         .onEach {
             println("---BOOK DETAIL VIEW MODEL --- PAGES loaded: ${it.pages.count { (_, p) -> p !is Page.Loading }} / ${it.pages.size}")
         }
-        .onStart {
-            _state.update { it.copy(isLoading = true) }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BookDetailState())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
     private val sectionsLoading = mutableSetOf<Int>()
 
@@ -78,12 +75,12 @@ class BookDetailViewModel(
                 if (_state.value.pages[action.sectionId] !is Page.Loading) return
                 if (!sectionsLoading.add(action.sectionId)) return
                 viewModelScope.launch {
+                    println("---BOOK DETAIL VIEW MODEL --- LOADING SECTION ${action.sectionId}")
                     try {
                         val book = book() ?: return@launch
                         _state.update {
                             it.copy(isLoading = true)
                         }
-                        delay(2000)
                         bookPager.loadChapter(book, action.sectionId)
                             .catch { e ->
                                 e.printStackTrace()
@@ -103,7 +100,8 @@ class BookDetailViewModel(
             is BookDetailAction.PlaceBookmark -> {
                 viewModelScope.launch {
                     val book = book() ?: return@launch
-                    //_state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
+                    println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED SECTION ${action.sectionId}")
+                    _state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
                     bookRepository.upsertBook(book.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset))
                 }
             }

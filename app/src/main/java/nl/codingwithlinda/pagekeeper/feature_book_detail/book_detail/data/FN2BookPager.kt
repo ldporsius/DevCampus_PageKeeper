@@ -8,6 +8,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -201,8 +202,6 @@ class FB2BookPager(
            }
 
            return@withContext pagesRes
-
-
        }catch (e: CancellationException){
            throw e
        }
@@ -223,7 +222,7 @@ class FB2BookPager(
                     }
                 }
             }
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     private fun sectionFiles(book: Book): List<File> {

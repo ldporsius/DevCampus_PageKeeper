@@ -19,10 +19,10 @@ import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.File
 
-class FN2BookParserTest {
+class FB2BookParserTest {
 
     private val appCtx: Context = ApplicationProvider.getApplicationContext()
-    private val parser = FN2BookParser(appCtx)
+    private val parser = FB2BookParser(appCtx)
 
     /** Copies an asset to filesDir and returns its content:// URI so fetch() can open it. */
     private fun assetUri(filename: String): String {

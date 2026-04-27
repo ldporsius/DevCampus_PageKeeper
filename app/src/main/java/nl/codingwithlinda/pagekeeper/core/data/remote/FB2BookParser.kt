@@ -24,7 +24,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 private const val MAX_COVER_PX = 200
 
-class FN2BookParser(
+class FB2BookParser(
     private val context: Context
 ) : BookParser {
 

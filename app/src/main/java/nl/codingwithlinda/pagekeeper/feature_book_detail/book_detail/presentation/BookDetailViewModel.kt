@@ -38,7 +38,7 @@ class BookDetailViewModel(
         .onStart {
             _state.update { it.copy(isLoading = true) }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(0), BookDetailState())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BookDetailState())
 
     private val sectionsLoading = mutableSetOf<Int>()
 
@@ -103,7 +103,7 @@ class BookDetailViewModel(
             is BookDetailAction.PlaceBookmark -> {
                 viewModelScope.launch {
                     val book = book() ?: return@launch
-                    _state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
+                    //_state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
                     bookRepository.upsertBook(book.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset))
                 }
             }

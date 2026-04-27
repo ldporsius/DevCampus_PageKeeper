@@ -90,7 +90,7 @@ internal suspend fun findTopLevelSections(body: String): List<String> = withCont
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-class FN2BookPager(
+class FB2BookPager(
     private val context: Context
 ): LazyBookPager {
     private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
@@ -155,7 +155,7 @@ class FN2BookPager(
     }
 
 
-    override suspend fun readPages(book: Book): Result<List<Section>, BookParseError> {
+    private suspend fun readPages(book: Book): Result<List<Section>, BookParseError> {
         var sections = mutableListOf<Section>()
         return withContext(Dispatchers.IO) {
             try {

@@ -4,19 +4,16 @@ import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
-import assertk.assertThat
-import assertk.assertions.isEmpty
-import assertk.assertions.isNotEmpty
 import kotlinx.coroutines.runBlocking
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FN2BookPager
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FB2BookPager
 import org.junit.Test
 import java.io.File
 
-class FN2BookPagerTest {
+class FB2BookPagerTest {
 
     private val appCtx: Context = ApplicationProvider.getApplicationContext()
-    private val pager = FN2BookPager(appCtx)
+    private val pager = FB2BookPager(appCtx)
 
     private val fakeBook = Book(
         ISBN = "978-1-957082-04-2",
@@ -47,30 +44,4 @@ class FN2BookPagerTest {
         pager.writePages("file:///nonexistent/book.fb2", fakeBook)
     }
 
-    @Test
-    fun writeThenRead_returnsPersistedPages(): Unit = runBlocking {
-        val uri = assetUri("book.fb2")
-        pager.writePages(uri, fakeBook)
-
-        val pages = pager.readPages(fakeBook)
-
-    }
-
-    @Test
-    fun writeThenRead_containsTextAndImagePages(): Unit = runBlocking {
-        val uri = assetUri("book.fb2")
-        pager.writePages(uri, fakeBook)
-
-        val pages = pager.readPages(fakeBook)
-
-    }
-
-    @Test
-    fun readPages_beforeWrite_returnsEmptyList(): Unit = runBlocking {
-        // delete any cached file from a previous test run
-        File(appCtx.filesDir, "${fakeBook.ISBN}.json").delete()
-
-        val pages = pager.readPages(fakeBook)
-
-    }
 }

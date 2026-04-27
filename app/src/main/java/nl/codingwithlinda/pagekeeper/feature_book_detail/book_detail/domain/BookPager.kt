@@ -8,7 +8,7 @@ interface BookPager {
 
     suspend fun writePages(uri: String, book: Book, onProgress: suspend (written: Int, total: Int) -> Unit = { _, _ -> }): Result<Unit, BookParseError>
 
-    suspend fun readPages(book: Book): Result<List<Section>, BookParseError>
+    //suspend fun readPages(book: Book): Result<List<Section>, BookParseError>
 
     suspend fun loadPages(book: Book, sectionIndex: Int = 0): Result<List<Section>, BookParseError>
 }

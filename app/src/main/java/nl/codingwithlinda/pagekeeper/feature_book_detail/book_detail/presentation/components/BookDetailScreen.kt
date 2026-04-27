@@ -1,5 +1,7 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,9 +11,11 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,6 +26,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -125,6 +131,23 @@ fun BookDetailScreen(
                 }
             }
         }
+
+        if (state.isLoading) {
+            val bg = Brush.verticalGradient(
+                listOf(MaterialTheme.colorScheme.surfaceContainerLowest.copy(.5f),
+                    MaterialTheme.colorScheme.surfaceContainerLowest)
+            )
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(brush = bg)
+                    .padding(vertical =  12.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
     }
 }
 
@@ -152,7 +175,7 @@ private fun BookDetailScreenPreview() {
                         )
                     ),
                 ),
-                isLoading = false
+                isLoading = true
             ),
             readingSettings = ReadingSettings(),
             onAction = {},

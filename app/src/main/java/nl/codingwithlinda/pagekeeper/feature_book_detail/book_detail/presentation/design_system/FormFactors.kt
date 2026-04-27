@@ -21,7 +21,8 @@ fun PhoneLayout(
     Box(modifier = modifier
         .then(Modifier
             .fillMaxSize()
-            .padding(12.dp)
+            .padding(horizontal = 12.dp)
+
         )
     ) {
         content()
@@ -42,7 +43,7 @@ fun TabletLayout(
         Box(
             modifier = Modifier
                         .widthIn(480.dp, 600.dp)
-                        .padding(12.dp)
+                        .padding(horizontal = 12.dp)
             ,
             contentAlignment = Alignment.TopCenter
         ) {

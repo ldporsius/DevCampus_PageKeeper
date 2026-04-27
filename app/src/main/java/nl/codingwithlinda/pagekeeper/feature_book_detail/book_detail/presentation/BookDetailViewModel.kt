@@ -2,6 +2,7 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onEach
@@ -80,9 +81,15 @@ class BookDetailViewModel(
                 viewModelScope.launch {
                     try {
                         val book = book() ?: return@launch
+                        _state.update {
+                            it.copy(isLoading = true)
+                        }
+                        delay(2000)
                         bookPager.loadChapter(book, action.sectionId).collect { chapter ->
                             val page = chapter.toPage()
-                            _state.update { it.copy(pages = it.pages + (page.sectionId to page)) }
+                            _state.update { it.copy(
+                                isLoading = false,
+                                pages = it.pages + (page.sectionId to page)) }
                         }
                     } finally {
                         sectionsLoading.remove(action.sectionId)

@@ -6,9 +6,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -238,7 +241,10 @@ fun BookDetailScaffold(
             sliderState.value = readingSettings.fontSize
         }
 
-        Column(modifier = Modifier.padding(innerPadding)) {
+        Column(modifier = Modifier
+            .safeContentPadding()
+            .consumeWindowInsets(innerPadding)
+        ) {
             Box(modifier = Modifier.weight(1f)) {
                 content()
             }

@@ -15,7 +15,6 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FN2Boo
 import nl.codingwithlinda.pagekeeper.core.data.remote.FN2BookParser
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookFormatValidator
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.navigation.DefaultMenuActionController
 import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
@@ -74,5 +73,5 @@ val appPresentationModule = module {
     viewModelOf(::SearchViewModel)
     viewModelOf(::MultiSelectViewModel)
     viewModelOf(::ReadingControlsViewModel)
-    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get(), get()) }
+    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get()) }
 }

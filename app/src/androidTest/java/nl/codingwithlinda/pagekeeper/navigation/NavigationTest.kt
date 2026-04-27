@@ -60,8 +60,7 @@ class NavigationTest {
                     viewModel { (isbn: String) -> BookDetailViewModel(
                         isbn,
                         bookRepository = get(),
-                        bookPager = get(),
-                        readingSettingsRepository = get()
+                        bookPager = get()
                     ) }
                 }
             )

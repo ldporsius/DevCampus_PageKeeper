@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParagraph
@@ -46,6 +47,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page.ElementPage
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.TextSpan
 
+@OptIn(FlowPreview::class)
 @Composable
 fun BookDetailScreen(
     state: BookDetailState,

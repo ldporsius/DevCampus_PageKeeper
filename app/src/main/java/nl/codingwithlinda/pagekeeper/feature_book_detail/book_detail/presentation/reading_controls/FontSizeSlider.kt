@@ -87,9 +87,10 @@ fun FontSizeSlider(
                 SliderDefaults.CenteredTrack(
                     sliderState = sliderState,
                     colors = SliderDefaults.colors(
-                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.inverseOnSurface,
                         inactiveTrackColor = MaterialTheme.colorScheme.inverseOnSurface,
-                    )
+                    ),
+                    thumbTrackGapSize = 0.dp
                 )
             }
         )

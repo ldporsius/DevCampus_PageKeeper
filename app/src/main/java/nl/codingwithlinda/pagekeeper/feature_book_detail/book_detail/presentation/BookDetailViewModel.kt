@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -15,7 +16,6 @@ import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.ReadingMode
@@ -27,8 +27,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 class BookDetailViewModel(
     private val isbn: String,
     private val bookRepository: BookRepository,
-    private val bookPager: LazyBookPager,
-    private val readingSettingsRepository: ReadingSettingsRepository
+    private val bookPager: LazyBookPager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookDetailState())
@@ -39,7 +38,7 @@ class BookDetailViewModel(
         .onStart {
             _state.update { it.copy(isLoading = true) }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BookDetailState())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(0), BookDetailState())
 
     private val sectionsLoading = mutableSetOf<Int>()
 
@@ -85,14 +84,18 @@ class BookDetailViewModel(
                             it.copy(isLoading = true)
                         }
                         delay(2000)
-                        bookPager.loadChapter(book, action.sectionId).collect { chapter ->
+                        bookPager.loadChapter(book, action.sectionId)
+                            .catch { e ->
+                                e.printStackTrace()
+                            }
+                            .collect { chapter ->
                             val page = chapter.toPage()
                             _state.update { it.copy(
-                                isLoading = false,
                                 pages = it.pages + (page.sectionId to page)) }
                         }
                     } finally {
                         sectionsLoading.remove(action.sectionId)
+                        _state.update { it.copy(isLoading = false) }
                     }
                 }
             }

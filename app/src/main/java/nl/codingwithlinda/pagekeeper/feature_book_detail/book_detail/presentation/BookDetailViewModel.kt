@@ -41,6 +41,7 @@ class BookDetailViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
     private val sectionsLoading = mutableSetOf<Int>()
+    private val evictionWindow = 3
 
     private suspend fun book() = bookRepository.getBookByISBN(isbn)
 
@@ -95,6 +96,7 @@ class BookDetailViewModel(
                             _state.update { it.copy(
                                 pages = it.pages + (page.sectionId to page)) }
                         }
+                        evictDistantSections(action.sectionId)
                     } finally {
                         sectionsLoading.remove(action.sectionId)
                         _state.update { it.copy(isLoading = false) }
@@ -137,6 +139,18 @@ class BookDetailViewModel(
         }) {
             is Result.Failure -> updateUiState(result.error)
             is Result.Success -> updateUiState(null)
+        }
+    }
+
+    private fun evictDistantSections(anchorSection: Int) {
+        _state.update { state ->
+            val evicted = state.pages.mapValues { (sectionId, page) ->
+                if (page !is Page.Loading
+                    && kotlin.math.abs(sectionId - anchorSection) > evictionWindow
+                    && sectionId !in sectionsLoading
+                ) Page.Loading(sectionId) else page
+            }
+            state.copy(pages = evicted)
         }
     }
 

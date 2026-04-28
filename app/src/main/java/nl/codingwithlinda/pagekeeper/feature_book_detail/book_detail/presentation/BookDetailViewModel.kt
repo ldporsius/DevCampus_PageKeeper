@@ -1,5 +1,6 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation
 
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
+import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
@@ -33,13 +35,16 @@ class BookDetailViewModel(
     private val _state = MutableStateFlow(BookDetailState())
     val state = _state
         .onEach {
-            println("---BOOK DETAIL VIEW MODEL --- PAGES loaded: ${it.pages.count { (_, p) -> p !is Page.Loading }} / ${it.pages.size}")
+            val pageIndices = it.pages.values.filter { it !is Page.Loading }.map { it.sectionId }
+            println("---BOOK DETAIL VIEW MODEL --- PAGES loaded: ${pageIndices.joinToString()}. Total: ${it.pages.count { (_, p) -> p !is Page.Loading }} / ${it.pages.size}")
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
     private val sectionsLoading = mutableSetOf<Int>()
 
     private suspend fun book() = bookRepository.getBookByISBN(isbn)
+
+    val listState = LazyListState()
 
     init {
         viewModelScope.launch {
@@ -100,7 +105,14 @@ class BookDetailViewModel(
             is BookDetailAction.PlaceBookmark -> {
                 viewModelScope.launch {
                     val book = book() ?: return@launch
-                    println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED SECTION ${action.sectionId}")
+                    val orientationDomain = when(action.orientation){
+                        1 -> Orientation.Portrait
+                        2 -> Orientation.Landscape
+                        else -> Orientation.Landscape
+                    }
+                    println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED SECTION ${action.sectionId}, offset ${action.scrollOffset}," +
+                            " orientation ${action.orientation}, orientationDomain $orientationDomain")
+
                     _state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
                     bookRepository.upsertBook(book.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset))
                 }

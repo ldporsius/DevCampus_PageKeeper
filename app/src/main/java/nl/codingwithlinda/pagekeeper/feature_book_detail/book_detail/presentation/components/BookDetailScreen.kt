@@ -97,9 +97,7 @@ fun BookDetailScreen(
             return@Box
         }
 
-
-
-        val sortedPages = remember(state.pages) { state.pages.values.sortedBy { it.sectionId } }
+        val sortedPages = state.sortedPages()
 
         LazyColumn(state = listState) {
             items(sortedPages, key = { page -> page.sectionId }) { page ->
@@ -108,7 +106,7 @@ fun BookDetailScreen(
                         LaunchedEffect(page.sectionId) {
                             onAction(BookDetailAction.LoadSection(page.sectionId))
                         }
-                        Spacer(modifier = Modifier.height(400.dp))
+                        Spacer(modifier = Modifier.height(800.dp))
                     }
                     is ElementPage -> page.toScaledText(readingSettings.fontSize)
                     is Page.ImagePage -> AsyncImage(

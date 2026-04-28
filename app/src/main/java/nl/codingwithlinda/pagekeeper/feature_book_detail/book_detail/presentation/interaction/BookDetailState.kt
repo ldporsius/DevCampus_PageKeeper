@@ -12,7 +12,7 @@ data class BookDetailState(
     val pages: Map<Int, Page> = emptyMap(),
     val currentSection: Int = -1,
     val currentSectionOffset: Int = 0,
-    val totalSections: Int = 0,
+    val totalSections: Int = 1,
     val isWriting: Boolean = false,
     val writingProgress: Float = 0f,
     val writingSectionsWritten: Int = 0,
@@ -20,4 +20,6 @@ data class BookDetailState(
     val isLoading: Boolean = true,
     val error: UiText? = null,
     val readingMode: ReadingMode = ReadingMode.IMMERSIVE,
-)
+){
+    fun sortedPages() = pages.values.sortedBy { it.sectionId }
+}

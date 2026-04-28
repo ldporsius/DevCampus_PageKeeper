@@ -1,6 +1,7 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation
 
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -27,6 +28,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -40,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
@@ -73,6 +76,8 @@ fun BookDetailRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    val configuration = LocalConfiguration.current
+
     val readingSettings by readingControlsViewModel.state.collectAsStateWithLifecycle()
 
     val activity = LocalActivity.current
@@ -84,12 +89,13 @@ fun BookDetailRoot(
         }
     }
 
-    val listState = rememberLazyListState()
+    val listState = viewModel.listState
 
     var scrollSettled by rememberSaveable(state.book?.formattedDate) { mutableStateOf(false) }
 
-    LaunchedEffect(state.pages, state.currentSection) {
-        if (!scrollSettled && state.pages.isNotEmpty() && state.currentSection >= 0) {
+    LaunchedEffect(state.pages, state.currentSection,state.currentSectionOffset) {
+        if (!scrollSettled && state.sortedPages().isNotEmpty() && state.currentSection >= 0) {
+            println("--- BOOK DETAIL --- SCROLLING TO SECTION ${state.currentSection} at position ${state.currentSectionOffset}")
             listState.scrollToItem(
                 index = state.currentSection.coerceAtMost(state.pages.size - 1),
                 scrollOffset = state.currentSectionOffset
@@ -98,70 +104,23 @@ fun BookDetailRoot(
         }
     }
 
-    // anchorIndex/anchorRatio track the first visible item and how far into it the top of
-    // the viewport falls. rememberSaveable keeps them across rotation so the orientation
-    // effect below can re-pin the same line without touching the DB.
-    var anchorIndex by rememberSaveable { mutableIntStateOf(0) }
-    var anchorRatio by rememberSaveable { mutableFloatStateOf(0f) }
-
-    // Re-pin the first visible line when orientation or font size changes (items reflow).
-    // These must be declared BEFORE the anchor-tracking LaunchedEffect so they start
-    // first on composition. Capturing idx/ratio as locals before the first suspension
-    // point protects them from being overwritten by the tracking effect while suspended.
-    val configuration = LocalConfiguration.current
-    LaunchedEffect(configuration.orientation) {
-        if (!scrollSettled) return@LaunchedEffect
-        val idx = anchorIndex
-        val ratio = anchorRatio
-        val layout = snapshotFlow { listState.layoutInfo }
-            .first { it.visibleItemsInfo.any { item -> item.index == idx } }
-        val itemSize = layout.visibleItemsInfo
-            .firstOrNull { it.index == idx }?.size ?: return@LaunchedEffect
-        listState.scrollToItem(idx, (ratio * itemSize).toInt())
-    }
 
     // Save reading position once the initial scroll has settled
-    LaunchedEffect(listState, scrollSettled) {
+    LaunchedEffect(listState, state.sortedPages(), scrollSettled) {
         if (!scrollSettled) return@LaunchedEffect
         snapshotFlow {
             val firstItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
             val sectionId = firstItem?.key as? Int ?: -1
-            val offset = listState.firstVisibleItemScrollOffset
-            sectionId to offset
+            val offset2 = listState.firstVisibleItemScrollOffset
+            sectionId to offset2
         }.debounce(500)
             .collect { (sectionId, offset) ->
                 if (sectionId != -1) {
-                    viewModel.onAction(BookDetailAction.PlaceBookmark(sectionId, offset))
+                    val orientation = configuration.orientation
+                    viewModel.onAction(BookDetailAction.PlaceBookmark(sectionId, offset, orientation))
                 }
             }
     }
-
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
-            .collect { (index, offset) ->
-                val itemSize = listState.layoutInfo.visibleItemsInfo
-                    .firstOrNull { it.index == index }?.size ?: return@collect
-                anchorIndex = index
-                anchorRatio = if (itemSize > 0) offset.toFloat() / itemSize else 0f
-            }
-    }
-
-
-
-
-
-    LaunchedEffect(readingSettings.fontSize) {
-        val idx = anchorIndex
-        val ratio = anchorRatio
-        val layout = snapshotFlow { listState.layoutInfo }
-            .first { it.visibleItemsInfo.any { item -> item.index == idx } }
-        val itemSize = layout.visibleItemsInfo
-            .firstOrNull { it.index == idx }?.size ?: return@LaunchedEffect
-        listState.scrollToItem(idx, (ratio * itemSize).toInt())
-    }
-
-
-
 
     @Composable
     fun content() =

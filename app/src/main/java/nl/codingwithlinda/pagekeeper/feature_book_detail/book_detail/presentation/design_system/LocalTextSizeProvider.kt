@@ -34,6 +34,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.ElementTextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.FormattedLine
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page
 
@@ -74,28 +75,27 @@ fun PageElement.toTextStyle() = when(this){
 
 
 @Composable
-fun Page.ElementPage.toScaledText(
-    rawSliderValue: Float,
-) {
-    this.elements.forEach { element ->
-        val el = element.element
-        val baseStyle = el.toTextStyle()
-
-        val scaledStyle = baseStyle.copy(
-            fontSize = baseStyle.fontSize * rawSliderValue,
-            lineHeight = if (baseStyle.lineHeight.isSpecified) baseStyle.lineHeight * rawSliderValue
-            else TextUnit.Unspecified
-        )
-
-        CompositionLocalProvider(LocalTextStyle provides scaledStyle) {
-            when (el) {
-                is Title -> TitleElement(element.lines)
-                is Citation -> CitationElement(element.lines)
-                is Paragraph -> ParagraphElement(element.lines)
-                else -> element.lines.forEach { line -> ElementLine(line) }
-            }
+fun ElementTextSpan.toScaledText(rawSliderValue: Float) {
+    val el = this.element
+    val baseStyle = el.toTextStyle()
+    val scaledStyle = baseStyle.copy(
+        fontSize = baseStyle.fontSize * rawSliderValue,
+        lineHeight = if (baseStyle.lineHeight.isSpecified) baseStyle.lineHeight * rawSliderValue
+        else TextUnit.Unspecified
+    )
+    CompositionLocalProvider(LocalTextStyle provides scaledStyle) {
+        when (el) {
+            is Title     -> TitleElement(this.lines)
+            is Citation  -> CitationElement(this.lines)
+            is Paragraph -> ParagraphElement(this.lines)
+            else         -> this.lines.forEach { line -> ElementLine(line) }
         }
     }
+}
+
+@Composable
+fun Page.ElementPage.toScaledText(rawSliderValue: Float) {
+    this.elements.forEach { it.toScaledText(rawSliderValue) }
 }
 
 @Composable

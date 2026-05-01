@@ -21,5 +21,16 @@ data class BookDetailState(
     val error: UiText? = null,
     val readingMode: ReadingMode = ReadingMode.IMMERSIVE,
 ){
-    fun sortedPages() = pages.values.sortedBy { it.sectionId }
+//    fun sortedPages() = pages.values.sortedBy { it.sectionId }
+    val sortedPages = pages.values.sortedBy { it.sectionId }
+
+    val paragraphs = pages.values.map {
+        when(it){
+            is Page.ElementPage -> it.elements
+            else -> {
+                emptyList()
+            }
+        }
+    }.flatten()
+
 }

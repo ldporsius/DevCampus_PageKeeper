@@ -93,10 +93,11 @@ fun BookDetailRoot(
 
     var scrollSettled by rememberSaveable(state.book?.formattedDate) { mutableStateOf(false) }
 
-    LaunchedEffect(state.pages, state.currentSection,state.currentSectionOffset) {
-        if (!scrollSettled && state.sortedPages().isNotEmpty() && state.currentSection >= 0) {
+    LaunchedEffect(state.currentSection) {
+        if (!scrollSettled && state.sortedPages.isNotEmpty() && state.currentSection >= 0) {
             println("--- BOOK DETAIL --- SCROLLING TO SECTION ${state.currentSection} at position ${state.currentSectionOffset}")
-            listState.scrollToItem(
+           // listState.requestScrollToItem(state.currentSection, state.currentSectionOffset)
+           listState.scrollToItem(
                 index = state.currentSection.coerceAtMost(state.pages.size - 1),
                 scrollOffset = state.currentSectionOffset
             )
@@ -106,15 +107,20 @@ fun BookDetailRoot(
 
 
     // Save reading position once the initial scroll has settled
-    LaunchedEffect(listState, state.sortedPages(), scrollSettled) {
+    LaunchedEffect(listState,) {
+        println("--- BOOK DETAIL --- SCROLL SETTLED: $scrollSettled")
         if (!scrollSettled) return@LaunchedEffect
         snapshotFlow {
             val firstItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
-            val sectionId = firstItem?.key as? Int ?: -1
-            val offset2 = listState.firstVisibleItemScrollOffset
-            sectionId to offset2
+            val key = firstItem?.key as? String ?: ""
+            val sectionId = key.toIntOrNull() ?: -1
+            val paragraphId = 0
+            //val offset2 = listState.firstVisibleItemScrollOffset
+            sectionId to paragraphId
         }.debounce(500)
             .collect { (sectionId, offset) ->
+                println("--- BOOK DETAIL --- firstItem. sectionId = $sectionId, paragraphId = $offset")
+
                 if (sectionId != -1) {
                     val orientation = configuration.orientation
                     viewModel.onAction(BookDetailAction.PlaceBookmark(sectionId, offset, orientation))

@@ -35,8 +35,11 @@ class BookDetailViewModel(
     private val _state = MutableStateFlow(BookDetailState())
     val state = _state
         .onEach {
-            val pageIndices = it.pages.values.filter { it !is Page.Loading }.map { it.sectionId }
-            println("---BOOK DETAIL VIEW MODEL --- PAGES loaded: ${pageIndices.joinToString()}. Total: ${it.pages.count { (_, p) -> p !is Page.Loading }} / ${it.pages.size}")
+            viewModelScope.launch {
+                val pageIndices =
+                    it.pages.values.filter { it !is Page.Loading }.map { it.sectionId }
+                println("---BOOK DETAIL VIEW MODEL --- PAGES loaded: ${pageIndices.joinToString()}. Total: ${it.pages.count { (_, p) -> p !is Page.Loading }} / ${it.pages.size}")
+            }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
@@ -61,7 +64,8 @@ class BookDetailViewModel(
             val initialSection = book.currentSection
             val initialSectionOffset = book.currentSectionOffset
 
-            val loadingPages = (0 until totalSections).associate { i -> i to Page.Loading(i) }
+            val loadingPages = (0 until totalSections).associateWith { i -> Page.Loading(i) }
+
 
             _state.update {
                 it.copy(
@@ -96,7 +100,7 @@ class BookDetailViewModel(
                             _state.update { it.copy(
                                 pages = it.pages + (page.sectionId to page)) }
                         }
-                        evictDistantSections(action.sectionId)
+                        //evictDistantSections(action.sectionId)
                     } finally {
                         sectionsLoading.remove(action.sectionId)
                         _state.update { it.copy(isLoading = false) }
@@ -114,8 +118,7 @@ class BookDetailViewModel(
                     }
                     println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED SECTION ${action.sectionId}, offset ${action.scrollOffset}," +
                             " orientation ${action.orientation}, orientationDomain $orientationDomain")
-
-                    _state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
+                    //_state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
                     bookRepository.upsertBook(book.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset))
                 }
             }

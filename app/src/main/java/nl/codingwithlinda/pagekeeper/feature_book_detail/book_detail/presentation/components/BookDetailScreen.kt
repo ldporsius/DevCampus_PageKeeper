@@ -1,6 +1,9 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,13 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -97,22 +101,59 @@ fun BookDetailScreen(
             return@Box
         }
 
-        val sortedPages = state.sortedPages()
+        val sortedPages = state.sortedPages
 
-        LazyColumn(state = listState) {
-            items(sortedPages, key = { page -> page.sectionId }) { page ->
-                when (page) {
+       /* LazyColumn(state = listState) {
+            items(
+                sortedPages,
+                key = { page -> page.sectionId }
+            ){ page ->
+                when(page){
                     is Page.Loading -> {
                         LaunchedEffect(page.sectionId) {
                             onAction(BookDetailAction.LoadSection(page.sectionId))
                         }
                         Spacer(modifier = Modifier.height(800.dp))
                     }
-                    is ElementPage -> page.toScaledText(readingSettings.fontSize)
-                    is Page.ImagePage -> AsyncImage(
-                        model = page.href,
-                        contentDescription = null
-                    )
+                    is ElementPage -> {
+                        page.elements.take(1).forEach {
+                            it.toScaledText(readingSettings.fontSize)
+                        }
+                    }
+                    is Page.ImagePage -> {
+                        AsyncImage(model = page.href, contentDescription = null)
+                    }
+                }
+            }
+        }*/
+       LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+        ) {
+            sortedPages.forEach { page ->
+                when (page) {
+                    is Page.Loading -> item(key = "loading_${page.sectionId}") {
+                        LaunchedEffect(page.sectionId) {
+                            onAction(BookDetailAction.LoadSection(page.sectionId))
+                        }
+                        Spacer(modifier = Modifier.height(8000.dp))
+                    }
+                    /*is ElementPage -> itemsIndexed(
+                        items = page.elements,
+                        key = { index, _ -> "${page.sectionId}_$index" }
+                    ) { _, element ->
+                        element.toScaledText(readingSettings.fontSize)
+                    }*/
+                    is ElementPage -> item(
+                        key = "${page.sectionId}"
+                    ) {
+                        page.elements.take(1).forEach {
+                            it.toScaledText(readingSettings.fontSize)
+                        }
+                    }
+                    is Page.ImagePage -> item(key = "image_${page.sectionId}") {
+                        AsyncImage(model = page.href, contentDescription = null)
+                    }
                 }
             }
         }

@@ -15,9 +15,15 @@ import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
+import nl.codingwithlinda.pagekeeper.core.domain.util.map
+import nl.codingwithlinda.pagekeeper.core.domain.util.onFailure
+import nl.codingwithlinda.pagekeeper.core.domain.util.onSuccess
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.PageElement
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.util.Paginator
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.ReadingMode
@@ -25,6 +31,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.toPage
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.util.toUi
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
+import kotlin.math.abs
 
 class BookDetailViewModel(
     private val isbn: String,
@@ -48,6 +55,37 @@ class BookDetailViewModel(
 
     private suspend fun book() = bookRepository.getBookByISBN(isbn)
 
+    private val paginator = Paginator<Int, Section>(
+        initialKey = 0,
+        onLoadUpdated = { isLoading ->
+            _state.update { it.copy(isLoading = isLoading) }
+        },
+        onRequest = { nextIndex ->
+            val book = book() ?: return@Paginator Result.Failure(BookParseError.NoPagesFound)
+            bookPager.loadPages(book, nextIndex)
+        },
+        getNextKey = {items->
+          _state.value.pages.filter { it.value is Page.Loading }.minBy { it.key }.key
+        },
+        onError = { error ->
+            _state.update {
+                it.copy(
+                    error = error?.toUi()
+                )
+            }
+        },
+        onSuccess = { items, newKey ->
+            println("--- PAGINATOR ON SUCCESS. items.size = ${items.size}, newKey = $newKey")
+            val newMap = items.map { it.toPage() }.associateBy { it.sectionId }
+            println("--- PAGINATOR ON SUCCESS. newMap = ${newMap.keys}")
+            _state.update {
+                it.copy(
+                    pages = it.pages + newMap,
+                )
+            }
+        }
+    )
+
     val listState = LazyListState()
 
     init {
@@ -64,9 +102,12 @@ class BookDetailViewModel(
             val initialSection = book.currentSection
             val initialSectionOffset = book.currentSectionOffset
 
-            val loadingPages = (0 until totalSections).associateWith { i -> Page.Loading(i) }
+           val loadingPages = (0 until totalSections).associateWith { i -> Page.Loading(i) }
 
+            val firstPage = initialSection to Page.Loading(initialSection)
 
+            paginator.setInitialKey(initialSection)
+            listState.scrollToItem(initialSection)
             _state.update {
                 it.copy(
                     pages = loadingPages,
@@ -85,22 +126,18 @@ class BookDetailViewModel(
                 if (_state.value.pages[action.sectionId] !is Page.Loading) return
                 if (!sectionsLoading.add(action.sectionId)) return
                 viewModelScope.launch {
+                    while
+                        (_state.value.isLoading
+                    ){
+                        delay(100)
+                    }
                     println("---BOOK DETAIL VIEW MODEL --- LOADING SECTION ${action.sectionId}")
+                    _state.update {
+                        it.copy(currentSection = action.sectionId)
+                    }
                     try {
-                        val book = book() ?: return@launch
-                        _state.update {
-                            it.copy(isLoading = true)
-                        }
-                        bookPager.loadChapter(book, action.sectionId)
-                            .catch { e ->
-                                e.printStackTrace()
-                            }
-                            .collect { chapter ->
-                            val page = chapter.toPage()
-                            _state.update { it.copy(
-                                pages = it.pages + (page.sectionId to page)) }
-                        }
-                        //evictDistantSections(action.sectionId)
+                        paginator.setInitialKey(action.sectionId)
+                       paginator.loadNextItems()
                     } finally {
                         sectionsLoading.remove(action.sectionId)
                         _state.update { it.copy(isLoading = false) }
@@ -149,7 +186,7 @@ class BookDetailViewModel(
         _state.update { state ->
             val evicted = state.pages.mapValues { (sectionId, page) ->
                 if (page !is Page.Loading
-                    && kotlin.math.abs(sectionId - anchorSection) > evictionWindow
+                    && abs(sectionId - anchorSection) > evictionWindow
                     && sectionId !in sectionsLoading
                 ) Page.Loading(sectionId) else page
             }

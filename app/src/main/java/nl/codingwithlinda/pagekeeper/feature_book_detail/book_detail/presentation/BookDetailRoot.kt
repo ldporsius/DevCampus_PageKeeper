@@ -1,7 +1,6 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation
 
 import android.content.pm.ActivityInfo
-import android.content.res.Configuration
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -23,12 +21,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -41,8 +37,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
@@ -94,9 +88,8 @@ fun BookDetailRoot(
     var scrollSettled by rememberSaveable(state.book?.formattedDate) { mutableStateOf(false) }
 
     LaunchedEffect(state.currentSection) {
-        if (!scrollSettled && state.sortedPages.isNotEmpty() && state.currentSection >= 0) {
+        if (!scrollSettled  && state.currentSection >= 0) {
             println("--- BOOK DETAIL --- SCROLLING TO SECTION ${state.currentSection} at position ${state.currentSectionOffset}")
-           // listState.requestScrollToItem(state.currentSection, state.currentSectionOffset)
            listState.scrollToItem(
                 index = state.currentSection.coerceAtMost(state.pages.size - 1),
                 scrollOffset = state.currentSectionOffset
@@ -105,18 +98,27 @@ fun BookDetailRoot(
         }
     }
 
+    val nearTop by remember {
+        derivedStateOf { listState.firstVisibleItemIndex == 0 }
+    }
+    val nearBottom by remember {
+        derivedStateOf {
+            val lastIndex  = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: return@derivedStateOf false
+            val total = listState.layoutInfo.totalItemsCount
+            lastIndex >= total -2
+        }
+    }
 
     // Save reading position once the initial scroll has settled
-    LaunchedEffect(listState,) {
+    LaunchedEffect(nearTop, nearBottom) {
         println("--- BOOK DETAIL --- SCROLL SETTLED: $scrollSettled")
         if (!scrollSettled) return@LaunchedEffect
         snapshotFlow {
             val firstItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
             val key = firstItem?.key as? String ?: ""
             val sectionId = key.toIntOrNull() ?: -1
-            val paragraphId = 0
-            //val offset2 = listState.firstVisibleItemScrollOffset
-            sectionId to paragraphId
+            val offset = listState.firstVisibleItemScrollOffset
+            sectionId to offset
         }.debounce(500)
             .collect { (sectionId, offset) ->
                 println("--- BOOK DETAIL --- firstItem. sectionId = $sectionId, paragraphId = $offset")

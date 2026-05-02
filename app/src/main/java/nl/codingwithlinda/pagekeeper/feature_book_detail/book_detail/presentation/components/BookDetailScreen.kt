@@ -101,7 +101,7 @@ fun BookDetailScreen(
             return@Box
         }
 
-        val sortedPages = state.sortedPages
+        val sortedPages = state.sortedPages()
 
        /* LazyColumn(state = listState) {
             items(
@@ -132,11 +132,15 @@ fun BookDetailScreen(
         ) {
             sortedPages.forEach { page ->
                 when (page) {
-                    is Page.Loading -> item(key = "loading_${page.sectionId}") {
+                    is Page.Loading -> item(key = "${page.sectionId}") {
                         LaunchedEffect(page.sectionId) {
                             onAction(BookDetailAction.LoadSection(page.sectionId))
                         }
-                        Spacer(modifier = Modifier.height(8000.dp))
+                        Box(modifier = Modifier
+                            .fillMaxWidth()){
+                            CircularProgressIndicator()
+                        }
+                        //Spacer(modifier = Modifier.height(800.dp))
                     }
                     /*is ElementPage -> itemsIndexed(
                         items = page.elements,
@@ -147,7 +151,7 @@ fun BookDetailScreen(
                     is ElementPage -> item(
                         key = "${page.sectionId}"
                     ) {
-                        page.elements.take(1).forEach {
+                        page.elements.take(10).forEach {
                             it.toScaledText(readingSettings.fontSize)
                         }
                     }

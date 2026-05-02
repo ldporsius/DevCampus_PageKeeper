@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -24,8 +23,8 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Para
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -93,7 +92,7 @@ internal suspend fun findTopLevelSections(body: String): List<String> = withCont
 @OptIn(ExperimentalSerializationApi::class)
 class FB2BookPager(
     private val context: Context
-): LazyBookPager {
+): BookPager {
     private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
 
 
@@ -156,32 +155,6 @@ class FB2BookPager(
     }
 
 
-    private suspend fun readPages(book: Book): Result<List<Section>, BookParseError> {
-        var sections = mutableListOf<Section>()
-        return withContext(Dispatchers.IO) {
-            try {
-                val files = sectionFiles(book)
-                if (files.isEmpty()) return@withContext Result.Failure(BookParseError.NoPagesFound)
-                runInterruptible {
-                    files.onEachIndexed { index, file ->
-                        ensureActive()
-                        file.inputStream().use {
-                            json.decodeFromStream<List<Section>>(it) .also {
-                                sections.addAll(it)
-                            }
-                        }
-                    }
-                }
-                return@withContext Result.Success(sections)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                e.printStackTrace()
-                return@withContext Result.Failure(BookParseError.GeneralBookParseError)
-            }
-        }
-    }
-
     override suspend fun hasPages(book: Book): Boolean = withContext(Dispatchers.IO) {
         sectionFiles(book).isNotEmpty()
     }
@@ -190,7 +163,7 @@ class FB2BookPager(
         sectionFiles(book).size
     }
 
-    override suspend fun loadPages(book: Book, sectionIndex: Int): Result<List<Section>, BookParseError> = withContext(Dispatchers.IO) {
+    override suspend fun loadSections(book: Book, sectionIndex: Int): Result<List<Section>, BookParseError> = withContext(Dispatchers.IO) {
        try {
            val pagesRes= sectionFiles(book).getOrNull(sectionIndex).let { file ->
                if (file == null) return@let Result.Failure(BookParseError.NoPagesFound)
@@ -212,7 +185,7 @@ class FB2BookPager(
 
     }
 
-    override suspend fun loadChapter(book: Book, sectionIndex: Int): Flow<Section> {
+    override suspend fun loadSection(book: Book, sectionIndex: Int): Flow<Section> {
         return flow {
             sectionFiles(book).getOrNull(sectionIndex).let { file ->
                 if (file == null) return@flow

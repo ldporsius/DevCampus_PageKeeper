@@ -5,10 +5,19 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookImportSideEffects
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.components.BookItemsGrid
@@ -66,6 +75,23 @@ fun BooksRoot(
                     },
                     onBookClick = { isbn -> onNavigateToDetail(isbn) },
                     onAction = bookListViewModel::onAction
+                )
+            }
+        }
+
+        libraryState.lastOpenedBookIsbn?.let { isbn ->
+            FloatingActionButton(
+                onClick = { onNavigateToDetail(isbn) },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.book_vector),
+                    contentDescription = "Resume reading",
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         }

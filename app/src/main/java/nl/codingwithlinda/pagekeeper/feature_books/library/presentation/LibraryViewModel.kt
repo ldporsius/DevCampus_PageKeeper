@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import nl.codingwithlinda.pagekeeper.core.domain.AppStateRepository
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookFormatValidator
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
@@ -21,11 +22,20 @@ import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interact
 class LibraryViewModel(
     private val bookRepository: BookRepository,
     private val bookParser: BookParser,
-    private val bookFormatValidator: BookFormatValidator
+    private val bookFormatValidator: BookFormatValidator,
+    private val appStateRepository: AppStateRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
     val state = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            appStateRepository.lastOpenedBookIsbn.collect { isbn ->
+                _state.update { it.copy(lastOpenedBookIsbn = isbn) }
+            }
+        }
+    }
 
     private val _events = Channel<LibraryEvent>()
     val events = _events.receiveAsFlow()

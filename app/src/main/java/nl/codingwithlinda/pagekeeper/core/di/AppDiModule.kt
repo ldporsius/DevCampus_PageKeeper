@@ -72,7 +72,7 @@ val appPresentationModule = module {
     viewModel(qualifier = named("favorites")) { BookListViewModel(get(), get(), get(), get(),BookFilter.Favorites) }
     viewModel(qualifier = named("finished")) { BookListViewModel(get(), get(), get(), get(),BookFilter.Finished) }
     viewModel(qualifier = named("search")) { BookListViewModel(get(), get(), get(), get(),BookFilter.All) }
-    viewModelOf(::LibraryViewModel)
+    viewModel { LibraryViewModel(get(), get(), get(), get()) }
     viewModelOf(::SearchViewModel)
     viewModelOf(::MultiSelectViewModel)
     viewModelOf(::ReadingControlsViewModel)

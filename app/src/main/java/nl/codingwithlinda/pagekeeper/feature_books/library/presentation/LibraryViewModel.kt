@@ -36,8 +36,6 @@ class LibraryViewModel(
 
     fun onAction(action: LibraryAction) {
         when (action) {
-            is LibraryAction.OnBookClick ->
-                viewModelScope.launch { _events.send(LibraryEvent.NavigateToDetail(action.isbn)) }
             is LibraryAction.OnImportBookClick ->
                 importJob = viewModelScope.launch {
                     if (!bookFormatValidator.isSupportedFormat(action.uri)) {

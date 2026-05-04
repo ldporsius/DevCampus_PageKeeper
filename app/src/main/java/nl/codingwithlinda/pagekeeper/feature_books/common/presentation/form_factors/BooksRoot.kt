@@ -64,9 +64,7 @@ fun BooksRoot(
                     onCancelImport = {
                         libraryViewModel.onAction(LibraryAction.CancelImport)
                     },
-                    onBookClick = { isbn ->
-                        libraryViewModel.onAction(LibraryAction.OnBookClick(isbn))
-                    },
+                    onBookClick = { isbn -> onNavigateToDetail(isbn) },
                     onAction = bookListViewModel::onAction
                 )
             }

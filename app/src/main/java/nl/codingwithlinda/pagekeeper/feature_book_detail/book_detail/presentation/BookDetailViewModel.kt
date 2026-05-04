@@ -53,34 +53,6 @@ class BookDetailViewModel(
 
     private suspend fun book() = bookRepository.getBookByISBN(isbn)
 
-    private val paginator = Paginator<Int, Section>(
-        initialKey = null,
-        onLoadUpdated = { isLoading ->
-            _state.update { it.copy(isLoading = isLoading) }
-        },
-        onRequest = { nextIndex ->
-            val book = book() ?: return@Paginator Result.Failure(BookParseError.NoPagesFound)
-            bookPager.loadSections(book, nextIndex)
-        },
-        getNextKey = {items->
-            items.lastOrNull()?.id ?: 0
-        },
-        onError = { error ->
-            _state.update {
-                it.copy(
-                    error = error?.toUi()
-                )
-            }
-        },
-        onSuccess = { items, newKey ->
-            val newMap = items.map { it.toPage() }.associateBy { it.sectionId }
-            _state.update {
-                it.copy(
-                    pages = it.pages + newMap,
-                )
-            }
-        }
-    )
 
     val listState = LazyListState()
 
@@ -171,18 +143,6 @@ class BookDetailViewModel(
             is Result.Success -> updateUiState(null)
         }
     }
-
-   /* private fun evictDistantSections(anchorSection: Int) {
-        _state.update { state ->
-            val evicted = state.pages.mapValues { (sectionId, page) ->
-                if (page !is Page.Loading
-                    && abs(sectionId - anchorSection) > evictionWindow
-                    && sectionId !in sectionsLoading
-                ) Page.Loading(sectionId) else page
-            }
-            state.copy(pages = evicted)
-        }
-    }*/
 
     private fun loadSections(anchorSection: Int) = viewModelScope.launch{
         val book = book() ?: return@launch

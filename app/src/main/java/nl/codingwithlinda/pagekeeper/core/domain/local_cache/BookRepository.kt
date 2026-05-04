@@ -13,5 +13,7 @@ interface BookRepository {
 
     suspend fun upsertBook(book: Book)
 
+    fun observeBook(ISBN: String): Flow<Book?>
+
     suspend fun deleteBook(ISBN: String)
 }

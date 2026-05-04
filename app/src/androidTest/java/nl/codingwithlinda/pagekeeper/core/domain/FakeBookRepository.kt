@@ -3,6 +3,7 @@ package nl.codingwithlinda.pagekeeper.core.domain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 
@@ -21,6 +22,9 @@ class FakeBookRepository(initialBooks: List<Book> = emptyList()) : BookRepositor
     override suspend fun upsertBook(book: Book) {
         _books.value = _books.value.filterNot { it.ISBN == book.ISBN } + book
     }
+
+    override fun observeBook(ISBN: String): Flow<Book?> =
+        _books.map { list -> list.find { it.ISBN == ISBN } }
 
     override suspend fun deleteBook(ISBN: String) {
         _books.value = _books.value.filterNot { it.ISBN == ISBN }

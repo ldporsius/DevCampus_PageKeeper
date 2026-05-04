@@ -1,16 +1,15 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain
 
 import kotlinx.coroutines.flow.Flow
-import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 
 interface BookPager {
 
-    suspend fun writePages(uri: String, book: Book, onProgress: suspend (written: Int, total: Int) -> Unit = { _, _ -> }): Result<Unit, BookParseError>
+    suspend fun writePages(uri: String, isbn: String, onProgress: suspend (written: Int, total: Int) -> Unit = { _, _ -> }): Result<Unit, BookParseError>
 
-    suspend fun loadSections(book: Book, sectionIndex: Int = 0): Result<List<Section>, BookParseError>
-    suspend fun hasPages(book: Book): Boolean
-    suspend fun countPages(book: Book): Int
-    suspend fun loadSection(book: Book, sectionIndex: Int): Flow<Section>
+    suspend fun loadSections(isbn: String, sectionIndex: Int = 0): Result<List<Section>, BookParseError>
+    suspend fun hasPages(isbn: String): Boolean
+    suspend fun countPages(isbn: String): Int
+    suspend fun loadSection(isbn: String, sectionIndex: Int): Flow<Section>
 
 }

@@ -31,6 +31,9 @@ internal class RoomBookRepository(
         dao.upsertBook(book.toEntity())
     }
 
+    override fun observeBook(ISBN: String): Flow<Book?> =
+        dao.observeBook(ISBN).map { it?.toDomain() }
+
     override suspend fun deleteBook(ISBN: String) {
         dao.deleteBook(ISBN)
         File(filesDir, "$ISBN.png").delete()

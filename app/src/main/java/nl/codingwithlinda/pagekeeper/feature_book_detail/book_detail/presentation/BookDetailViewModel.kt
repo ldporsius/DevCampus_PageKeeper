@@ -54,23 +54,27 @@ class BookDetailViewModel(
 
     private suspend fun book() = bookRepository.getBookByISBN(isbn)
 
-    private val book = bookRepository.books.filter { it.singleOrNull()?.ISBN == isbn }
+    private val book = bookRepository.observeBook(isbn).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
 
     val listState = LazyListState()
 
     init {
+        viewModelScope.launch {
+            book.collect { book ->
+                if (book == null) return@collect
+                _state.update { it.copy(book = book.toBookUi()) }
+            }
+        }
 
         viewModelScope.launch {
             val book = book() ?: return@launch
 
-            _state.update { it.copy(book = book.toBookUi()) }
-
-            if (!bookPager.hasPages(book) || isLegacyPages(book)) {
-                writePages(book)
+            if (!bookPager.hasPages(isbn) || isLegacyPages()) {
+                writePages()
             }
 
-            val totalSections = bookPager.countPages(book)
+            val totalSections = bookPager.countPages(isbn)
             val initialSection = book.currentSection
             val initialElementId = book.currentElementId
 
@@ -80,7 +84,7 @@ class BookDetailViewModel(
 
             val initPages = mutableMapOf<Int, Page>()
             loadingPages.onEach {
-                bookPager.loadSection(book, it.key)
+                bookPager.loadSection(isbn, it.key)
                     .collect { section ->
                         initPages += (section.id to section.toPage())
                     }
@@ -123,8 +127,8 @@ class BookDetailViewModel(
 
     // Pages written before per-element ids existed have all leaf ids == 0.
     // If we see >1 leaf element all sharing id 0, treat as legacy and reparse.
-    private suspend fun isLegacyPages(book: Book): Boolean {
-        val sections = (bookPager.loadSections(book, 0) as? Result.Success)?.data ?: return false
+    private suspend fun isLegacyPages(): Boolean {
+        val sections = (bookPager.loadSections(isbn, 0) as? Result.Success)?.data ?: return false
         val leafIds = sections.flatMap { it.leafIds() }
         return leafIds.size > 1 && leafIds.all { it == 0 }
     }
@@ -133,9 +137,9 @@ class BookDetailViewModel(
         if (it is Section) it.leafIds() else listOf(it.id)
     }
 
-    private suspend fun writePages(book: Book) {
+    private suspend fun writePages() {
         _state.update { it.copy(isLoading = false, isWriting = true) }
-        when (val result = bookPager.writePages(book.ISBN, book) { written, total ->
+        when (val result = bookPager.writePages(isbn, isbn) { written, total ->
             _state.update { it.copy(
                 writingProgress = written.toFloat() / total,
                 writingSectionsWritten = written,
@@ -150,12 +154,11 @@ class BookDetailViewModel(
     private fun loadSections(anchorSection: Int) = viewModelScope.launch{
         val book = book() ?: return@launch
         val first = (anchorSection - evictionWindow).coerceAtLeast(0)
-        val last = (anchorSection + evictionWindow).coerceAtMost(bookPager.countPages(book))
+        val last = (anchorSection + evictionWindow).coerceAtMost(bookPager.countPages(book.ISBN))
         val range = first until last
         for (i in range) {
             if (i in state.value.elementPages.map { it.sectionId }) continue
-            bookPager.loadSection(book, i).collect { section ->
-                println("---BOOK DETAIL VIEW MODEL --- LOADING SECTION ${section.id}")
+            bookPager.loadSection(book.ISBN, i).collect { section ->
                 _state.update { state ->
                     state.copy(pages = state.pages + (section.id to section.toPage()))
                 }

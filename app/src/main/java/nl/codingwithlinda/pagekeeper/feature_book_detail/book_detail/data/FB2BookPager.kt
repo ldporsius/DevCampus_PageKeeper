@@ -15,7 +15,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import nl.codingwithlinda.pagekeeper.core.data.util.sectionBetween
-import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Citation
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Epigraph
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.PageElement
@@ -124,10 +123,10 @@ class FB2BookPager(
     private val context: Context
 ): BookPager {
 
-    override suspend fun writePages(uri: String, book: Book, onProgress: suspend (written: Int, total: Int) -> Unit): Result<Unit, BookParseError> {
+    override suspend fun writePages(uri: String, isbn: String, onProgress: suspend (written: Int, total: Int) -> Unit): Result<Unit, BookParseError> {
         return withContext(Dispatchers.IO) {
             try {
-                val uri = Uri.fromFile(File(context.filesDir, "${book.ISBN}.fb2")).toString()
+                val uri = Uri.fromFile(File(context.filesDir, "$isbn.fb2")).toString()
                 context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
                     val bytes = runInterruptible { stream.readBytes() }
                     val body = bytes.sectionBetween("<body>", "</body>") ?: ""
@@ -144,7 +143,7 @@ class FB2BookPager(
                         ensureActive()
                         val inner = html.removePrefix("<section>").removeSuffix("</section>")
                         val section = parseSection(index, inner, idCounter)
-                        val file = File(context.filesDir, "${book.ISBN}_$index.json")
+                        val file = File(context.filesDir, "${isbn}_$index.json")
                         file.outputStream().use {
                             json.encodeToStream<List<Section>>(listOf(section), it)
                         }
@@ -168,17 +167,17 @@ class FB2BookPager(
     }
 
 
-    override suspend fun hasPages(book: Book): Boolean = withContext(Dispatchers.IO) {
-        sectionFiles(book).isNotEmpty()
+    override suspend fun hasPages(isbn: String): Boolean = withContext(Dispatchers.IO) {
+        sectionFiles(isbn).isNotEmpty()
     }
 
-    override suspend fun countPages(book: Book): Int = withContext(Dispatchers.IO) {
-        sectionFiles(book).size
+    override suspend fun countPages(isbn: String): Int = withContext(Dispatchers.IO) {
+        sectionFiles(isbn).size
     }
 
-    override suspend fun loadSections(book: Book, sectionIndex: Int): Result<List<Section>, BookParseError> = withContext(Dispatchers.IO) {
+    override suspend fun loadSections(isbn: String, sectionIndex: Int): Result<List<Section>, BookParseError> = withContext(Dispatchers.IO) {
        try {
-           val pagesRes= sectionFiles(book).getOrNull(sectionIndex).let { file ->
+           val pagesRes= sectionFiles(isbn).getOrNull(sectionIndex).let { file ->
                if (file == null) return@let Result.Failure(BookParseError.NoPagesFound)
                val list = file.inputStream().use {
                    ensureActive()
@@ -198,9 +197,9 @@ class FB2BookPager(
 
     }
 
-    override suspend fun loadSection(book: Book, sectionIndex: Int): Flow<Section> {
+    override suspend fun loadSection(isbn: String, sectionIndex: Int): Flow<Section> {
         return flow {
-            sectionFiles(book).getOrNull(sectionIndex).let { file ->
+            sectionFiles(isbn).getOrNull(sectionIndex).let { file ->
                 if (file == null) return@flow
                 file.inputStream().use {
                     json.decodeFromStream<List<Section>>(it) .forEach { section ->
@@ -211,10 +210,10 @@ class FB2BookPager(
         }.flowOn(Dispatchers.IO)
     }
 
-    private fun sectionFiles(book: Book): List<File> {
+    private fun sectionFiles(isbn: String): List<File> {
         return context.filesDir.listFiles()
-            ?.filter { it.name.startsWith("${book.ISBN}_") }
-            ?.sortedBy { it.name.removePrefix("${book.ISBN}_").removeSuffix(".json").toIntOrNull() ?: 0 }
+            ?.filter { it.name.startsWith("${isbn}_") }
+            ?.sortedBy { it.name.removePrefix("${isbn}_").removeSuffix(".json").toIntOrNull() ?: 0 }
             ?: emptyList()
     }
 

@@ -7,6 +7,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -53,10 +54,13 @@ class BookDetailViewModel(
 
     private suspend fun book() = bookRepository.getBookByISBN(isbn)
 
+    private val book = bookRepository.books.filter { it.singleOrNull()?.ISBN == isbn }
+
 
     val listState = LazyListState()
 
     init {
+
         viewModelScope.launch {
             val book = book() ?: return@launch
 

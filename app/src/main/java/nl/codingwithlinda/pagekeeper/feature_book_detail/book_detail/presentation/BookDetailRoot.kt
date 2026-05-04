@@ -40,6 +40,8 @@ import kotlinx.coroutines.flow.debounce
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailImmersiveScreen
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScaffold
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScreen
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.FontSizeIndicator
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.PaginationScrollListener
@@ -137,7 +139,12 @@ fun BookDetailRoot(
 
     when(state.readingMode){
         ReadingMode.IMMERSIVE -> {
-            content()
+            BookDetailImmersiveScreen(
+                state = state,
+                readingSettings = readingSettings,
+                listState = listState,
+                onTap = { viewModel.onAction(BookDetailAction.ToggleReadingMode) }
+            )
         }
         ReadingMode.CONTROLS -> {
             state.book?.let { book ->
@@ -157,134 +164,3 @@ fun BookDetailRoot(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BookDetailScaffold(
-    modifier: Modifier = Modifier,
-    state: BookDetailState,
-    readingSettings: ReadingSettings,
-    onAction: (ReadingControlAction) -> Unit,
-    onNavBack: () -> Unit = {},
-    content: @Composable () -> Unit
-) {
-    if (state.book == null) return
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(state.book.title,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        onNavBack()
-                    }) {
-                        Icon(
-                            painter = painterResource(R.drawable.back),
-                            contentDescription = "back_to_library"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        onAction(ReadingControlAction.ToggleFavorite(state.book.isbn ))
-
-                    }) {
-                        val icon = if (state.book.isFavorite) R.drawable.menu_favorites_active else R.drawable.favorites
-                        Icon(
-                            painter = painterResource(icon),
-                            contentDescription = "mark_favorite"
-                        )
-                    }
-                }
-            )
-        },
-
-        ) {innerPadding ->
-
-        var showAdjustFontSize by rememberSaveable(state.readingMode) {
-            mutableStateOf(false)
-        }
-        var thumbBounds by remember { mutableStateOf(Rect.Zero) }
-        var trackBounds by remember { mutableStateOf(Rect.Zero) }
-
-        val valueRange = typographySliderRange()
-
-        val sliderState = rememberSliderState(
-            value = readingSettings.fontSize,
-            valueRange = valueRange,
-        )
-
-        LaunchedEffect(readingSettings.fontSize) {
-            sliderState.value = readingSettings.fontSize
-        }
-
-        Column(modifier = Modifier
-            .safeContentPadding()
-            .consumeWindowInsets(innerPadding)
-        ) {
-            Box(modifier = Modifier.weight(1f)) {
-                content()
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-            ) {
-
-                val device = rememberDeviceConfig()
-                val listControls = device.deviceType.toReadingControls().map {
-                    when(it){
-                        ReadingControl.AUTO_ROTATE -> {
-                            AutoRotateControl(
-                                setting = readingSettings.orientation,
-                                onAction = { onAction(ReadingControlAction.ToggleAutoRotate) }
-                            )
-                        }
-                        ReadingControl.FONT_SIZE -> {
-                            FontSizeControl(
-                                onAction = { showAdjustFontSize = true }
-                            )
-                        }
-                    }
-                }
-                if (showAdjustFontSize) {
-                    FontSizeIndicator(
-                        fontSize = readingSettings.fontSize,
-                        thumbBounds = thumbBounds,
-                        trackBounds = trackBounds,
-                        valueRange = valueRange,
-                        sliderState = sliderState,
-                        onAction = onAction,
-                    )
-                }
-
-                ReadingControlsAdaptive(
-                    collapsed = !showAdjustFontSize,
-                    contentCollapsed = {
-                        ControlsRow(
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            items = listControls
-                        )
-                    },
-                    contentExpanded = {
-                        FontSizeSlider(
-                            modifier = Modifier,
-                            sliderState = sliderState,
-                            currentFontSize = readingSettings.fontSize,
-                            valueRange = valueRange,
-                            onSizeChange = { onAction(ReadingControlAction.AdjustFontSize(it)) },
-                            onThumbPositioned = { thumbBounds = it },
-                            onTrackPositioned = { trackBounds = it }
-                        )
-                    }
-
-                )
-            }
-        }
-    }
-}

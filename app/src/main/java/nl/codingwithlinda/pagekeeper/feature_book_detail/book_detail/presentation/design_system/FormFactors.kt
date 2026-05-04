@@ -20,7 +20,6 @@ fun PhoneLayout(
 ) {
     Box(modifier = modifier
         .then(Modifier
-            .fillMaxSize()
             .padding(horizontal = 12.dp)
 
         )

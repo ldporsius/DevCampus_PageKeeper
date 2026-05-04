@@ -62,8 +62,6 @@ fun BookDetailScreen(
 ) {
     Box(
         modifier = modifier
-            .fillMaxSize()
-            .safeContentPadding()
             .testTag("book_detail_screen")
     ) {
         if (state.isWriting) {

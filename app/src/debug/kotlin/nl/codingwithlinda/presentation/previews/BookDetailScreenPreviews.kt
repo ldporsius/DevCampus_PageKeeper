@@ -8,11 +8,9 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Cita
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailRoot
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailScaffold
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScaffold
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScreen
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.FormFactorWrapper
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.ElementTextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.FormattedLine
@@ -112,6 +110,7 @@ private fun BookDetailPhonePortraitPreview() {
         }
     }
 }
+
 
 @Preview(name = "Phone — Landscape", device = "spec:width=891dp,height=411dp,dpi=420,orientation=landscape", showBackground = true)
 @Composable

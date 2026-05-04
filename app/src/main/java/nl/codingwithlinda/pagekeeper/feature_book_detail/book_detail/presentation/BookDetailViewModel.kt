@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import nl.codingwithlinda.pagekeeper.core.domain.AppStateRepository
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
@@ -36,7 +37,8 @@ import kotlin.math.abs
 class BookDetailViewModel(
     private val isbn: String,
     private val bookRepository: BookRepository,
-    private val bookPager: BookPager
+    private val bookPager: BookPager,
+    private val appStateRepository: AppStateRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookDetailState())
@@ -69,6 +71,8 @@ class BookDetailViewModel(
 
         viewModelScope.launch {
             val book = book() ?: return@launch
+
+            appStateRepository.setLastOpenedBook(isbn)
 
             if (!bookPager.hasPages(isbn) || isLegacyPages()) {
                 writePages()
@@ -111,7 +115,7 @@ class BookDetailViewModel(
                     val sectionId = state.value.elementPages.firstOrNull { page ->
                         page.elements.any { it.element.id == action.elementId }
                     }?.sectionId ?: return@launch
-                    println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED elementId ${action.elementId} in section $sectionId, orientation ${action.orientation}")
+                    //println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED elementId ${action.elementId} in section $sectionId, orientation ${action.orientation}")
                     _state.update { it.copy(currentSection = sectionId, currentElementId = action.elementId) }
                     loadSections(sectionId)
                     bookRepository.upsertBook(book.copy(currentSection = sectionId, currentElementId = action.elementId))

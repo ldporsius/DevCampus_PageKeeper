@@ -88,8 +88,8 @@ fun BooksRootExpandedWidth(
         BookListSideEffects(bookListViewModel)
         BookImportSideEffects(onNavigateToDetail = onNavigateToDetail)
 
-        BoxWithConstraints (modifier = Modifier.fillMaxSize()
-
+        BoxWithConstraints (
+            modifier = Modifier.fillMaxSize()
         ) {
             val mw = maxWidth
 
@@ -144,8 +144,8 @@ fun BooksRootExpandedWidth(
                                 onCancelImport = {
                                     libraryViewModel.onAction(LibraryAction.CancelImport)
                                 },
-                                onBookClick = {
-                                        onNavigateToDetail(it)
+                                onBookClick = { isbn ->
+                                    libraryViewModel.onAction(LibraryAction.OnBookClick(isbn))
                                 },
                                 onAction = bookListViewModel::onAction
                             )

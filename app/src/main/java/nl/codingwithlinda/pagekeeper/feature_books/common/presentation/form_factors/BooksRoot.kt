@@ -7,12 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.launch
-import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
-import nl.codingwithlinda.pagekeeper.core.navigation.NavigationMenuAction
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookImportSideEffects
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.components.BookItemsGrid
@@ -23,9 +19,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.finished.presentation.compone
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.components.EmptyLibraryContent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
-import nl.codingwithlinda.pagekeeper.core.navigation.BookDetailRoute
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
 
 @Composable
@@ -37,9 +31,6 @@ fun BooksRoot(
 ) {
     val state by bookListViewModel.state.collectAsStateWithLifecycle()
     val libraryState by libraryViewModel.state.collectAsStateWithLifecycle()
-
-    val controller = koinInject<MenuActionController>()
-    val scope = rememberCoroutineScope()
 
     val emptyContent: @Composable ()-> Unit = {
             when(state.filter){
@@ -73,8 +64,8 @@ fun BooksRoot(
                     onCancelImport = {
                         libraryViewModel.onAction(LibraryAction.CancelImport)
                     },
-                    onBookClick = {
-                            isbn -> scope.launch { controller.onAction(NavigationMenuAction(BookDetailRoute(isbn))) }
+                    onBookClick = { isbn ->
+                        libraryViewModel.onAction(LibraryAction.OnBookClick(isbn))
                     },
                     onAction = bookListViewModel::onAction
                 )

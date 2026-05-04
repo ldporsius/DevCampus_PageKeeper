@@ -10,6 +10,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.PageKeeperDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.RoomBookRepository
 import nl.codingwithlinda.pagekeeper.core.data.remote.ContentResolverBookFormatValidator
+import nl.codingwithlinda.pagekeeper.core.data.DataStoreAppStateRepository
+import nl.codingwithlinda.pagekeeper.core.domain.AppStateRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.DataStoreReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FB2BookPager
 import nl.codingwithlinda.pagekeeper.core.data.remote.FB2BookParser
@@ -62,6 +64,7 @@ val appDataModule = module {
         )
     }
     single<ReadingSettingsRepository> { DataStoreReadingSettingsRepository(get()) }
+    single<AppStateRepository> { DataStoreAppStateRepository(get()) }
 }
 
 val appPresentationModule = module {
@@ -73,5 +76,5 @@ val appPresentationModule = module {
     viewModelOf(::SearchViewModel)
     viewModelOf(::MultiSelectViewModel)
     viewModelOf(::ReadingControlsViewModel)
-    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get()) }
+    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get(), get()) }
 }

@@ -90,7 +90,6 @@ class BookDetailViewModel(
                     isLoading = false,
                 )
             }
-
         }
     }
 

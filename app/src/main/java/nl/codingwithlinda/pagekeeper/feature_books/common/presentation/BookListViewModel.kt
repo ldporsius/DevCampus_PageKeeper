@@ -62,7 +62,8 @@ class BookListViewModel(
                             }
                             .sortedByDescending { it.dateCreated }
                             .map { book ->
-                                val readingProgress = book.currentSection.toFloat() / bookPager.countPages(book)
+                                val actualReadingProgress = book.currentSection.toFloat() / bookPager.countPages(book)
+                                val readingProgress = if (book.isFinished) 1f else actualReadingProgress
                                 book.toBookUi()
                                     .copy(
                                         readingProgress = readingProgress
@@ -95,7 +96,11 @@ class BookListViewModel(
             }
             is BookListItemAction.FinishClick -> viewModelScope.launch{
                 bookRepository.getBookByISBN(action.isbn)?.let { book ->
-                    bookRepository.upsertBook(book.copy(isFinished = !book.isFinished))
+                    bookRepository.upsertBook(
+                        book.copy(
+                            isFinished = !book.isFinished
+                        )
+                    )
                 }
             }
             is BookListItemAction.ShareClick -> {

@@ -3,6 +3,7 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.LinearProgressIndicator
@@ -41,7 +42,8 @@ fun BookDetailImmersiveScreen(
             )
 
             val readingProgress = state.readingProgress
-            LinearProgressIndicator(progress = { readingProgress })
+
+            LinearProgressIndicator(progress = { readingProgress }, modifier = Modifier.fillMaxWidth())
         }
     }
 }

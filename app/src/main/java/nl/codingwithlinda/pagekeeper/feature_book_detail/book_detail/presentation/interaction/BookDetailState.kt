@@ -23,13 +23,6 @@ data class BookDetailState(
 ){
     fun sortedPages() = pages.values.sortedBy { it.sectionId }
 
-    val paragraphs = pages.values.map {
-        when(it){
-            is Page.ElementPage -> it.elements
-            else -> {
-                emptyList()
-            }
-        }
-    }.flatten()
+    val elementPages = sortedPages().filterIsInstance<Page.ElementPage>()
 
 }

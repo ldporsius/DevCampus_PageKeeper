@@ -103,29 +103,6 @@ fun BookDetailScreen(
 
         val sortedPages = state.sortedPages()
 
-       /* LazyColumn(state = listState) {
-            items(
-                sortedPages,
-                key = { page -> page.sectionId }
-            ){ page ->
-                when(page){
-                    is Page.Loading -> {
-                        LaunchedEffect(page.sectionId) {
-                            onAction(BookDetailAction.LoadSection(page.sectionId))
-                        }
-                        Spacer(modifier = Modifier.height(800.dp))
-                    }
-                    is ElementPage -> {
-                        page.elements.take(1).forEach {
-                            it.toScaledText(readingSettings.fontSize)
-                        }
-                    }
-                    is Page.ImagePage -> {
-                        AsyncImage(model = page.href, contentDescription = null)
-                    }
-                }
-            }
-        }*/
        LazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
@@ -134,13 +111,16 @@ fun BookDetailScreen(
                 when (page) {
                     is Page.Loading -> item(key = "${page.sectionId}") {
                         LaunchedEffect(page.sectionId) {
-                            onAction(BookDetailAction.LoadSection(page.sectionId))
+                            //obsolete
                         }
                         Box(modifier = Modifier
-                            .fillMaxWidth()){
+                            .fillMaxWidth()
+                            .height(800.dp),
+                            contentAlignment = Alignment.Center
+                        )
+                        {
                             CircularProgressIndicator()
                         }
-                        //Spacer(modifier = Modifier.height(800.dp))
                     }
                     /*is ElementPage -> itemsIndexed(
                         items = page.elements,
@@ -151,7 +131,7 @@ fun BookDetailScreen(
                     is ElementPage -> item(
                         key = "${page.sectionId}"
                     ) {
-                        page.elements.take(10).forEach {
+                        page.elements.take(100).forEach {
                             it.toScaledText(readingSettings.fontSize)
                         }
                     }
@@ -192,11 +172,11 @@ private fun BookDetailScreenPreview() {
                         sectionId = 0,
                         elements = listOf(
                             ElementTextSpan(
-                                element = Title("The Great Gatsby"),
+                                element = Title(text = "The Great Gatsby"),
                                 lines = listOf(FormattedLine(listOf(TextSpan(text = "The Great Gatsby"))))
                             ),
                             ElementTextSpan(
-                                element = BookParagraph("by F. Scott Fitzgerald"),
+                                element = BookParagraph(text = "by F. Scott Fitzgerald"),
                                 lines = listOf(FormattedLine(listOf(
                                     TextSpan(text = "by ", emphasis = true),
                                     TextSpan(text = "F. Scott Fitzgerald")

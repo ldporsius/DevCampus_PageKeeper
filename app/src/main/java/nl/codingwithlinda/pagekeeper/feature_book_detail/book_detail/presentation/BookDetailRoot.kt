@@ -42,6 +42,7 @@ import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememb
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScreen
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.FontSizeIndicator
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.PaginationScrollListener
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.FormFactorWrapper
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toReadingControls
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.typographySliderRange
@@ -87,7 +88,7 @@ fun BookDetailRoot(
 
     var scrollSettled by rememberSaveable(state.book?.formattedDate) { mutableStateOf(false) }
 
-    LaunchedEffect(state.currentSection) {
+    LaunchedEffect(scrollSettled, state.currentSection) {
         if (!scrollSettled  && state.currentSection >= 0) {
             println("--- BOOK DETAIL --- SCROLLING TO SECTION ${state.currentSection} at position ${state.currentSectionOffset}")
            listState.scrollToItem(
@@ -98,30 +99,24 @@ fun BookDetailRoot(
         }
     }
 
-    val nearTop by remember {
-        derivedStateOf { listState.firstVisibleItemIndex == 0 }
-    }
-    val nearBottom by remember {
+    val hasScrolled by remember {
         derivedStateOf {
-            val lastIndex  = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: return@derivedStateOf false
-            val total = listState.layoutInfo.totalItemsCount
-            lastIndex >= total -2
+           listState.firstVisibleItemScrollOffset != state.currentSectionOffset
         }
     }
 
     // Save reading position once the initial scroll has settled
-    LaunchedEffect(nearTop, nearBottom) {
-        println("--- BOOK DETAIL --- SCROLL SETTLED: $scrollSettled")
-        if (!scrollSettled) return@LaunchedEffect
+    LaunchedEffect(hasScrolled) {
+        if (!hasScrolled) return@LaunchedEffect
         snapshotFlow {
-            val firstItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
+            val firstItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
             val key = firstItem?.key as? String ?: ""
             val sectionId = key.toIntOrNull() ?: -1
-            val offset = listState.firstVisibleItemScrollOffset
+            val offset = firstItem?.offset ?: 0
             sectionId to offset
         }.debounce(500)
             .collect { (sectionId, offset) ->
-                println("--- BOOK DETAIL --- firstItem. sectionId = $sectionId, paragraphId = $offset")
+                println("--- BOOK DETAIL --- firstItem. sectionId = $sectionId, OFFSET = $offset")
 
                 if (sectionId != -1) {
                     val orientation = configuration.orientation

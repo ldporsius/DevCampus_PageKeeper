@@ -93,10 +93,6 @@ fun ElementTextSpan.toScaledText(rawSliderValue: Float) {
     }
 }
 
-@Composable
-fun Page.ElementPage.toScaledText(rawSliderValue: Float) {
-    this.elements.forEach { it.toScaledText(rawSliderValue) }
-}
 
 @Composable
 private fun HalfLineSpace() {

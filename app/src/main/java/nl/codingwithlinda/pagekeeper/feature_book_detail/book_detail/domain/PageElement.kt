@@ -4,12 +4,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface PageElement {
+    val id: Int
     fun toPlainText(): String
 }
 
 @Serializable
 data class Section(
-    val id: Int = 0,
+    override val id: Int = 0,
     val elements: List<PageElement> = emptyList()
 ) : PageElement {
     override fun toPlainText(): String = elements.joinToString("") { it.toPlainText() }
@@ -18,21 +19,21 @@ data class Section(
 typealias BookParagraph = Paragraph
 
 @Serializable
-data class Paragraph(val text: String) : PageElement {
+data class Paragraph(override val id: Int = 0, val text: String) : PageElement {
     override fun toPlainText(): String = text
 }
 
 @Serializable
-data class Title(val text: String) : PageElement {
+data class Title(override val id: Int = 0, val text: String) : PageElement {
     override fun toPlainText(): String = text
 }
 
 @Serializable
-data class Citation(val text: String) : PageElement {
+data class Citation(override val id: Int = 0, val text: String) : PageElement {
     override fun toPlainText(): String = text
 }
 
 @Serializable
-data class Epigraph(val text: String) : PageElement {
+data class Epigraph(override val id: Int = 0, val text: String) : PageElement {
     override fun toPlainText(): String = text
 }

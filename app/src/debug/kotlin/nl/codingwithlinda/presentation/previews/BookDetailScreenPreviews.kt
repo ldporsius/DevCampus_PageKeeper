@@ -33,12 +33,12 @@ private val tomSawyerBook = BookUi(
 private val tomSawyerPage = ElementPage(
     elements = listOf(
         ElementTextSpan(
-            element = Title("Chapter I — Y-O-U-T-H"),
+            element = Title(text = "Chapter I — Y-O-U-T-H"),
             lines = listOf(FormattedLine(listOf(TextSpan(text = "Chapter I — Y-O-U-T-H"))))
         ),
         ElementTextSpan(
             element = Paragraph(
-                "\"TOM!\" No answer. \"TOM!\" No answer. \"What's gone with that boy, I wonder? You TOM!\""
+                text = "\"TOM!\" No answer. \"TOM!\" No answer. \"What's gone with that boy, I wonder? You TOM!\""
             ),
             lines = listOf(
                 FormattedLine(listOf(
@@ -52,7 +52,7 @@ private val tomSawyerPage = ElementPage(
         ),
         ElementTextSpan(
             element = Paragraph(
-                "The old lady pulled her spectacles down and looked over them about the room; then she put them up and looked out under them. She seldom or never looked through them for so small a thing as a boy."
+                text = "The old lady pulled her spectacles down and looked over them about the room; then she put them up and looked out under them. She seldom or never looked through them for so small a thing as a boy."
             ),
             lines = listOf(
                 FormattedLine(listOf(
@@ -64,7 +64,7 @@ private val tomSawyerPage = ElementPage(
         ),
         ElementTextSpan(
             element = Citation(
-                "There are lies, damned lies, and statistics. — Mark Twain"
+                text = "There are lies, damned lies, and statistics. — Mark Twain"
             ),
             lines = listOf(
                 FormattedLine(listOf(
@@ -75,7 +75,7 @@ private val tomSawyerPage = ElementPage(
         ),
         ElementTextSpan(
             element = Paragraph(
-                "Tom appeared on the sidewalk with a bucket of whitewash and a long-handled brush. He surveyed the fence, and all gladness left him and a deep melancholy settled down upon his spirit."
+                text = "Tom appeared on the sidewalk with a bucket of whitewash and a long-handled brush. He surveyed the fence, and all gladness left him and a deep melancholy settled down upon his spirit."
             ),
             lines = listOf(
                 FormattedLine(listOf(

@@ -28,6 +28,10 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Book
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 
+
+private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
+
+
 private val json = Json { ignoreUnknownKeys = true }
 
 private val pRegex              = Regex("<p>(.*?)</p>",                     RegexOption.DOT_MATCHES_ALL)
@@ -40,11 +44,11 @@ private val firstStrongPRegex   = Regex(
 )
 
 private val elementParsers: List<Pair<Regex, (MatchResult) -> PageElement>> = listOf(
-    titleRegex        to { m -> Title(pRegex.replace(m.groupValues[1], "$1").trim()) },
-    firstStrongPRegex to { m -> Title(m.groupValues[1].trim()) },
-    citeRegex         to { m -> Citation(pRegex.replace(m.groupValues[1], "$1").trim()) },
-    epigraphRegex     to { m -> Epigraph(pRegex.replace(m.groupValues[1], "$1").trim()) },
-    pRegex            to { m -> Paragraph(m.value) }
+    titleRegex        to { m -> Title(text = pRegex.replace(m.groupValues[1], "$1").trim()) },
+    firstStrongPRegex to { m -> Title(text = m.groupValues[1].trim()) },
+    citeRegex         to { m -> Citation(text = pRegex.replace(m.groupValues[1], "$1").trim()) },
+    epigraphRegex     to { m -> Epigraph(text = pRegex.replace(m.groupValues[1], "$1").trim()) },
+    pRegex            to { m -> Paragraph(text = m.value) }
 )
 
 internal fun parseElements(body: String): List<PageElement> {
@@ -93,8 +97,6 @@ internal suspend fun findTopLevelSections(body: String): List<String> = withCont
 class FB2BookPager(
     private val context: Context
 ): BookPager {
-    private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
-
 
     override suspend fun writePages(uri: String, book: Book, onProgress: suspend (written: Int, total: Int) -> Unit): Result<Unit, BookParseError> {
         return withContext(Dispatchers.IO) {
@@ -103,9 +105,6 @@ class FB2BookPager(
                 context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
                     val bytes = runInterruptible { stream.readBytes() }
                     val body = bytes.sectionBetween("<body>", "</body>") ?: ""
-
-                    val hasTitles = body.contains("<title>")
-                    println("--- FN2 BOOK PAGER HAS TITLES --- $hasTitles")
 
                     val topLevelSections = findTopLevelSections(body)
 
@@ -151,7 +150,7 @@ class FB2BookPager(
                 parseSection(sectionId * 100 + index, inner)
             }
         }
-        return Section(sectionId, elements)
+        return Section(id = sectionId, elements = elements)
     }
 
 

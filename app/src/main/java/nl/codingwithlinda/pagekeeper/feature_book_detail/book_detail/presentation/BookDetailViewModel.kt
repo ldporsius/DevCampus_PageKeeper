@@ -19,8 +19,8 @@ import nl.codingwithlinda.pagekeeper.core.domain.util.map
 import nl.codingwithlinda.pagekeeper.core.domain.util.onFailure
 import nl.codingwithlinda.pagekeeper.core.domain.util.onSuccess
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.Orientation
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.LazyBookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.PageElement
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.util.Paginator
@@ -36,7 +36,7 @@ import kotlin.math.abs
 class BookDetailViewModel(
     private val isbn: String,
     private val bookRepository: BookRepository,
-    private val bookPager: LazyBookPager
+    private val bookPager: BookPager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookDetailState())
@@ -50,22 +50,21 @@ class BookDetailViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
-    private val sectionsLoading = mutableSetOf<Int>()
     private val evictionWindow = 3
 
     private suspend fun book() = bookRepository.getBookByISBN(isbn)
 
     private val paginator = Paginator<Int, Section>(
-        initialKey = 0,
+        initialKey = null,
         onLoadUpdated = { isLoading ->
             _state.update { it.copy(isLoading = isLoading) }
         },
         onRequest = { nextIndex ->
             val book = book() ?: return@Paginator Result.Failure(BookParseError.NoPagesFound)
-            bookPager.loadPages(book, nextIndex)
+            bookPager.loadSections(book, nextIndex)
         },
         getNextKey = {items->
-          _state.value.pages.filter { it.value is Page.Loading }.minBy { it.key }.key
+            items.lastOrNull()?.id ?: 0
         },
         onError = { error ->
             _state.update {
@@ -75,9 +74,7 @@ class BookDetailViewModel(
             }
         },
         onSuccess = { items, newKey ->
-            println("--- PAGINATOR ON SUCCESS. items.size = ${items.size}, newKey = $newKey")
             val newMap = items.map { it.toPage() }.associateBy { it.sectionId }
-            println("--- PAGINATOR ON SUCCESS. newMap = ${newMap.keys}")
             _state.update {
                 it.copy(
                     pages = it.pages + newMap,
@@ -102,48 +99,37 @@ class BookDetailViewModel(
             val initialSection = book.currentSection
             val initialSectionOffset = book.currentSectionOffset
 
-           val loadingPages = (0 until totalSections).associateWith { i -> Page.Loading(i) }
+            val evictionFirst = (initialSection - evictionWindow).coerceAtLeast(0)
+            val evictionLast = (initialSection + evictionWindow).coerceAtMost(totalSections)
+            val loadingPages = (evictionFirst until evictionLast).associateWith { i -> Page.Loading(i) }
 
-            val firstPage = initialSection to Page.Loading(initialSection)
-
-            paginator.setInitialKey(initialSection)
-            listState.scrollToItem(initialSection)
-            _state.update {
-                it.copy(
-                    pages = loadingPages,
-                    currentSection = initialSection,
-                    currentSectionOffset = initialSectionOffset,
+            val initPages = mutableMapOf<Int, Page>()
+            loadingPages.onEach {
+                bookPager.loadSection(book, it.key)
+                    .collect { section ->
+                        initPages += (section.id to section.toPage())
+                    }
+            }
+            _state.update {state ->
+                state.copy(
+                    pages = initPages,
                     totalSections = totalSections,
-                    isLoading = false,
                 )
             }
+            val scrollTo = state.value.elementPages.indexOfFirst { it.sectionId == initialSection }
+
+            _state.update {
+                it.copy(
+                    currentSection = scrollTo,
+                    currentSectionOffset = initialSectionOffset,
+                )
+            }
+
         }
     }
 
     fun onAction(action: BookDetailAction) {
         when (action) {
-            is BookDetailAction.LoadSection -> {
-                if (_state.value.pages[action.sectionId] !is Page.Loading) return
-                if (!sectionsLoading.add(action.sectionId)) return
-                viewModelScope.launch {
-                    while
-                        (_state.value.isLoading
-                    ){
-                        delay(100)
-                    }
-                    println("---BOOK DETAIL VIEW MODEL --- LOADING SECTION ${action.sectionId}")
-                    _state.update {
-                        it.copy(currentSection = action.sectionId)
-                    }
-                    try {
-                        paginator.setInitialKey(action.sectionId)
-                       paginator.loadNextItems()
-                    } finally {
-                        sectionsLoading.remove(action.sectionId)
-                        _state.update { it.copy(isLoading = false) }
-                    }
-                }
-            }
 
             is BookDetailAction.PlaceBookmark -> {
                 viewModelScope.launch {
@@ -155,7 +141,8 @@ class BookDetailViewModel(
                     }
                     println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED SECTION ${action.sectionId}, offset ${action.scrollOffset}," +
                             " orientation ${action.orientation}, orientationDomain $orientationDomain")
-                    //_state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
+                    _state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
+                    loadSections(action.sectionId)
                     bookRepository.upsertBook(book.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset))
                 }
             }
@@ -182,7 +169,7 @@ class BookDetailViewModel(
         }
     }
 
-    private fun evictDistantSections(anchorSection: Int) {
+   /* private fun evictDistantSections(anchorSection: Int) {
         _state.update { state ->
             val evicted = state.pages.mapValues { (sectionId, page) ->
                 if (page !is Page.Loading
@@ -191,6 +178,22 @@ class BookDetailViewModel(
                 ) Page.Loading(sectionId) else page
             }
             state.copy(pages = evicted)
+        }
+    }*/
+
+    private fun loadSections(anchorSection: Int) = viewModelScope.launch{
+        val book = book() ?: return@launch
+        val first = (anchorSection - evictionWindow).coerceAtLeast(0)
+        val last = (anchorSection + evictionWindow).coerceAtMost(bookPager.countPages(book))
+        val range = first until last
+        for (i in range) {
+            if (i in state.value.elementPages.map { it.sectionId }) continue
+            bookPager.loadSection(book, i).collect { section ->
+                println("---BOOK DETAIL VIEW MODEL --- LOADING SECTION ${section.id}")
+                _state.update { state ->
+                    state.copy(pages = state.pages + (section.id to section.toPage()))
+                }
+            }
         }
     }
 

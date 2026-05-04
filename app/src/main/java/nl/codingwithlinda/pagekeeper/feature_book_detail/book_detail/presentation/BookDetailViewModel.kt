@@ -91,6 +91,7 @@ class BookDetailViewModel(
             }
             _state.update {state ->
                 state.copy(
+                    book = book.toBookUi(),
                     pages = initPages,
                     totalSections = totalSections,
                     currentSection = initialSection,
@@ -152,13 +153,14 @@ class BookDetailViewModel(
     }
 
     private fun loadSections(anchorSection: Int) = viewModelScope.launch{
-        val book = book() ?: return@launch
+        val total = bookPager.countPages(isbn)
         val first = (anchorSection - evictionWindow).coerceAtLeast(0)
-        val last = (anchorSection + evictionWindow).coerceAtMost(bookPager.countPages(book.ISBN))
+        val last = (state.value.elementPages.last().sectionId + evictionWindow).coerceAtMost(total)
         val range = first until last
+        println("--- LOAD SECTIONS --- range: $range, total: $total")
         for (i in range) {
             if (i in state.value.elementPages.map { it.sectionId }) continue
-            bookPager.loadSection(book.ISBN, i).collect { section ->
+            bookPager.loadSection(isbn, i).collect { section ->
                 _state.update { state ->
                     state.copy(pages = state.pages + (section.id to section.toPage()))
                 }

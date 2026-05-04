@@ -32,7 +32,7 @@ data class BookDetailState(
         }
     }
 
-    val actualReadingProgress = currentSection.toFloat() / totalSections
+    private val actualReadingProgress = currentSection.toFloat() / totalSections
     val readingProgress = if (book?.isFinished == true) 1f else actualReadingProgress
 
 }

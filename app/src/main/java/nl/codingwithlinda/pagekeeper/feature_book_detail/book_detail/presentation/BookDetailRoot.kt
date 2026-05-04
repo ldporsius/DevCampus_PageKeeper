@@ -105,16 +105,17 @@ fun BookDetailRoot(
     val hasScrolled by remember {
         derivedStateOf { listState.firstVisibleItemIndex != state.currentElementId }
     }
-    // Save reading position once the initial scroll has settled
+
     LaunchedEffect(hasScrolled) {
-        if (!hasScrolled) return@LaunchedEffect
+        //if (!hasScrolled) return@LaunchedEffect
         snapshotFlow {
             val firstItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
             (firstItem?.key as? String)?.toIntOrNull() ?: -1
         }.debounce(500)
             .collect { elementId ->
+                println("--- BOOK DETAIL --- firstItem. elementId = $elementId")
+
                 if (elementId != -1) {
-                    println("--- BOOK DETAIL --- firstItem. elementId = $elementId")
                     val orientation = configuration.orientation
                     viewModel.onAction(BookDetailAction.PlaceBookmark(elementId, orientation))
                 }

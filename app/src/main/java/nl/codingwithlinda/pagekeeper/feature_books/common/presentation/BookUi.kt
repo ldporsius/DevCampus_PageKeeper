@@ -12,11 +12,13 @@ data class BookUi(
     val imgUrl: String,
     val formattedDate: String,
     val isFavorite: Boolean = false,
-    val isFinished: Boolean = false
+    val isFinished: Boolean = false,
+    val readingProgress: Float = 0f
 )
 
 fun Book.toBookUi(): BookUi {
     val formatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+    val readingProgress = 
     return BookUi(
         isbn = ISBN,
         title = title,

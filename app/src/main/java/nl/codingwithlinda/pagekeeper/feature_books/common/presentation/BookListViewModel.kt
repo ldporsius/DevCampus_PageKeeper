@@ -16,10 +16,12 @@ import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
 import nl.codingwithlinda.pagekeeper.core.navigation.NavigationMenuAction
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 import nl.codingwithlinda.pagekeeper.core.navigation.MultiSelectRoute
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 
 class BookListViewModel(
     val savedStateHandle: SavedStateHandle,
     private val bookRepository: BookRepository,
+    private val bookPager: BookPager,
     private val menuActionController: MenuActionController,
     initialFilter: BookFilter = BookFilter.All
 ) : ViewModel() {
@@ -33,10 +35,6 @@ class BookListViewModel(
     private val _shareEvents = Channel<BookUi>()
     val shareEvents = _shareEvents.receiveAsFlow()
 
-
-    fun setFilter(filter: BookFilter) {
-        savedStateHandle[KEY_FILTER] = filter
-    }
 
    init {
         // Set the filter synchronously before getStateFlow is called so the first
@@ -63,7 +61,13 @@ class BookListViewModel(
                                 }
                             }
                             .sortedByDescending { it.dateCreated }
-                            .map { it.toBookUi() }
+                            .map { book ->
+                                val readingProgress = book.currentSection.toFloat() / bookPager.countPages(book)
+                                book.toBookUi()
+                                    .copy(
+                                        readingProgress = readingProgress
+                                    )
+                            }
 
                     )
                 }

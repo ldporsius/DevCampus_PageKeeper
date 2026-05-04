@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
+package nl.codingwithlinda.pagekeeper.feature_books.common.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +12,8 @@ import androidx.compose.ui.unit.dp
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.DeviceType
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListItemPlaceholder
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 
 @Composable

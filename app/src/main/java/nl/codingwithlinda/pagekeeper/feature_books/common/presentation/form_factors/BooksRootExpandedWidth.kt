@@ -1,10 +1,7 @@
 package nl.codingwithlinda.pagekeeper.feature_books.common.presentation.form_factors
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -35,7 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookImportSideEffects
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookItemsGrid
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.components.BookItemsGrid
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListSideEffects
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.favorites.presentation.components.EmptyFavoritesContent

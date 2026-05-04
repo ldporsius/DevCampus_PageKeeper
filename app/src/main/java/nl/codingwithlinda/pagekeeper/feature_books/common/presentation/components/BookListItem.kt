@@ -1,4 +1,4 @@
-package nl.codingwithlinda.pagekeeper.feature_books.common.presentation
+package nl.codingwithlinda.pagekeeper.feature_books.common.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,6 +36,7 @@ import coil3.compose.AsyncImage
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.lora
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 
 @Composable
@@ -101,6 +103,12 @@ fun BookListItem(
 
                     Spacer(modifier = Modifier.weight(1f))
 
+                    LinearProgressIndicator(
+                        progress = {
+                            book.readingProgress
+                        }
+                    )
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -159,7 +167,8 @@ private fun PreviewBookListItem() {
                     title = "The Adventures of Tom Sawyer",
                     author = "Mark Twain",
                     imgUrl = "https://covers.openlibrary.org/b/olid/OL7353617M-M.jpg",
-                    formattedDate = "Apr 1, 2026"
+                    formattedDate = "Apr 1, 2026",
+                    readingProgress = .5f
                 ),
                 onAction = {}
             )

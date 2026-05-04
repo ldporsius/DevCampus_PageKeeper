@@ -107,7 +107,6 @@ private fun BookDetailPhonePortraitPreview() {
                 BookDetailScreen(
                     state = previewState,
                     readingSettings = ReadingSettings(),
-                    onAction = {},
                 )
             }
         }
@@ -128,8 +127,7 @@ private fun BookDetailPhoneLandscapePreview() {
                 BookDetailScreen(
                     state = previewState,
                     readingSettings = ReadingSettings(),
-                    onAction = {},
-                )
+                                    )
             }
         }
     }
@@ -150,7 +148,6 @@ private fun BookDetailTabletPreview() {
                 BookDetailScreen(
                     state = previewState,
                     readingSettings = ReadingSettings(),
-                    onAction = {},
                 )
             }
         }
@@ -169,7 +166,7 @@ private fun BookDetailFoldablePreview() {
             BookDetailScreen(
                 state = previewState,
                 readingSettings = ReadingSettings(),
-                onAction = {},
+
             )
         }
     }

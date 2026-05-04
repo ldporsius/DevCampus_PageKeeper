@@ -15,7 +15,7 @@ import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
 import nl.codingwithlinda.pagekeeper.core.navigation.NavigationMenuAction
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookImportSideEffects
-import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookItemsGrid
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.components.BookItemsGrid
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListSideEffects
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.favorites.presentation.components.EmptyFavoritesContent

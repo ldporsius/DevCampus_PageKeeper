@@ -99,9 +99,13 @@ fun BookDetailRoot(
         scrollSettled = true
     }
 
+
+    val hasScrolled by remember {
+        derivedStateOf { listState.firstVisibleItemIndex != state.currentElementId }
+    }
     // Save reading position once the initial scroll has settled
-    LaunchedEffect(scrollSettled) {
-        if (!scrollSettled) return@LaunchedEffect
+    LaunchedEffect(hasScrolled) {
+        if (!hasScrolled) return@LaunchedEffect
         snapshotFlow {
             val firstItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
             (firstItem?.key as? String)?.toIntOrNull() ?: -1
@@ -122,7 +126,6 @@ fun BookDetailRoot(
                 state = state,
                 readingSettings = readingSettings,
                 listState = listState,
-                onAction = viewModel::onAction,
                 modifier = Modifier.pointerInput(true) {
                     detectTapGestures(
                         onTap = { viewModel.onAction(BookDetailAction.ToggleReadingMode) }

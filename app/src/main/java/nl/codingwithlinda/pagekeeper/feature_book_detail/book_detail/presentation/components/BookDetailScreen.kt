@@ -57,7 +57,6 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 fun BookDetailScreen(
     state: BookDetailState,
     readingSettings: ReadingSettings,
-    onAction: (BookDetailAction) -> Unit,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
 ) {
@@ -123,12 +122,6 @@ fun BookDetailScreen(
                             CircularProgressIndicator()
                         }
                     }
-                   /* is ElementPage -> itemsIndexed(
-                        items = page.elements,
-                        key = { index, span -> "${page.sectionId}_$index" }
-                    ) { _, element ->
-                        element.toScaledText(readingSettings.fontSize)
-                    }*/
                     is ElementPage ->{
                         page.elements.forEach { element ->
                             item(
@@ -192,7 +185,6 @@ private fun BookDetailScreenPreview() {
                 isLoading = true
             ),
             readingSettings = ReadingSettings(),
-            onAction = {},
         )
     }
 }

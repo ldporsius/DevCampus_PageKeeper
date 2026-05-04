@@ -18,7 +18,6 @@ data class BookUi(
 
 fun Book.toBookUi(): BookUi {
     val formatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
-    val readingProgress = 
     return BookUi(
         isbn = ISBN,
         title = title,

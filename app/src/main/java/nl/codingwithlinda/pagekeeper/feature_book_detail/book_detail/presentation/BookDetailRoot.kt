@@ -88,39 +88,29 @@ fun BookDetailRoot(
 
     var scrollSettled by rememberSaveable(state.book?.formattedDate) { mutableStateOf(false) }
 
-    LaunchedEffect(scrollSettled, state.currentSection) {
-        if (!scrollSettled  && state.currentSection >= 0) {
-            println("--- BOOK DETAIL --- SCROLLING TO SECTION ${state.currentSection} at position ${state.currentSectionOffset}")
-           listState.scrollToItem(
-                index = state.currentSection.coerceAtMost(state.pages.size - 1),
-                scrollOffset = state.currentSectionOffset
-            )
-            scrollSettled = true
-        }
-    }
-
-    val hasScrolled by remember {
-        derivedStateOf {
-           listState.firstVisibleItemScrollOffset != state.currentSectionOffset
-        }
+    LaunchedEffect(scrollSettled, state.elementPages) {
+        if (scrollSettled || state.elementPages.isEmpty()) return@LaunchedEffect
+        val targetIndex = state.elementPages
+            .flatMap { it.elements }
+            .indexOfFirst { it.element.id == state.currentElementId }
+        if (targetIndex < 0) return@LaunchedEffect
+        println("--- BOOK DETAIL --- SCROLLING TO ELEMENT ${state.currentElementId} at index $targetIndex")
+        listState.scrollToItem(index = targetIndex)
+        scrollSettled = true
     }
 
     // Save reading position once the initial scroll has settled
-    LaunchedEffect(hasScrolled) {
-        if (!hasScrolled) return@LaunchedEffect
+    LaunchedEffect(scrollSettled) {
+        if (!scrollSettled) return@LaunchedEffect
         snapshotFlow {
-            val firstItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-            val key = firstItem?.key as? String ?: ""
-            val sectionId = key.toIntOrNull() ?: -1
-            val offset = firstItem?.offset ?: 0
-            sectionId to offset
+            val firstItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
+            (firstItem?.key as? String)?.toIntOrNull() ?: -1
         }.debounce(500)
-            .collect { (sectionId, offset) ->
-                println("--- BOOK DETAIL --- firstItem. sectionId = $sectionId, OFFSET = $offset")
-
-                if (sectionId != -1) {
+            .collect { elementId ->
+                if (elementId != -1) {
+                    println("--- BOOK DETAIL --- firstItem. elementId = $elementId")
                     val orientation = configuration.orientation
-                    viewModel.onAction(BookDetailAction.PlaceBookmark(sectionId, offset, orientation))
+                    viewModel.onAction(BookDetailAction.PlaceBookmark(elementId, orientation))
                 }
             }
     }

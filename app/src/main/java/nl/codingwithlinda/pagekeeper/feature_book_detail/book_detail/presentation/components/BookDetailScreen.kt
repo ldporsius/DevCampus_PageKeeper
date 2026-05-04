@@ -50,6 +50,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page.ElementPage
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.TextSpan
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.toElementTextSpan
 
 @OptIn(FlowPreview::class)
 @Composable
@@ -122,19 +123,22 @@ fun BookDetailScreen(
                             CircularProgressIndicator()
                         }
                     }
-                    /*is ElementPage -> itemsIndexed(
+                   /* is ElementPage -> itemsIndexed(
                         items = page.elements,
-                        key = { index, _ -> "${page.sectionId}_$index" }
+                        key = { index, span -> "${page.sectionId}_$index" }
                     ) { _, element ->
                         element.toScaledText(readingSettings.fontSize)
                     }*/
-                    is ElementPage -> item(
-                        key = "${page.sectionId}"
-                    ) {
-                        page.elements.take(100).forEach {
-                            it.toScaledText(readingSettings.fontSize)
+                    is ElementPage ->{
+                        page.elements.forEach { element ->
+                            item(
+                                key = element.element.id.toString()
+                            ){
+                                element.toScaledText(readingSettings.fontSize)
+                            }
                         }
                     }
+
                     is Page.ImagePage -> item(key = "image_${page.sectionId}") {
                         AsyncImage(model = page.href, contentDescription = null)
                     }

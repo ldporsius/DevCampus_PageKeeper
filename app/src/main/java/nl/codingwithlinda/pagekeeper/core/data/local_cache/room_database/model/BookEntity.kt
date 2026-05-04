@@ -15,7 +15,7 @@ data class BookEntity(
     val isFavorite: Boolean = false,
     val isFinished: Boolean = false,
     val currentSection: Int = 0,
-    val currentSectionOffset: Int = 0,
+    val currentElementId: Int = 0,
 )
 
 fun BookEntity.toDomain(): Book = Book(
@@ -27,7 +27,7 @@ fun BookEntity.toDomain(): Book = Book(
     isFavorite = isFavorite,
     isFinished = isFinished,
     currentSection = currentSection,
-    currentSectionOffset = currentSectionOffset,
+    currentElementId = currentElementId,
 )
 
 fun Book.toEntity(): BookEntity = BookEntity(
@@ -39,5 +39,5 @@ fun Book.toEntity(): BookEntity = BookEntity(
     isFavorite = isFavorite,
     isFinished = isFinished,
     currentSection = currentSection,
-    currentSectionOffset = currentSectionOffset,
+    currentElementId = currentElementId,
 )

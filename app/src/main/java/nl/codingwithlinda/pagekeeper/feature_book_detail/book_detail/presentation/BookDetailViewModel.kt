@@ -18,7 +18,6 @@ import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.core.domain.util.map
 import nl.codingwithlinda.pagekeeper.core.domain.util.onFailure
 import nl.codingwithlinda.pagekeeper.core.domain.util.onSuccess
-import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.Orientation
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.PageElement
@@ -91,13 +90,13 @@ class BookDetailViewModel(
 
             _state.update { it.copy(book = book.toBookUi()) }
 
-            if (!bookPager.hasPages(book)) {
+            if (!bookPager.hasPages(book) || isLegacyPages(book)) {
                 writePages(book)
             }
 
             val totalSections = bookPager.countPages(book)
             val initialSection = book.currentSection
-            val initialSectionOffset = book.currentSectionOffset
+            val initialElementId = book.currentElementId
 
             val evictionFirst = (initialSection - evictionWindow).coerceAtLeast(0)
             val evictionLast = (initialSection + evictionWindow).coerceAtMost(totalSections)
@@ -114,14 +113,9 @@ class BookDetailViewModel(
                 state.copy(
                     pages = initPages,
                     totalSections = totalSections,
-                )
-            }
-            val scrollTo = state.value.elementPages.indexOfFirst { it.sectionId == initialSection }
-
-            _state.update {
-                it.copy(
-                    currentSection = scrollTo,
-                    currentSectionOffset = initialSectionOffset,
+                    currentSection = initialSection,
+                    currentElementId = initialElementId,
+                    isLoading = false,
                 )
             }
 
@@ -134,16 +128,13 @@ class BookDetailViewModel(
             is BookDetailAction.PlaceBookmark -> {
                 viewModelScope.launch {
                     val book = book() ?: return@launch
-                    val orientationDomain = when(action.orientation){
-                        1 -> Orientation.Portrait
-                        2 -> Orientation.Landscape
-                        else -> Orientation.Landscape
-                    }
-                    println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED SECTION ${action.sectionId}, offset ${action.scrollOffset}," +
-                            " orientation ${action.orientation}, orientationDomain $orientationDomain")
-                    _state.update { it.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset) }
-                    loadSections(action.sectionId)
-                    bookRepository.upsertBook(book.copy(currentSection = action.sectionId, currentSectionOffset = action.scrollOffset))
+                    val sectionId = state.value.elementPages.firstOrNull { page ->
+                        page.elements.any { it.element.id == action.elementId }
+                    }?.sectionId ?: return@launch
+                    println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED elementId ${action.elementId} in section $sectionId, orientation ${action.orientation}")
+                    _state.update { it.copy(currentSection = sectionId, currentElementId = action.elementId) }
+                    loadSections(sectionId)
+                    bookRepository.upsertBook(book.copy(currentSection = sectionId, currentElementId = action.elementId))
                 }
             }
 
@@ -153,6 +144,18 @@ class BookDetailViewModel(
                 _state.update { it.copy(readingMode = newMode) }
             }
         }
+    }
+
+    // Pages written before per-element ids existed have all leaf ids == 0.
+    // If we see >1 leaf element all sharing id 0, treat as legacy and reparse.
+    private suspend fun isLegacyPages(book: Book): Boolean {
+        val sections = (bookPager.loadSections(book, 0) as? Result.Success)?.data ?: return false
+        val leafIds = sections.flatMap { it.leafIds() }
+        return leafIds.size > 1 && leafIds.all { it == 0 }
+    }
+
+    private fun Section.leafIds(): List<Int> = elements.flatMap {
+        if (it is Section) it.leafIds() else listOf(it.id)
     }
 
     private suspend fun writePages(book: Book) {

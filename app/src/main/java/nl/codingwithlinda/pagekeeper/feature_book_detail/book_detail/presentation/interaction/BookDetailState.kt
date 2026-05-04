@@ -3,6 +3,7 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 import androidx.compose.runtime.Stable
 import nl.codingwithlinda.pagekeeper.core.presentation.util.UiText
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.toElementTextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingOrientation
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
 
@@ -11,7 +12,7 @@ data class BookDetailState(
     val book: BookUi? = null,
     val pages: Map<Int, Page> = emptyMap(),
     val currentSection: Int = -1,
-    val currentSectionOffset: Int = 0,
+    val currentElementId: Int = 0,
     val totalSections: Int = 1,
     val isWriting: Boolean = false,
     val writingProgress: Float = 0f,
@@ -24,5 +25,11 @@ data class BookDetailState(
     fun sortedPages() = pages.values.sortedBy { it.sectionId }
 
     val elementPages = sortedPages().filterIsInstance<Page.ElementPage>()
+
+    val elements = elementPages.map {
+        it.elements.map {
+            it.element.id to it.element
+        }
+    }
 
 }

@@ -26,6 +26,7 @@ import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.cancellation.CancellationException
 
 
@@ -51,7 +52,32 @@ private val elementParsers: List<Pair<Regex, (MatchResult) -> PageElement>> = li
     pRegex            to { m -> Paragraph(text = m.value) }
 )
 
-internal fun parseElements(body: String): List<PageElement> {
+private fun PageElement.withId(id: Int): PageElement = when (this) {
+    is Paragraph -> copy(id = id)
+    is Title     -> copy(id = id)
+    is Citation  -> copy(id = id)
+    is Epigraph  -> copy(id = id)
+    is Section   -> copy(id = id)
+}
+
+internal suspend fun parseSection(
+    sectionId: Int,
+    body: String,
+    idCounter: AtomicInteger = AtomicInteger(0),
+): Section {
+    val nestedSections = findTopLevelSections(body)
+    val elements: List<PageElement> = if (nestedSections.isEmpty()) {
+        parseElements(body, idCounter)
+    } else {
+        nestedSections.mapIndexed { index, html ->
+            val inner = html.removePrefix("<section>").removeSuffix("</section>")
+            parseSection(sectionId * 100 + index, inner, idCounter)
+        }
+    }
+    return Section(id = sectionId, elements = elements)
+}
+
+internal fun parseElements(body: String, idCounter: AtomicInteger = AtomicInteger(0)): List<PageElement> {
     val candidates = elementParsers
         .flatMap { (regex, factory) -> regex.findAll(body).map { Triple(it.range.first, it.range.last, factory(it)) } }
         .sortedBy { it.first }
@@ -60,7 +86,7 @@ internal fun parseElements(body: String): List<PageElement> {
         val containedByExisting = result.any { existing -> candidate.first >= existing.first && candidate.second <= existing.second }
         if (!containedByExisting) result += candidate
     }
-    return result.map { it.third }
+    return result.map { it.third.withId(idCounter.getAndIncrement()) }
 }
 
 internal suspend fun findTopLevelSections(body: String): List<String> = withContext(Dispatchers.Default) {
@@ -110,12 +136,14 @@ class FB2BookPager(
 
                     println("--- FN2 BOOK PAGER FOUND SECTIONS --- ${topLevelSections.size}")
 
+                    val idCounter = AtomicInteger(0)
+
                     topLevelSections.forEachIndexed { index, html ->
                         println("--- FN2 BOOK PAGER PARSING SECTION --- $index")
 
                         ensureActive()
                         val inner = html.removePrefix("<section>").removeSuffix("</section>")
-                        val section = parseSection(index, inner)
+                        val section = parseSection(index, inner, idCounter)
                         val file = File(context.filesDir, "${book.ISBN}_$index.json")
                         file.outputStream().use {
                             json.encodeToStream<List<Section>>(listOf(section), it)
@@ -137,20 +165,6 @@ class FB2BookPager(
                 return@withContext Result.Failure(BookParseError.GeneralBookParseError)
             }
         }
-    }
-
-
-    internal suspend fun parseSection(sectionId: Int, body: String): Section {
-        val nestedSections = findTopLevelSections(body)
-        val elements: List<PageElement> = if (nestedSections.isEmpty()) {
-            parseElements(body)
-        } else {
-            nestedSections.mapIndexed { index, html ->
-                val inner = html.removePrefix("<section>").removeSuffix("</section>")
-                parseSection(sectionId * 100 + index, inner)
-            }
-        }
-        return Section(id = sectionId, elements = elements)
     }
 
 

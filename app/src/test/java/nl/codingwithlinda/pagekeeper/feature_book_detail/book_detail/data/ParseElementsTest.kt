@@ -43,9 +43,9 @@ class ParseElementsTest {
         val result = parseElements(body)
 
         assertThat(result).containsExactly(
-            Title(text = "Chapter One"),
-            Paragraph(text = "<p>First paragraph.</p>"),
-            Paragraph(text = "<p>Second paragraph.</p>")
+            Title(id = 0, text = "Chapter One"),
+            Paragraph(id = 1, text = "<p>First paragraph.</p>"),
+            Paragraph(id = 2, text = "<p>Second paragraph.</p>")
         )
     }
 
@@ -55,7 +55,7 @@ class ParseElementsTest {
 
         val result = parseElements(body)
 
-        assertThat(result).containsExactly(Paragraph(text = "<p>Only text.</p>"))
+        assertThat(result).containsExactly(Paragraph(id = 0, text = "<p>Only text.</p>"))
     }
 
     @Test
@@ -64,7 +64,7 @@ class ParseElementsTest {
 
         val result = parseElements(body)
 
-        assertThat(result).containsExactly(Citation(text = "To be or not to be."))
+        assertThat(result).containsExactly(Citation(id = 0, text = "To be or not to be."))
     }
 
     @Test
@@ -73,7 +73,7 @@ class ParseElementsTest {
 
         val result = parseElements(body)
 
-        assertThat(result).containsExactly(Epigraph(text = "It was a dark and stormy night."))
+        assertThat(result).containsExactly(Epigraph(id = 0, text = "It was a dark and stormy night."))
     }
 
     @Test
@@ -87,9 +87,9 @@ class ParseElementsTest {
         val result = parseElements(body)
 
         assertThat(result).containsExactly(
-            Epigraph(text = "Quote."),
-            Citation(text = "Source."),
-            Paragraph(text = "<p>Body text.</p>")
+            Epigraph(id = 0, text = "Quote."),
+            Citation(id = 1, text = "Source."),
+            Paragraph(id = 2, text = "<p>Body text.</p>")
         )
     }
 }

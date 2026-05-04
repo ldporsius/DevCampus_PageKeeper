@@ -11,10 +11,13 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSliderState
+import androidx.compose.ui.Alignment
+import kotlin.math.roundToInt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -149,11 +152,28 @@ fun BookDetailScaffold(
                 ReadingControlsAdaptive(
                     collapsed = !showAdjustFontSize,
                     contentCollapsed = {
-                        ControlsRow(
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            items = listControls
-                        )
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = "${(state.readingProgress * 100).roundToInt()}%",
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(top = 8.dp),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            LinearProgressIndicator(
+                                progress = { state.readingProgress },
+                                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp)
+                            )
+                            ControlsRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                items = listControls
+                            )
+                        }
                     },
                     contentExpanded = {
                         FontSizeSlider(

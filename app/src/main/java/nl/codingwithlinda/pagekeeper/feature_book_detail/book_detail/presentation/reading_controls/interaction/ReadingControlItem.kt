@@ -4,6 +4,7 @@ import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingOrientation
 
 enum class ReadingControl{
+    CHAPTERS,
     AUTO_ROTATE,
     FONT_SIZE
 }
@@ -12,6 +13,17 @@ interface ReadingControlItem {
     val icon: Int
     val contentDescription: String
     val text: String
+}
+
+data class ChaptersControl(
+    val onAction: () -> Unit,
+): ReadingControlItem {
+    override fun onAction() {
+        onAction.invoke()
+    }
+    override val icon: Int = R.drawable.chapters
+    override val contentDescription: String = "chapters"
+    override val text: String = "Chapters"
 }
 
 data class AutoRotateControl(

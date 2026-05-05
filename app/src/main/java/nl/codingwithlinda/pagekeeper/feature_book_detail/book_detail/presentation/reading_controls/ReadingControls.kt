@@ -42,53 +42,6 @@ fun ReadingControlsAdaptive(
         }
     }
 }
-
-
-@Composable
-private fun ReadingControlsExpanded(
-    modifier: Modifier = Modifier,
-    sliderState: SliderState,
-    onAction: (ReadingControlAction) -> Unit,
-    readingSettings: ReadingSettings,
-    onThumbPositioned: (Rect) -> Unit = {},
-    onTrackPositioned: (Rect) -> Unit = {}
-) {
-
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.Top
-    ) {
-        val range = typographySliderRange()
-        FontSizeSlider(
-            modifier = Modifier,
-            sliderState = sliderState,
-            currentFontSize = readingSettings.fontSize,
-            valueRange = range,
-            onSizeChange = { onAction(ReadingControlAction.AdjustFontSize(it)) },
-            onThumbPositioned = onThumbPositioned,
-            onTrackPositioned = onTrackPositioned
-        )
-    }
-}
-
-@Composable
-private fun ReadingControlsCollapsed(
-    modifier: Modifier = Modifier,
-    readingSettings: ReadingSettings,
-    onAction: (ReadingControlAction) -> Unit,
-) {
-    ControlsRow(
-        modifier = modifier,
-        items = listOf(
-            AutoRotateControl(
-                setting = readingSettings.orientation,
-                onAction = { onAction(ReadingControlAction.ToggleAutoRotate) }
-            )
-        )
-    )
-}
-
 @Composable
 fun ControlsRow(
     modifier: Modifier = Modifier,
@@ -138,6 +91,48 @@ private fun ReadingControlComp(
 @Preview
 @Composable
 private fun ReadingControlsPreview() {
+    @Composable
+    fun ReadingControlsCollapsed(
+        modifier: Modifier = Modifier,
+        readingSettings: ReadingSettings,
+        onAction: (ReadingControlAction) -> Unit,
+    ) {
+        ControlsRow(
+            modifier = modifier,
+            items = listOf(
+                AutoRotateControl(
+                    setting = readingSettings.orientation,
+                    onAction = { onAction(ReadingControlAction.ToggleAutoRotate) }
+                )
+            )
+        )
+    }
+    @Composable
+   fun ReadingControlsExpanded(
+        modifier: Modifier = Modifier,
+        sliderState: SliderState,
+        onAction: (ReadingControlAction) -> Unit,
+        readingSettings: ReadingSettings,
+        onThumbPositioned: (Rect) -> Unit = {},
+        onTrackPositioned: (Rect) -> Unit = {}
+    ) {
+        Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Top
+        ) {
+            val range = typographySliderRange()
+            FontSizeSlider(
+                modifier = Modifier,
+                sliderState = sliderState,
+                currentFontSize = readingSettings.fontSize,
+                valueRange = range,
+                onSizeChange = { onAction(ReadingControlAction.AdjustFontSize(it)) },
+                onThumbPositioned = onThumbPositioned,
+                onTrackPositioned = onTrackPositioned
+            )
+        }
+    }
     ReadingControlsAdaptive(
        collapsed = true,
         contentCollapsed = {

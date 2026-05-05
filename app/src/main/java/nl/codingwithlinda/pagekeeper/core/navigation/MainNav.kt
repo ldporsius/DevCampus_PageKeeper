@@ -10,6 +10,8 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.components.AppNavigation
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailRoot
+import nl.codingwithlinda.pagekeeper.feature_book_detail.chapters.ChaptersScreen
+import nl.codingwithlinda.pagekeeper.feature_book_detail.chapters.ChaptersViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.form_factors.BooksRoot
@@ -17,6 +19,7 @@ import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.form_fact
 import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.MultiSelectRoot
 import nl.codingwithlinda.pagekeeper.feature_books.search.SearchViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.search.width_compact.SearchRoot
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.qualifier.named
@@ -43,6 +46,7 @@ fun MainNav(
             is SearchRoute -> backStack.add(SearchRoute(destination.filter))
             is MultiSelectRoute -> backStack.add(MultiSelectRoute(destination.filter))
             is BookDetailRoute -> backStack.add(BookDetailRoute(destination.ISBN))
+            is ChaptersRoute -> backStack.add(ChaptersRoute(destination.ISBN))
         }
     }
 
@@ -151,7 +155,16 @@ fun MainNav(
             entry<BookDetailRoute> { key ->
                 BookDetailRoot(
                     isbn = key.ISBN,
-                    onNavigateBack = { backStack.removeLastOrNull() }
+                    onNavigateBack = { backStack.removeLastOrNull() },
+                    navToChapters = { backStack.add(ChaptersRoute(key.ISBN)) }
+                )
+            }
+            entry<ChaptersRoute> { key ->
+                val viewModel: ChaptersViewModel = koinViewModel(key = key.ISBN) { org.koin.core.parameter.parametersOf(key.ISBN) }
+                ChaptersScreen(
+                    uiState = viewModel.uiState.collectAsStateWithLifecycle().value,
+                    loadChapter = { viewModel.chapter(it) },
+                    scaleFactor = 1f,
                 )
             }
             entry<MultiSelectRoute> { key ->

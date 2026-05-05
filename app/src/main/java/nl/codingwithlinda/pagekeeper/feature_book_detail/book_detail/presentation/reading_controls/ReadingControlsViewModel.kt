@@ -2,7 +2,9 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentati
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
@@ -12,7 +14,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 
 class ReadingControlsViewModel(
     private val readingSettingsRepository: ReadingSettingsRepository,
-    private val bookRepository: BookRepository
+    private val bookRepository: BookRepository,
 ): ViewModel() {
 
     val state = readingSettingsRepository.settings.stateIn(
@@ -21,8 +23,15 @@ class ReadingControlsViewModel(
         initialValue = ReadingSettings()
     )
 
+    private val _navToChaptersEvent = Channel<Boolean>()
+    val navToChapters = _navToChaptersEvent.receiveAsFlow()
+
+
     fun onAction(action: ReadingControlAction){
         when(action){
+            is ReadingControlAction.ToggleChapters -> {
+                _navToChaptersEvent.trySend(true)
+            }
             is ReadingControlAction.AdjustFontSize -> {
                 viewModelScope.launch {
                     readingSettingsRepository.setFontSize(action.factor)

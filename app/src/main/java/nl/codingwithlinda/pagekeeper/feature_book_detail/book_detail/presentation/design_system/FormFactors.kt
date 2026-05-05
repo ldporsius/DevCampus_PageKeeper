@@ -21,7 +21,6 @@ fun PhoneLayout(
     Box(modifier = modifier
         .then(Modifier
             .padding(horizontal = 12.dp)
-
         )
     ) {
         content()
@@ -72,10 +71,13 @@ fun FormFactorWrapper(
 
 fun DeviceType.toReadingControls(): List<ReadingControl> = when(this){
     DeviceType.Phone -> listOf(
-        ReadingControl.AUTO_ROTATE, ReadingControl.FONT_SIZE
+        ReadingControl.CHAPTERS,
+        ReadingControl.AUTO_ROTATE,
+        ReadingControl.FONT_SIZE
     )
     DeviceType.Tablet -> {
         listOf(
+            ReadingControl.CHAPTERS,
             ReadingControl.FONT_SIZE
         )
     }

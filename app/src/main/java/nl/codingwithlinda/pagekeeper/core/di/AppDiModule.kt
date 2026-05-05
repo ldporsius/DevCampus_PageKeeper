@@ -21,6 +21,7 @@ import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailViewModel
+import nl.codingwithlinda.pagekeeper.feature_book_detail.chapters.ChaptersViewModel
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControlsViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
@@ -74,4 +75,5 @@ val appPresentationModule = module {
     viewModelOf(::MultiSelectViewModel)
     viewModelOf(::ReadingControlsViewModel)
     viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get()) }
+    viewModel { (isbn: String) -> ChaptersViewModel(isbn, get()) }
 }

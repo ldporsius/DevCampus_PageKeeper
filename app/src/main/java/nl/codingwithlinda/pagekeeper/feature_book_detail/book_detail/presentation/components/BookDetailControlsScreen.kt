@@ -1,12 +1,14 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,19 +29,23 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.util.rememberDeviceConfig
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.FormFactorWrapper
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toReadingControls
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.typographySliderRange
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailAction
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ControlsRow
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.FontSizeSlider
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControlsAdaptive
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.AutoRotateControl
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ChaptersControl
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.FontSizeControl
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControl
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlAction
@@ -49,12 +55,29 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 fun BookDetailScaffold(
     modifier: Modifier = Modifier,
     state: BookDetailState,
+    listState: LazyListState,
     readingSettings: ReadingSettings,
     onAction: (ReadingControlAction) -> Unit,
+    toggleReadingMode: () -> Unit = {},
     onNavBack: () -> Unit = {},
-    content: @Composable () -> Unit
 ) {
     if (state.book == null) return
+
+
+    @Composable
+    fun content() =
+        FormFactorWrapper() {
+            BookDetailScreen(
+                state = state,
+                readingSettings = readingSettings,
+                listState = listState,
+                modifier = Modifier.pointerInput(true) {
+                    detectTapGestures(
+                        onTap = {toggleReadingMode()}
+                    )
+                }
+            )
+        }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -125,6 +148,11 @@ fun BookDetailScaffold(
                 val device = rememberDeviceConfig()
                 val listControls = device.deviceType.toReadingControls().map {
                     when(it){
+                        ReadingControl.CHAPTERS -> {
+                            ChaptersControl(
+                                onAction = { onAction(ReadingControlAction.ToggleChapters) }
+                            )
+                        }
                         ReadingControl.AUTO_ROTATE -> {
                             AutoRotateControl(
                                 setting = readingSettings.orientation,

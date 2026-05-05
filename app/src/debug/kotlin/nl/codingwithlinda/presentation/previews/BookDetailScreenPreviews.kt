@@ -1,5 +1,6 @@
 package nl.codingwithlinda.presentation.previews
 
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -9,8 +10,6 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Para
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScaffold
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScreen
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.FormFactorWrapper
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.interaction.BookDetailState
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.ElementTextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.FormattedLine
@@ -98,16 +97,10 @@ private fun BookDetailPhonePortraitPreview() {
     PageKeeperTheme {
         BookDetailScaffold(
             state = previewState,
+            listState = rememberLazyListState(),
             readingSettings = ReadingSettings(),
             onAction = {},
-        ) {
-            FormFactorWrapper() {
-                BookDetailScreen(
-                    state = previewState,
-                    readingSettings = ReadingSettings(),
-                )
-            }
-        }
+        )
     }
 }
 
@@ -116,19 +109,12 @@ private fun BookDetailPhonePortraitPreview() {
 @Composable
 private fun BookDetailPhoneLandscapePreview() {
     PageKeeperTheme {
-
         BookDetailScaffold(
             state = previewState,
+            listState = rememberLazyListState(),
             readingSettings = ReadingSettings(),
             onAction = {},
-        ) {
-            FormFactorWrapper() {
-                BookDetailScreen(
-                    state = previewState,
-                    readingSettings = ReadingSettings(),
-                                    )
-            }
-        }
+        )
     }
 }
 
@@ -136,20 +122,12 @@ private fun BookDetailPhoneLandscapePreview() {
 @Composable
 private fun BookDetailTabletPreview() {
     PageKeeperTheme {
-
-            BookDetailScaffold(
-                state = previewState,
-                readingSettings = ReadingSettings(),
-                onAction = {},
-            ) {
-                FormFactorWrapper() {
-
-                BookDetailScreen(
-                    state = previewState,
-                    readingSettings = ReadingSettings(),
-                )
-            }
-        }
+        BookDetailScaffold(
+            state = previewState,
+            listState = rememberLazyListState(),
+            readingSettings = ReadingSettings(),
+            onAction = {},
+        )
     }
 }
 
@@ -159,14 +137,9 @@ private fun BookDetailFoldablePreview() {
     PageKeeperTheme {
         BookDetailScaffold(
             state = previewState,
+            listState = rememberLazyListState(),
             readingSettings = ReadingSettings(),
             onAction = {},
-        ) {
-            BookDetailScreen(
-                state = previewState,
-                readingSettings = ReadingSettings(),
-
-            )
-        }
+        )
     }
 }

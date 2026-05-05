@@ -58,6 +58,7 @@ fun ChaptersScreen(
         }
 
     ) { innerPadding ->
+        val chaptersByIndex = uiState.chapters.associateBy { it.sectionIndex }
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
@@ -70,12 +71,20 @@ fun ChaptersScreen(
                         HorizontalDivider()
                     }
                 }
-                uiState.chapters.forEach { chapter ->
-                    item(key = "flat_${chapter.sectionIndex}") {
-                        InnerSectionRow(
-                            title = chapter.title,
-                            onClick = { onItemClick(chapter.sectionIndex, chapter.title.element.id) },
-                        )
+                (0 until uiState.totalChapters).forEach { index ->
+                    item(key = "flat_$index") {
+                        LaunchedEffect(index) { loadChapter(index) }
+
+                        val chapter = chaptersByIndex[index]
+                        if (chapter == null) {
+                            val empty = ElementTextSpan(element = Title(id = index, text = "---"))
+                            InnerSectionRow(title = empty, onClick = {})
+                        } else {
+                            InnerSectionRow(
+                                title = chapter.title,
+                                onClick = { onItemClick(chapter.sectionIndex, chapter.title.element.id) },
+                            )
+                        }
                         HorizontalDivider(modifier = Modifier.padding(start = 32.dp))
                     }
                 }
@@ -84,7 +93,7 @@ fun ChaptersScreen(
                     item(key = "chapter_$index") {
                         LaunchedEffect(index) { loadChapter(index) }
 
-                        val chapter = uiState.chapters.getOrNull(index)
+                        val chapter = chaptersByIndex[index]
                         if (chapter == null) {
                             val empty = ElementTextSpan(element = Title(id = index, text = "---"))
                             ChapterRow(title = empty, hasChildren = false, isExpanded = false, onClick = {})

@@ -55,14 +55,14 @@ fun BooksPhoneLayout(
 
         Box(modifier = Modifier.fillMaxSize()) {
             AnimatedVisibility(
-                visible = state.books.isEmpty() && !state.isLoading,
+                visible = state.books.isEmpty() && !state.isLoading && !libraryState.isImporting,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
                 emptyContent()
             }
             AnimatedVisibility(
-                visible = state.books.isNotEmpty(),
+                visible = state.books.isNotEmpty() || libraryState.isImporting,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {

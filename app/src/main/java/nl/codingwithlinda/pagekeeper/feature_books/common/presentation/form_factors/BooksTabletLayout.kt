@@ -151,7 +151,7 @@ fun BooksTabletLayout(
                 }
 
                 val gridBooks = state.books.filter { it.isbn != libraryState.lastOpenedBook?.isbn }
-                AnimatedContent(targetState = state.books.isEmpty() && !state.isLoading) { empty ->
+                AnimatedContent(targetState = state.books.isEmpty() && !state.isLoading && !libraryState.isImporting) { empty ->
                     when (empty) {
                         true -> emptySearch()
                         false ->

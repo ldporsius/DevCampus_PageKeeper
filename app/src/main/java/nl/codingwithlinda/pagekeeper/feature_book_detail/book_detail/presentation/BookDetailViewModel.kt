@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import nl.codingwithlinda.pagekeeper.core.domain.AppStateRepository
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
@@ -38,7 +37,6 @@ class BookDetailViewModel(
     private val isbn: String,
     private val bookRepository: BookRepository,
     private val bookPager: BookPager,
-    private val appStateRepository: AppStateRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookDetailState())
@@ -72,7 +70,7 @@ class BookDetailViewModel(
         viewModelScope.launch {
             val book = book() ?: return@launch
 
-            appStateRepository.setLastOpenedBook(isbn)
+            bookRepository.updateLastOpenedDate(isbn, System.currentTimeMillis())
 
             if (!bookPager.hasPages(isbn) || isLegacyPages()) {
                 writePages()

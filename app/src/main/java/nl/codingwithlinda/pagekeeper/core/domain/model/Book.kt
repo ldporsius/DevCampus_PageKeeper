@@ -10,4 +10,5 @@ data class Book(
     val isFinished: Boolean = false,
     val currentSection: Int = 0,
     val currentElementId: Int = 0,
+    val lastOpenedDate: Long = 0L,
 )

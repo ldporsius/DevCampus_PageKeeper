@@ -26,4 +26,7 @@ internal interface BookDao {
 
     @Query("DELETE FROM books WHERE isbn = :isbn")
     suspend fun deleteBook(isbn: String)
+
+    @Query("UPDATE books SET lastOpenedDate = :date WHERE isbn = :isbn")
+    suspend fun updateLastOpenedDate(isbn: String, date: Long)
 }

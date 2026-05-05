@@ -16,4 +16,6 @@ interface BookRepository {
     fun observeBook(ISBN: String): Flow<Book?>
 
     suspend fun deleteBook(ISBN: String)
+
+    suspend fun updateLastOpenedDate(isbn: String, date: Long)
 }

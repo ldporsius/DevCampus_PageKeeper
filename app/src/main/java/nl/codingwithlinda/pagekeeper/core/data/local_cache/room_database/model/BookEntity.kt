@@ -16,6 +16,7 @@ data class BookEntity(
     val isFinished: Boolean = false,
     val currentSection: Int = 0,
     val currentElementId: Int = 0,
+    val lastOpenedDate: Long = 0L,
 )
 
 fun BookEntity.toDomain(): Book = Book(
@@ -28,6 +29,7 @@ fun BookEntity.toDomain(): Book = Book(
     isFinished = isFinished,
     currentSection = currentSection,
     currentElementId = currentElementId,
+    lastOpenedDate = lastOpenedDate,
 )
 
 fun Book.toEntity(): BookEntity = BookEntity(
@@ -40,4 +42,5 @@ fun Book.toEntity(): BookEntity = BookEntity(
     isFinished = isFinished,
     currentSection = currentSection,
     currentElementId = currentElementId,
+    lastOpenedDate = lastOpenedDate,
 )

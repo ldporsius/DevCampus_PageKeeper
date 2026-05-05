@@ -10,8 +10,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.PageKeeperDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.RoomBookRepository
 import nl.codingwithlinda.pagekeeper.core.data.remote.ContentResolverBookFormatValidator
-import nl.codingwithlinda.pagekeeper.core.data.DataStoreAppStateRepository
-import nl.codingwithlinda.pagekeeper.core.domain.AppStateRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.DataStoreReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FB2BookPager
 import nl.codingwithlinda.pagekeeper.core.data.remote.FB2BookParser
@@ -50,7 +48,7 @@ val appDataModule = module {
             androidContext(),
             PageKeeperDatabase::class.java,
             "pagekeeper.db"
-        ).addMigrations(MIGRATION_2_3, PageKeeperDatabase.MIGRATION_3_4, PageKeeperDatabase.MIGRATION_4_5, PageKeeperDatabase.MIGRATION_5_6).fallbackToDestructiveMigration(false).build()
+        ).addMigrations(MIGRATION_2_3, PageKeeperDatabase.MIGRATION_3_4, PageKeeperDatabase.MIGRATION_4_5, PageKeeperDatabase.MIGRATION_5_6, PageKeeperDatabase.MIGRATION_6_7).fallbackToDestructiveMigration(false).build()
     }
     single { RoomBookRepository(get<PageKeeperDatabase>().bookDao(), androidContext().filesDir) } bind BookRepository::class
     single { FB2BookParser(androidContext()) } bind BookParser::class
@@ -64,7 +62,6 @@ val appDataModule = module {
         )
     }
     single<ReadingSettingsRepository> { DataStoreReadingSettingsRepository(get()) }
-    single<AppStateRepository> { DataStoreAppStateRepository(get()) }
 }
 
 val appPresentationModule = module {
@@ -72,9 +69,9 @@ val appPresentationModule = module {
     viewModel(qualifier = named("favorites")) { BookListViewModel(get(), get(), get(), get(),BookFilter.Favorites) }
     viewModel(qualifier = named("finished")) { BookListViewModel(get(), get(), get(), get(),BookFilter.Finished) }
     viewModel(qualifier = named("search")) { BookListViewModel(get(), get(), get(), get(),BookFilter.All) }
-    viewModel { LibraryViewModel(get(), get(), get(), get()) }
+    viewModel { LibraryViewModel(get(), get(), get()) }
     viewModelOf(::SearchViewModel)
     viewModelOf(::MultiSelectViewModel)
     viewModelOf(::ReadingControlsViewModel)
-    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get(), get()) }
+    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get()) }
 }

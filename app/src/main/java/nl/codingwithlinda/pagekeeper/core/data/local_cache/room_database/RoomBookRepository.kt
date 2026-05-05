@@ -40,4 +40,8 @@ internal class RoomBookRepository(
         File(filesDir, "$ISBN.fb2").delete()
         filesDir.listFiles()?.filter { it.name.startsWith(ISBN) }?.forEach { it.delete() }
     }
+
+    override suspend fun updateLastOpenedDate(isbn: String, date: Long) {
+        dao.updateLastOpenedDate(isbn, date)
+    }
 }

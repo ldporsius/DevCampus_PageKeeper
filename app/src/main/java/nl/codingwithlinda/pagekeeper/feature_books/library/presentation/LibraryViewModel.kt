@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import nl.codingwithlinda.pagekeeper.core.domain.AppStateRepository
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookFormatValidator
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
@@ -23,7 +22,6 @@ class LibraryViewModel(
     private val bookRepository: BookRepository,
     private val bookParser: BookParser,
     private val bookFormatValidator: BookFormatValidator,
-    private val appStateRepository: AppStateRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
@@ -31,8 +29,11 @@ class LibraryViewModel(
 
     init {
         viewModelScope.launch {
-            appStateRepository.lastOpenedBookIsbn.collect { isbn ->
-                _state.update { it.copy(lastOpenedBookIsbn = isbn) }
+            bookRepository.books.collect { books ->
+                val lastOpened = books.filter { !it.isFinished }
+                    .maxByOrNull { it.lastOpenedDate }
+                    ?.takeIf { it.lastOpenedDate > 0 }
+                _state.update { it.copy(lastOpenedBookIsbn = lastOpened?.ISBN) }
             }
         }
     }

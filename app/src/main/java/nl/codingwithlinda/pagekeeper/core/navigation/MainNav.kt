@@ -165,6 +165,7 @@ fun MainNav(
                     uiState = viewModel.uiState.collectAsStateWithLifecycle().value,
                     loadChapter = { viewModel.chapter(it) },
                     onToggleExpand = { viewModel.toggleExpand(it) },
+                    onNavigateBack = { backStack.removeLastOrNull() },
                     scaleFactor = 1f,
                 )
             }

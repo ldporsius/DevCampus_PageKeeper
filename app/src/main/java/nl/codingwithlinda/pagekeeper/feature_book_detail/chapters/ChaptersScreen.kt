@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,13 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toAnnotatedString
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toScaledText
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.ElementTextSpan
 
@@ -33,9 +33,33 @@ fun ChaptersScreen(
     uiState: ChapterUiState,
     loadChapter: (Int) -> Unit,
     onToggleExpand: (Int) -> Unit,
+    onNavigateBack: () -> Unit,
     scaleFactor: Float,
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(text = "Chapters")
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = onNavigateBack,
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.back),
+                            contentDescription = "Back",
+                        )
+                    }
+                }
+            )
+        }
+
+    ) {innerPadding ->
+    LazyColumn(modifier = Modifier
+        .padding(innerPadding)
+        .fillMaxSize()) {
         (0 until uiState.totalChapters).forEach { index ->
             item(key = "chapter_$index") {
                 LaunchedEffect(index) { loadChapter(index) }
@@ -66,6 +90,7 @@ fun ChaptersScreen(
             }
         }
     }
+}
 }
 
 @Composable

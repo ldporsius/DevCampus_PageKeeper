@@ -15,6 +15,7 @@ import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.util.BookImportError
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.toBookUi
 import nl.codingwithlinda.pagekeeper.feature_books.library.navigation.LibraryEvent
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.LibraryAction
 
@@ -33,7 +34,7 @@ class LibraryViewModel(
                 val lastOpened = books.filter { !it.isFinished }
                     .maxByOrNull { it.lastOpenedDate }
                     ?.takeIf { it.lastOpenedDate > 0 }
-                _state.update { it.copy(lastOpenedBookIsbn = lastOpened?.ISBN) }
+                _state.update { it.copy(lastOpenedBook = lastOpened?.toBookUi()) }
             }
         }
     }

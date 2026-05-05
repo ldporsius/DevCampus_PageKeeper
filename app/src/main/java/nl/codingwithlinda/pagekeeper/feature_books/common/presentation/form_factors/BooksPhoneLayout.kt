@@ -76,7 +76,7 @@ fun BooksPhoneLayout(
             }
         }
 
-        libraryState.lastOpenedBookIsbn?.let { isbn ->
+        libraryState.lastOpenedBook?.isbn?.let { isbn ->
             FloatingActionButton(
                 onClick = { onNavigateToDetail(isbn) },
                 modifier = Modifier

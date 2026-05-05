@@ -8,4 +8,6 @@
     <string name="error_book_parse_general">Failed to open book. The file may be corrupted or unsupported.</string>
     <string name="error_book_parse_no_pages">No pages found in this book.</string>
     <string name="error_book_parse_oom">Not enough memory to open this book. Try closing other apps and retry.</string>
+    <string name="continue_reading">Continue reading</string>
+    <string name="continue_reading_button">Continue</string>
 </resources>

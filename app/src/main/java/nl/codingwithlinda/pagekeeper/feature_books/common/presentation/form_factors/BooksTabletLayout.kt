@@ -34,6 +34,7 @@ import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookImportSideEffects
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.components.BookItemsGrid
+import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.components.LastOpenedBookBanner
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListSideEffects
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.favorites.presentation.components.EmptyFavoritesContent
@@ -56,6 +57,7 @@ fun BooksTabletLayout(
 ) {
     val searchViewModel: SearchViewModel = koinViewModel()
     val bookListState by bookListViewModel.state.collectAsStateWithLifecycle()
+    val libraryState by libraryViewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(bookListState.filter) {
         searchViewModel.setFilter(bookListState.filter)
     }
@@ -139,16 +141,22 @@ fun BooksTabletLayout(
                     )
                 )
 
-                AnimatedContent(targetState =state.books.isEmpty() && !state.isLoading ) { empty ->
+                libraryState.lastOpenedBook?.let { book ->
+                    LastOpenedBookBanner(
+                        book = book,
+                        onClick = { onNavigateToDetail(book.isbn) },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+
+                AnimatedContent(targetState = state.books.isEmpty() && !state.isLoading) { empty ->
                     when (empty) {
                         true -> emptySearch()
                         false ->
                             BookItemsGrid(
                                 books = state.books,
-                                isImporting = libraryViewModel.state.collectAsStateWithLifecycle().value.isImporting,
-                                onCancelImport = {
-                                    libraryViewModel.onAction(LibraryAction.CancelImport)
-                                },
+                                isImporting = libraryState.isImporting,
+                                onCancelImport = { libraryViewModel.onAction(LibraryAction.CancelImport) },
                                 onBookClick = { isbn -> onNavigateToDetail(isbn) },
                                 onAction = bookListViewModel::onAction
                             )

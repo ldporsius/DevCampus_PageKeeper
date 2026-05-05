@@ -16,6 +16,14 @@ data class Section(
     override fun toPlainText(): String = elements.joinToString("") { it.toPlainText() }
 }
 
+@Serializable
+data class InnerSection(
+    override val id: Int = 0,
+    val elements: List<PageElement> = emptyList()
+): PageElement{
+    override fun toPlainText(): String = elements.joinToString("") { it.toPlainText() }
+}
+
 typealias BookParagraph = Paragraph
 
 @Serializable

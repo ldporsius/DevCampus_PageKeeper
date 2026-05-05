@@ -164,6 +164,7 @@ fun MainNav(
                 ChaptersScreen(
                     uiState = viewModel.uiState.collectAsStateWithLifecycle().value,
                     loadChapter = { viewModel.chapter(it) },
+                    onToggleExpand = { viewModel.toggleExpand(it) },
                     scaleFactor = 1f,
                 )
             }

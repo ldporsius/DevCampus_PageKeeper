@@ -24,6 +24,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Titl
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.InnerSection
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.cancellation.CancellationException
@@ -56,7 +57,25 @@ private fun PageElement.withId(id: Int): PageElement = when (this) {
     is Title     -> copy(id = id)
     is Citation  -> copy(id = id)
     is Epigraph  -> copy(id = id)
+    is InnerSection -> copy(id = id)
     is Section   -> copy(id = id)
+}
+
+internal suspend fun parseInnerSection(
+    sectionId: Int,
+    body: String,
+    idCounter: AtomicInteger,
+): InnerSection {
+    val nestedSections = findTopLevelSections(body)
+    val elements: List<PageElement> = if (nestedSections.isEmpty()) {
+        parseElements(body, idCounter)
+    } else {
+        nestedSections.mapIndexed { index, html ->
+            val inner = html.removePrefix("<section>").removeSuffix("</section>")
+            parseInnerSection(sectionId * 100 + index, inner, idCounter)
+        }
+    }
+    return InnerSection(id = sectionId, elements = elements)
 }
 
 internal suspend fun parseSection(
@@ -70,7 +89,7 @@ internal suspend fun parseSection(
     } else {
         nestedSections.mapIndexed { index, html ->
             val inner = html.removePrefix("<section>").removeSuffix("</section>")
-            parseSection(sectionId * 100 + index, inner, idCounter)
+            parseInnerSection(sectionId * 100 + index, inner, idCounter)
         }
     }
     return Section(id = sectionId, elements = elements)

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.isSpecified
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.Typography
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Citation
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Epigraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.InnerSection
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.PageElement
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
@@ -67,6 +68,7 @@ fun typographySliderRange(): ClosedFloatingPointRange<Float> {
 
 fun PageElement.toTextStyle() = when(this){
     is Section -> Typography.bodyMedium
+    is InnerSection -> Typography.titleMedium
     is Title -> Typography.titleLarge
     is Citation -> Typography.bodyMedium
     is Epigraph -> Typography.bodyMedium

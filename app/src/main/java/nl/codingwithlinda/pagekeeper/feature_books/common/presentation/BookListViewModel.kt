@@ -62,7 +62,9 @@ class BookListViewModel(
                             }
                             .sortedByDescending { it.dateCreated }
                             .map { book ->
-                                val actualReadingProgress = book.currentSection.toFloat() / bookPager.countPages(book.ISBN)
+                                val total = if (bookPager.hasElementMeta(book.ISBN)) bookPager.countElements(book.ISBN) else bookPager.countPages(book.ISBN)
+                                val current = if (bookPager.hasElementMeta(book.ISBN)) book.currentElementId.toFloat() else book.currentSection.toFloat()
+                                val actualReadingProgress = current / total
                                 val readingProgress = if (book.isFinished) 1f else actualReadingProgress
                                 book.toBookUi()
                                     .copy(

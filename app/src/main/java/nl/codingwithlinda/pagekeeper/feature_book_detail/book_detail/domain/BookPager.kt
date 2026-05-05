@@ -9,7 +9,9 @@ interface BookPager {
 
     suspend fun loadSections(isbn: String, sectionIndex: Int = 0): Result<List<Section>, BookParseError>
     suspend fun hasPages(isbn: String): Boolean
+    suspend fun hasElementMeta(isbn: String): Boolean
     suspend fun countPages(isbn: String): Int
+    suspend fun countElements(isbn: String): Int
     suspend fun loadSection(isbn: String, sectionIndex: Int): Flow<Section>
 
 }

@@ -63,21 +63,25 @@ class BookDetailViewModel(
         viewModelScope.launch {
             _book.collect { book ->
                 if (book == null) return@collect
-                initBook(book)
+               _state.update { it.copy(book = book.toBookUi()) }
             }
         }
 
         viewModelScope.launch {
             bookRepository.updateLastOpenedDate(isbn, System.currentTimeMillis())
 
-            if (!bookPager.hasPages(isbn) || isLegacyPages()) {
+            if (!bookPager.hasPages(isbn) || isLegacyPages() || !bookPager.hasElementMeta(isbn)) {
                 writePages()
             }
+
+            val book = book() ?: return@launch
+            initBook(book)
         }
     }
 
     private suspend fun initBook(book: Book){
         val totalSections = bookPager.countPages(isbn)
+        val totalElements = if (bookPager.hasElementMeta(isbn)) bookPager.countElements(isbn) else totalSections
         val initialSection = book.currentSection
         val initialElementId = book.currentElementId
 
@@ -97,6 +101,7 @@ class BookDetailViewModel(
                 book = book.toBookUi(),
                 pages = initPages,
                 totalSections = totalSections,
+                totalElements = totalElements,
                 currentSection = initialSection,
                 currentElementId = initialElementId,
                 isLoading = false,

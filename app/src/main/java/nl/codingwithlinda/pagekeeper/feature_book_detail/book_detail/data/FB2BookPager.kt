@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
@@ -32,6 +33,9 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private val imageRegex = Regex("""<image[^>]+\w+:href="([^"]+)"""")
 
+
+@Serializable
+private data class BookMeta(val totalElements: Int)
 
 private val json = Json { ignoreUnknownKeys = true }
 
@@ -168,6 +172,11 @@ class FB2BookPager(
                         }
                         onProgress(index + 1, topLevelSections.size)
                     }
+
+                    val metaFile = File(context.filesDir, "${isbn}.meta.json")
+                    metaFile.outputStream().use {
+                        json.encodeToStream(BookMeta(idCounter.get()), it)
+                    }
                 }
 
                 return@withContext Result.Success(Unit)
@@ -190,8 +199,17 @@ class FB2BookPager(
         sectionFiles(isbn).isNotEmpty()
     }
 
+    override suspend fun hasElementMeta(isbn: String): Boolean = withContext(Dispatchers.IO) {
+        File(context.filesDir, "${isbn}.meta.json").exists()
+    }
+
     override suspend fun countPages(isbn: String): Int = withContext(Dispatchers.IO) {
         sectionFiles(isbn).size
+    }
+
+    override suspend fun countElements(isbn: String): Int = withContext(Dispatchers.IO) {
+        val metaFile = File(context.filesDir, "${isbn}.meta.json")
+        metaFile.inputStream().use { json.decodeFromStream<BookMeta>(it) }.totalElements
     }
 
     override suspend fun loadSections(isbn: String, sectionIndex: Int): Result<List<Section>, BookParseError> = withContext(Dispatchers.IO) {

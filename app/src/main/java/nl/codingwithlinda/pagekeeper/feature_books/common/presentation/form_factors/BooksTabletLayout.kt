@@ -145,6 +145,7 @@ fun BooksTabletLayout(
                     LastOpenedBookBanner(
                         book = book,
                         onClick = { onNavigateToDetail(book.isbn) },
+                        onAction = bookListViewModel::onAction,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 }

@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,13 +30,17 @@ import nl.codingwithlinda.pagekeeper.R
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.components.PrimaryButton
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.lora
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookUi
+import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
 
 @Composable
 fun LastOpenedBookBanner(
     book: BookUi,
     onClick: () -> Unit,
+    onAction: (BookListItemAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val iconTint = MaterialTheme.colorScheme.onSurfaceVariant
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -82,6 +88,36 @@ fun LastOpenedBookBanner(
                     progress = { book.readingProgress },
                     modifier = Modifier.fillMaxWidth()
                 )
+                Row {
+                    IconButton(onClick = { onAction(BookListItemAction.FavouriteClick(book.isbn)) }) {
+                        Icon(
+                            painter = painterResource(if (book.isFavorite) R.drawable.menu_favorites_active else R.drawable.menu_favorites_deactive),
+                            contentDescription = "Favourite",
+                            tint = if (book.isFavorite) MaterialTheme.colorScheme.primary else iconTint
+                        )
+                    }
+                    IconButton(onClick = { onAction(BookListItemAction.FinishClick(book.isbn)) }) {
+                        Icon(
+                            painter = painterResource(if (book.isFinished) R.drawable.finished else R.drawable.finish),
+                            contentDescription = "Mark as finished",
+                            tint = iconTint
+                        )
+                    }
+                    IconButton(onClick = { onAction(BookListItemAction.ShareClick(book.isbn)) }) {
+                        Icon(
+                            painter = painterResource(R.drawable.share),
+                            contentDescription = "Share",
+                            tint = iconTint
+                        )
+                    }
+                    IconButton(onClick = { onAction(BookListItemAction.DeleteClick(book.isbn)) }) {
+                        Icon(
+                            painter = painterResource(R.drawable.delete),
+                            contentDescription = "Delete",
+                            tint = iconTint
+                        )
+                    }
+                }
             }
 
             PrimaryButton(

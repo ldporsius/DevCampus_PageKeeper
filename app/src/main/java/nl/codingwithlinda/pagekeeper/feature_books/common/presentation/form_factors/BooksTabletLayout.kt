@@ -150,12 +150,13 @@ fun BooksTabletLayout(
                     )
                 }
 
+                val gridBooks = state.books.filter { it.isbn != libraryState.lastOpenedBook?.isbn }
                 AnimatedContent(targetState = state.books.isEmpty() && !state.isLoading) { empty ->
                     when (empty) {
                         true -> emptySearch()
                         false ->
                             BookItemsGrid(
-                                books = state.books,
+                                books = gridBooks,
                                 isImporting = libraryState.isImporting,
                                 onCancelImport = { libraryViewModel.onAction(LibraryAction.CancelImport) },
                                 onBookClick = { isbn -> onNavigateToDetail(isbn) },

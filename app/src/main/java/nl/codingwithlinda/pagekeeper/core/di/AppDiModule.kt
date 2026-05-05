@@ -7,6 +7,9 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.PageKeeperDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.RoomBookRepository
 import nl.codingwithlinda.pagekeeper.core.data.remote.ContentResolverBookFormatValidator
@@ -44,6 +47,7 @@ private val MIGRATION_2_3 = object : Migration(2, 3) {
 }
 
 val appDataModule = module {
+    single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     single {
         Room.databaseBuilder(
             androidContext(),
@@ -75,5 +79,5 @@ val appPresentationModule = module {
     viewModelOf(::MultiSelectViewModel)
     viewModelOf(::ReadingControlsViewModel)
     viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get()) }
-    viewModel { (isbn: String) -> ChaptersViewModel(isbn, get()) }
+    viewModel { (isbn: String) -> ChaptersViewModel(isbn, get(), get(), get()) }
 }

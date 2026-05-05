@@ -33,6 +33,7 @@ fun ChaptersScreen(
     uiState: ChapterUiState,
     loadChapter: (Int) -> Unit,
     onToggleExpand: (Int) -> Unit,
+    onItemClick: (sectionIndex: Int, elementId: Int) -> Unit,
     onNavigateBack: () -> Unit,
     scaleFactor: Float,
 ) {
@@ -56,41 +57,62 @@ fun ChaptersScreen(
             )
         }
 
-    ) {innerPadding ->
-    LazyColumn(modifier = Modifier
-        .padding(innerPadding)
-        .fillMaxSize()) {
-        (0 until uiState.totalChapters).forEach { index ->
-            item(key = "chapter_$index") {
-                LaunchedEffect(index) { loadChapter(index) }
-
-                val chapter = uiState.chapters.getOrNull(index)
-                if (chapter == null) {
-                    val empty = ElementTextSpan(
-                        element = Title(id = index, text = "---"),
-                    )
-                    ChapterRow(title = empty, hasChildren = false, isExpanded = false, onClick = {})
-                } else {
-                    ChapterRow(
-                        title = chapter.title,
-                        hasChildren = chapter.innerSections.isNotEmpty(),
-                        isExpanded = chapter.isExpanded,
-                        onClick = { onToggleExpand(chapter.sectionIndex) },
-                    )
-                    AnimatedVisibility(visible = chapter.isExpanded) {
-                        Column {
-                            chapter.innerSections.forEach { innerTitle ->
-                                InnerSectionRow(title = innerTitle)
-                                HorizontalDivider(modifier = Modifier.padding(start = 32.dp))
-                            }
-                        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
+            if (uiState.isFlat) {
+                uiState.bookTitle?.let { bookTitle ->
+                    item(key = "book_title_header") {
+                        ChapterRow(title = bookTitle, hasChildren = false, isExpanded = false, onClick = {})
+                        HorizontalDivider()
                     }
                 }
-                HorizontalDivider()
+                uiState.chapters.forEach { chapter ->
+                    item(key = "flat_${chapter.sectionIndex}") {
+                        InnerSectionRow(
+                            title = chapter.title,
+                            onClick = { onItemClick(chapter.sectionIndex, chapter.title.element.id) },
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(start = 32.dp))
+                    }
+                }
+            } else {
+                (0 until uiState.totalChapters).forEach { index ->
+                    item(key = "chapter_$index") {
+                        LaunchedEffect(index) { loadChapter(index) }
+
+                        val chapter = uiState.chapters.getOrNull(index)
+                        if (chapter == null) {
+                            val empty = ElementTextSpan(element = Title(id = index, text = "---"))
+                            ChapterRow(title = empty, hasChildren = false, isExpanded = false, onClick = {})
+                        } else {
+                            ChapterRow(
+                                title = chapter.title,
+                                hasChildren = chapter.innerSections.isNotEmpty(),
+                                isExpanded = chapter.isExpanded,
+                                onClick = { onToggleExpand(chapter.sectionIndex) },
+                            )
+                            AnimatedVisibility(visible = chapter.isExpanded) {
+                                Column {
+                                    chapter.innerSections.forEach { innerTitle ->
+                                        InnerSectionRow(
+                                            title = innerTitle,
+                                            onClick = { onItemClick(chapter.sectionIndex, innerTitle.element.id) },
+                                        )
+                                        HorizontalDivider(modifier = Modifier.padding(start = 32.dp))
+                                    }
+                                }
+                            }
+                        }
+                        HorizontalDivider()
+                    }
+                }
             }
         }
     }
-}
 }
 
 @Composable
@@ -126,12 +148,16 @@ private fun ChapterRow(
 }
 
 @Composable
-private fun InnerSectionRow(title: ElementTextSpan) {
+private fun InnerSectionRow(
+    title: ElementTextSpan,
+    onClick: () -> Unit,
+) {
     Text(
         text = title.toAnnotatedString(),
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(start = 32.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
     )
 }

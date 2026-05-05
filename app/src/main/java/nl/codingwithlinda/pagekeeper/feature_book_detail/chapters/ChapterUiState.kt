@@ -11,5 +11,7 @@ data class ChapterItem(
 
 data class ChapterUiState(
     val totalChapters: Int,
+    val bookTitle: ElementTextSpan? = null,
+    val isFlat: Boolean = false,
     val chapters: List<ChapterItem>,
 )

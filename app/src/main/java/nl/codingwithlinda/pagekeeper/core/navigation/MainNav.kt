@@ -161,9 +161,16 @@ fun MainNav(
             }
             entry<ChaptersRoute> { key ->
                 val viewModel: ChaptersViewModel = koinViewModel(key = key.ISBN) { org.koin.core.parameter.parametersOf(key.ISBN) }
+                ObserveAsEvents(viewModel.navChannel) {
+                    backStack.removeLastOrNull()
+                    backStack.add(BookDetailRoute(key.ISBN))
+                }
                 ChaptersScreen(
                     uiState = viewModel.uiState.collectAsStateWithLifecycle().value,
                     loadChapter = { viewModel.chapter(it) },
+                    onItemClick = { sectionIndex, elementId ->
+                        viewModel.updateCurrentSection(sectionIndex, elementId)
+                    },
                     onToggleExpand = { viewModel.toggleExpand(it) },
                     onNavigateBack = { backStack.removeLastOrNull() },
                     scaleFactor = 1f,

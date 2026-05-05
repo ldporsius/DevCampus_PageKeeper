@@ -54,53 +54,53 @@ class BookDetailViewModel(
 
     private suspend fun book() = bookRepository.getBookByISBN(isbn)
 
-    private val book = bookRepository.observeBook(isbn).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    private val _book = bookRepository.observeBook(isbn).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
 
     val listState = LazyListState()
 
     init {
         viewModelScope.launch {
-            book.collect { book ->
+            _book.collect { book ->
                 if (book == null) return@collect
-                _state.update { it.copy(book = book.toBookUi()) }
+                initBook(book)
             }
         }
 
         viewModelScope.launch {
-            val book = book() ?: return@launch
-
             bookRepository.updateLastOpenedDate(isbn, System.currentTimeMillis())
 
             if (!bookPager.hasPages(isbn) || isLegacyPages()) {
                 writePages()
             }
+        }
+    }
 
-            val totalSections = bookPager.countPages(isbn)
-            val initialSection = book.currentSection
-            val initialElementId = book.currentElementId
+    private suspend fun initBook(book: Book){
+        val totalSections = bookPager.countPages(isbn)
+        val initialSection = book.currentSection
+        val initialElementId = book.currentElementId
 
-            val evictionFirst = (initialSection - evictionWindow).coerceAtLeast(0)
-            val evictionLast = (initialSection + evictionWindow).coerceAtMost(totalSections)
-            val loadingPages = (evictionFirst until evictionLast).associateWith { i -> Page.Loading(i) }
+        val evictionFirst = (initialSection - evictionWindow).coerceAtLeast(0)
+        val evictionLast = (initialSection + evictionWindow).coerceAtMost(totalSections)
+        val loadingPages = (evictionFirst until evictionLast).associateWith { i -> Page.Loading(i) }
 
-            val initPages = mutableMapOf<Int, Page>()
-            loadingPages.onEach {
-                bookPager.loadSection(isbn, it.key)
-                    .collect { section ->
-                        initPages += (section.id to section.toPage())
-                    }
-            }
-            _state.update {state ->
-                state.copy(
-                    book = book.toBookUi(),
-                    pages = initPages,
-                    totalSections = totalSections,
-                    currentSection = initialSection,
-                    currentElementId = initialElementId,
-                    isLoading = false,
-                )
-            }
+        val initPages = mutableMapOf<Int, Page>()
+        loadingPages.onEach {
+            bookPager.loadSection(isbn, it.key)
+                .collect { section ->
+                    initPages += (section.id to section.toPage())
+                }
+        }
+        _state.update {state ->
+            state.copy(
+                book = book.toBookUi(),
+                pages = initPages,
+                totalSections = totalSections,
+                currentSection = initialSection,
+                currentElementId = initialElementId,
+                isLoading = false,
+            )
         }
     }
 
@@ -113,7 +113,7 @@ class BookDetailViewModel(
                     val sectionId = state.value.elementPages.firstOrNull { page ->
                         page.elements.any { it.element.id == action.elementId }
                     }?.sectionId ?: return@launch
-                    //println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED elementId ${action.elementId} in section $sectionId, orientation ${action.orientation}")
+                    println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED elementId ${action.elementId} in section $sectionId, orientation ${action.orientation}")
                     _state.update { it.copy(currentSection = sectionId, currentElementId = action.elementId) }
                     loadSections(sectionId)
                     bookRepository.upsertBook(book.copy(currentSection = sectionId, currentElementId = action.elementId))

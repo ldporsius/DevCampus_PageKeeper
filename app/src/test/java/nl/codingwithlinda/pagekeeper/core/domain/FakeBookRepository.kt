@@ -20,4 +20,7 @@ class FakeBookRepository : BookRepository {
     override suspend fun upsertBook(book: Book) { _books.value = _books.value + book }
     override suspend fun deleteBook(ISBN: String) { _books.value = _books.value.filterNot { it.ISBN == ISBN } }
     override fun observeBook(ISBN: String): Flow<Book?> = _books.map { list -> list.find { it.ISBN == ISBN } }
+    override suspend fun updateLastOpenedDate(isbn: String, date: Long) {
+        _books.value = _books.value.map { if (it.ISBN == isbn) it.copy(lastOpenedDate = date) else it }
+    }
 }

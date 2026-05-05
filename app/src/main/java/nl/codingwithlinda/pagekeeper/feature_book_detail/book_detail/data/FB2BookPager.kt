@@ -41,7 +41,7 @@ private val citeRegex           = Regex("<cite[^>]*?>(.*?)</cite>",         Rege
 private val epigraphRegex       = Regex("<epigraph[^>]*?>(.*?)</epigraph>", RegexOption.DOT_MATCHES_ALL)
 private val firstStrongPRegex   = Regex(
     """\s*(?:<empty-line\s*/>\s*)*<p[^>]*?>\s*<strong[^>]*?>(.*?)</strong>\s*</p>""".trimIndent(),
-    option = (RegexOption.MULTILINE)
+    options = setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL)
 )
 
 private val elementParsers: List<Pair<Regex, (MatchResult) -> PageElement>> = listOf(

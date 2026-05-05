@@ -6,6 +6,7 @@ import assertk.assertions.isEqualTo
 import kotlinx.coroutines.test.runTest
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.PageElement
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.InnerSection
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import org.junit.Test
@@ -54,7 +55,7 @@ class ParseSectionTest {
         val section = parseSection(sectionId = 0, body = body)
 
         val nestedIds: List<Int> = section.elements
-            .filterIsInstance<Section>()
+            .filterIsInstance<InnerSection>()
             .flatMap { it.elements }
             .map { it.id }
 
@@ -68,7 +69,7 @@ class ParseSectionTest {
 
         val section = parseSection(sectionId = 0, body = body, idCounter = counter)
 
-        val innerElements: List<PageElement> = (section.elements.first() as Section).elements
+        val innerElements: List<PageElement> = (section.elements.first() as InnerSection).elements
         assertThat(innerElements.first().id).isEqualTo(10)
         assertThat(counter.get()).isEqualTo(11)
     }

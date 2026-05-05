@@ -107,10 +107,8 @@ fun BookDetailScreen(
         ) {
             sortedPages.forEach { page ->
                 when (page) {
-                    is Page.Loading -> item(key = "${page.sectionId}") {
-                        LaunchedEffect(page.sectionId) {
-                            //obsolete
-                        }
+                    is Page.Loading -> item(key = "loading_${page.sectionId}") {
+
                         Box(modifier = Modifier
                             .fillMaxWidth()
                             .height(800.dp),
@@ -123,7 +121,7 @@ fun BookDetailScreen(
                     is ElementPage ->{
                         page.elements.forEach { element ->
                             item(
-                                key = element.element.id.toString()
+                                key = "${element.element.id}"
                             ){
                                 element.toScaledText(readingSettings.fontSize)
                             }
@@ -159,27 +157,21 @@ fun BookDetailScreen(
 @Preview(showBackground = true)
 @Composable
 private fun BookDetailScreenPreview() {
+    val pages = List(10) { sectionId ->
+        ElementPage(
+            sectionId = sectionId + 1,
+            elements = List(1) {i ->
+                ElementTextSpan(
+                    element = Title(id = i +sectionId, text = "The Great Gatsby"),
+                    lines = listOf(FormattedLine(listOf(TextSpan(text = "The Great Gatsby"))))
+                )
+            }
+        )
+    }
     PageKeeperTheme {
         BookDetailScreen(
             state = BookDetailState(
-                pages = mapOf(
-                    0 to ElementPage(
-                        sectionId = 0,
-                        elements = listOf(
-                            ElementTextSpan(
-                                element = Title(text = "The Great Gatsby"),
-                                lines = listOf(FormattedLine(listOf(TextSpan(text = "The Great Gatsby"))))
-                            ),
-                            ElementTextSpan(
-                                element = BookParagraph(text = "by F. Scott Fitzgerald"),
-                                lines = listOf(FormattedLine(listOf(
-                                    TextSpan(text = "by ", emphasis = true),
-                                    TextSpan(text = "F. Scott Fitzgerald")
-                                )))
-                            ),
-                        )
-                    ),
-                ),
+                pages = pages.associateBy { it.sectionId },
                 isLoading = true
             ),
             readingSettings = ReadingSettings(),

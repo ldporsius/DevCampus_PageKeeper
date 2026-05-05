@@ -89,6 +89,7 @@ fun ElementTextSpan.toScaledText(rawSliderValue: Float) {
         when (el) {
             is Title     -> TitleElement(this.lines)
             is Citation  -> CitationElement(this.lines)
+            is Epigraph  -> EpigraphElement(this.lines)
             is Paragraph -> ParagraphElement(this.lines)
             else         -> this.lines.forEach { line -> ElementLine(line) }
         }
@@ -117,6 +118,18 @@ private fun TitleElement(lines: List<FormattedLine>) {
 @Composable
 private fun ParagraphElement(lines: List<FormattedLine>) {
     lines.forEach { line -> ElementLine(line) }
+    HalfLineSpace()
+}
+
+@Composable
+private fun EpigraphElement(lines: List<FormattedLine>) {
+    val style = LocalTextStyle.current
+    HalfLineSpace()
+    CompositionLocalProvider(LocalTextStyle provides style.copy(fontStyle = FontStyle.Italic)) {
+        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+            lines.forEach { line -> ElementLine(line) }
+        }
+    }
     HalfLineSpace()
 }
 

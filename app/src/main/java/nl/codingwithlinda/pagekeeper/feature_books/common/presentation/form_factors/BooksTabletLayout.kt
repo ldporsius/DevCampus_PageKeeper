@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,14 +47,18 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.qualifier.named
 
 @Composable
-fun BooksRootExpandedWidth(
+fun BooksTabletLayout(
     modifier: Modifier = Modifier,
     onImportBook: () -> Unit = {},
     onNavigateToDetail: (String) -> Unit = {},
     bookListViewModel: BookListViewModel = koinViewModel(qualifier = named("all")),
-    searchViewModel: SearchViewModel = koinViewModel<SearchViewModel>(),
     libraryViewModel: LibraryViewModel = koinViewModel()
 ) {
+    val searchViewModel: SearchViewModel = koinViewModel()
+    val bookListState by bookListViewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(bookListState.filter) {
+        searchViewModel.setFilter(bookListState.filter)
+    }
 
     val focusManager = LocalFocusManager.current
     var searchMode by remember { mutableStateOf(false) }

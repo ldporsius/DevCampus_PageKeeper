@@ -13,26 +13,26 @@ import kotlinx.coroutines.SupervisorJob
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.PageKeeperDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.RoomBookRepository
 import nl.codingwithlinda.pagekeeper.core.data.remote.ContentResolverBookFormatValidator
-import nl.codingwithlinda.pagekeeper.core.data.util.SimpleLogger
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.DataStoreReadingSettingsRepository
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FB2BookPager
 import nl.codingwithlinda.pagekeeper.core.data.remote.FB2BookParser
+import nl.codingwithlinda.pagekeeper.core.data.util.TimberLogger
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookFormatValidator
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.core.navigation.DefaultMenuActionController
 import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.DataStoreReadingSettingsRepository
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FB2BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.BookDetailViewModel
-import nl.codingwithlinda.pagekeeper.feature_book_detail.chapters.ChaptersViewModel
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.ReadingControlsViewModel
+import nl.codingwithlinda.pagekeeper.feature_book_detail.chapters.ChaptersViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookFilter
 import nl.codingwithlinda.pagekeeper.feature_books.common.presentation.BookListViewModel
-import nl.codingwithlinda.pagekeeper.feature_books.search.SearchViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.LibraryViewModel
 import nl.codingwithlinda.pagekeeper.feature_books.multi_select.presentation.MultiSelectViewModel
+import nl.codingwithlinda.pagekeeper.feature_books.search.SearchViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -57,7 +57,7 @@ val appDataModule = module {
             "pagekeeper.db"
         ).addMigrations(MIGRATION_2_3, PageKeeperDatabase.MIGRATION_3_4, PageKeeperDatabase.MIGRATION_4_5, PageKeeperDatabase.MIGRATION_5_6, PageKeeperDatabase.MIGRATION_6_7).fallbackToDestructiveMigration(false).build()
     }
-    single { SimpleLogger() } bind Logger::class
+    single { TimberLogger() } bind Logger::class
     single { RoomBookRepository(get<PageKeeperDatabase>().bookDao(), androidContext().filesDir) } bind BookRepository::class
     single { FB2BookParser(androidContext(), get()) } bind BookParser::class
     single { FB2BookPager(androidContext(), get()) } bind BookPager::class

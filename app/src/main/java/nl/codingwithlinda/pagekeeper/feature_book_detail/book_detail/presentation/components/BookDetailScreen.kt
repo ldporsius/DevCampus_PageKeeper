@@ -40,6 +40,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import nl.codingwithlinda.pagekeeper.core.presentation.design_system.ui.theme.PageKeeperTheme
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParagraph
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toScaledText
@@ -51,6 +52,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.Page.ElementPage
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.TextSpan
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.toElementTextSpan
+import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.util.toUi
 
 @OptIn(FlowPreview::class)
 @Composable
@@ -172,7 +174,8 @@ private fun BookDetailScreenPreview() {
         BookDetailScreen(
             state = BookDetailState(
                 pages = pages.associateBy { it.sectionId },
-                isLoading = true
+                isLoading = true,
+                //error = BookParseError.NoPagesFound.toUi()
             ),
             readingSettings = ReadingSettings(),
         )

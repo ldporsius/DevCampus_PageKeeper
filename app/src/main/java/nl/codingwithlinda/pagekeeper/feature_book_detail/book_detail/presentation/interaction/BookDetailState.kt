@@ -27,12 +27,6 @@ data class BookDetailState(
 
     val elementPages = sortedPages().filterIsInstance<Page.ElementPage>()
 
-    val elements = elementPages.map {
-        it.elements.map {
-            it.element.id to it.element
-        }
-    }
-
     private val actualReadingProgress = currentElementId.toFloat() / totalElements.toFloat()
     val readingProgress = if (book?.isFinished == true) 1f else actualReadingProgress
 

@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.debounce
-import nl.codingwithlinda.pagekeeper.core.data.util.SimpleLogger
 import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailImmersiveScreen
@@ -36,7 +35,7 @@ fun BookDetailRoot(
     navToChapters: () -> Unit,
     viewModel: BookDetailViewModel = koinViewModel(key = isbn) { parametersOf(isbn) },
     readingControlsViewModel: ReadingControlsViewModel = koinViewModel(),
-    logger: Logger = SimpleLogger(),
+    logger: Logger,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 

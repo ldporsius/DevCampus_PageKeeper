@@ -108,7 +108,8 @@ fun MainNav(
                 BookDetailRoot(
                     isbn = key.ISBN,
                     onNavigateBack = { backStack.removeLastOrNull() },
-                    navToChapters = { backStack.add(ChaptersRoute(key.ISBN)) }
+                    navToChapters = { backStack.add(ChaptersRoute(key.ISBN)) },
+                    logger = koinInject(),
                 )
             }
             entry<ChaptersRoute> { key ->

@@ -119,7 +119,8 @@ fun MainNav(
                 }
                 ChaptersScreen(
                     uiState = viewModel.uiState.collectAsStateWithLifecycle().value,
-                    loadChapter = { viewModel.chapter(it) },
+                    loadChapter = { first, last ->
+                        viewModel.loadChapters(first, last) },
                     onItemClick = { sectionIndex, elementId ->
                         viewModel.updateCurrentSection(sectionIndex, elementId)
                     },

@@ -1,15 +1,17 @@
 package nl.codingwithlinda.pagekeeper.feature_book_detail.chapters
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -17,13 +19,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import nl.codingwithlinda.pagekeeper.R
-import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toAnnotatedString
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.design_system.toTextStyle
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.model.ElementTextSpan
@@ -31,12 +35,32 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 @Composable
 fun ChaptersScreen(
     uiState: ChapterUiState,
-    loadChapter: (Int) -> Unit,
+    loadChapter: (Int, Int) -> Unit,
     onToggleExpand: (Int) -> Unit,
     onItemClick: (sectionIndex: Int, elementId: Int) -> Unit,
     onNavigateBack: () -> Unit,
     scaleFactor: Float,
 ) {
+    val listState = rememberLazyListState()
+
+    var scollSettled = false
+    val hasScrolled = remember(listState, uiState.currentItemIndex) {
+        derivedStateOf { listState.firstVisibleItemIndex != uiState.currentItemIndex }
+    }
+    LaunchedEffect(uiState.currentItemIndex) {
+        if (uiState.currentItemIndex == 0 || scollSettled) return@LaunchedEffect
+        listState.scrollToItem(uiState.currentItemIndex)
+        scollSettled = true
+    }
+    LaunchedEffect(hasScrolled) {
+        if (!scollSettled) return@LaunchedEffect
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo}
+            .collect { info ->
+                val firstVisible = info.firstOrNull()?.index ?: 0
+                val lastVisible = info.lastOrNull()?.index ?: 0
+                loadChapter(firstVisible, lastVisible)
+            }
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -58,65 +82,37 @@ fun ChaptersScreen(
         }
 
     ) { innerPadding ->
-        val chaptersByIndex = uiState.chapters.associateBy { it.sectionIndex }
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        ) {
-            if (uiState.isFlat) {
-                uiState.bookTitle?.let { bookTitle ->
-                    item(key = "book_title_header") {
-                        ChapterRow(title = bookTitle, hasChildren = false, isExpanded = false, onClick = {})
-                        HorizontalDivider()
-                    }
-                }
-                (0 until uiState.totalChapters).forEach { index ->
-                    item(key = "flat_$index") {
-                        LaunchedEffect(index) { loadChapter(index) }
+        val chaptersByIndex = uiState.chapters.values.toList()
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            ,
+            contentAlignment = Alignment.TopCenter) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(600.dp)
+            ) {
 
-                        val chapter = chaptersByIndex[index]
-                        if (chapter == null) {
-                            val empty = ElementTextSpan(element = Title(id = index, text = "---"))
-                            InnerSectionRow(title = empty, onClick = {})
-                        } else {
-                            InnerSectionRow(
-                                title = chapter.title,
-                                onClick = { onItemClick(chapter.sectionIndex, chapter.title.element.id) },
-                            )
-                        }
-                        HorizontalDivider(modifier = Modifier.padding(start = 32.dp))
+                items(uiState.chapters.size,
+                    key = { index ->
+                        index
                     }
-                }
-            } else {
-                (0 until uiState.totalChapters).forEach { index ->
-                    item(key = "chapter_$index") {
-                        LaunchedEffect(index) { loadChapter(index) }
+                ){ index ->
+                    val chapterItem = chaptersByIndex.getOrNull(index)
+                    if (chapterItem == null) {
+                        Text("...")
+                    }
+                    chapterItem?.let { ch ->
+                        ChapterRow(
+                            isCurrentChapter = uiState.isCurrentChapter(ch.sectionIndex),
+                            title = ch.title,
+                            hasChildren = ch.innerSections.isNotEmpty(),
+                            isExpanded = ch.isExpanded,
+                            onClick = { onToggleExpand(ch.sectionIndex) },
+                        )
 
-                        val chapter = chaptersByIndex[index]
-                        if (chapter == null) {
-                            val empty = ElementTextSpan(element = Title(id = index, text = "---"))
-                            ChapterRow(title = empty, hasChildren = false, isExpanded = false, onClick = {})
-                        } else {
-                            ChapterRow(
-                                title = chapter.title,
-                                hasChildren = chapter.innerSections.isNotEmpty(),
-                                isExpanded = chapter.isExpanded,
-                                onClick = { onToggleExpand(chapter.sectionIndex) },
-                            )
-                            AnimatedVisibility(visible = chapter.isExpanded) {
-                                Column {
-                                    chapter.innerSections.forEach { innerTitle ->
-                                        InnerSectionRow(
-                                            title = innerTitle,
-                                            onClick = { onItemClick(chapter.sectionIndex, innerTitle.element.id) },
-                                        )
-                                        HorizontalDivider(modifier = Modifier.padding(start = 32.dp))
-                                    }
-                                }
-                            }
-                        }
-                        HorizontalDivider()
                     }
                 }
             }
@@ -126,11 +122,18 @@ fun ChaptersScreen(
 
 @Composable
 private fun ChapterRow(
+    isCurrentChapter: Boolean,
     title: ElementTextSpan,
     hasChildren: Boolean,
     isExpanded: Boolean,
     onClick: () -> Unit,
 ) {
+
+    val textStyle = if (isCurrentChapter) {
+        title.element.toTextStyle()
+    }else{
+        MaterialTheme.typography.bodyMedium
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -141,7 +144,7 @@ private fun ChapterRow(
 
         Text(
             text = title.toAnnotatedString(),
-            style = title.element.toTextStyle(),
+            style = textStyle,
             modifier = Modifier.weight(1f),
         )
         if (hasChildren) {

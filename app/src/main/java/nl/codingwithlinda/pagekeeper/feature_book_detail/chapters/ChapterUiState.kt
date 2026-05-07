@@ -13,5 +13,8 @@ data class ChapterUiState(
     val totalChapters: Int,
     val bookTitle: ElementTextSpan? = null,
     val isFlat: Boolean = false,
-    val chapters: List<ChapterItem>,
-)
+    val chapters: Map<Int,ChapterItem?>,
+    val currentItemIndex: Int = 0
+){
+    fun isCurrentChapter(index: Int): Boolean = currentItemIndex == index
+}

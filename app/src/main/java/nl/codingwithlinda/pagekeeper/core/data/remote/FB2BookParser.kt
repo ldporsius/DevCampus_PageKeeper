@@ -15,6 +15,7 @@ import nl.codingwithlinda.pagekeeper.core.data.util.sectionBetween
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
 import nl.codingwithlinda.pagekeeper.core.domain.util.BookImportError
+import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import java.io.File
 import java.io.InputStream
@@ -25,11 +26,12 @@ import javax.xml.parsers.DocumentBuilderFactory
 private const val MAX_COVER_PX = 200
 
 class FB2BookParser(
-    private val context: Context
+    private val context: Context,
+    private val logger: Logger,
 ) : BookParser {
 
     override suspend fun fetch(uri: String): Result<Book, BookImportError> {
-        println("FN2BookParser.fetch: $uri")
+        logger.log("FN2BookParser.fetch: $uri")
         return withContext(Dispatchers.IO) {
             var fb2File: File? = null
             var pngFile: File? = null
@@ -54,9 +56,9 @@ class FB2BookParser(
                     }
                     val imgUrl = withContext(Dispatchers.Default) {
                         val coverPage = extractCoverPageInfo(descriptionSection)
-                        println("coverPage: $coverPage")
+                        logger.log("coverPage: $coverPage")
                         val coverResult = extractCoverImage(binarySection, coverPage)
-                        println("coverResult: $coverResult")
+                        logger.log("coverResult: $coverResult")
                         when (coverResult) {
                             is Result.Failure -> ""
                             is Result.Success -> {
@@ -133,7 +135,7 @@ class FB2BookParser(
             .map { "$it</binary>" }.asSequence()
 
         imageSequence.take(2).onEach {
-            println("imageSequence: $it")
+            logger.log("imageSequence: $it")
         }
 
         val cover: BookCover? = try {

@@ -22,6 +22,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Page
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Paragraph
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Title
+import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookParseError
@@ -143,7 +144,8 @@ internal suspend fun findTopLevelSections(body: String): List<String> = withCont
 
 @OptIn(ExperimentalSerializationApi::class)
 class FB2BookPager(
-    private val context: Context
+    private val context: Context,
+    private val logger: Logger,
 ): BookPager {
 
     override suspend fun writePages(uri: String, isbn: String, onProgress: suspend (written: Int, total: Int) -> Unit): Result<Unit, BookParseError> {
@@ -156,12 +158,12 @@ class FB2BookPager(
 
                     val topLevelSections = findTopLevelSections(body)
 
-                    println("--- FN2 BOOK PAGER FOUND SECTIONS --- ${topLevelSections.size}")
+                    logger.log("--- FN2 BOOK PAGER FOUND SECTIONS --- ${topLevelSections.size}")
 
                     val idCounter = AtomicInteger(0)
 
                     topLevelSections.forEachIndexed { index, html ->
-                        println("--- FN2 BOOK PAGER PARSING SECTION --- $index")
+                        logger.log("--- FN2 BOOK PAGER PARSING SECTION --- $index")
 
                         ensureActive()
                         val inner = html.removePrefix("<section>").removeSuffix("</section>")

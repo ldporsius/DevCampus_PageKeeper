@@ -89,6 +89,7 @@ dependencies {
     implementation(libs.koin.androidx.compose)
 
     implementation(libs.androidx.datastore.preferences)
+    implementation("com.jakewharton.timber:timber:5.0.1")
 
 
     testImplementation(libs.junit)

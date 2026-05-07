@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
+import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
 import nl.codingwithlinda.pagekeeper.core.navigation.NavigationMenuAction
 import nl.codingwithlinda.pagekeeper.feature_books.library.presentation.interaction.BookListItemAction
@@ -23,6 +24,7 @@ class BookListViewModel(
     private val bookRepository: BookRepository,
     private val bookPager: BookPager,
     private val menuActionController: MenuActionController,
+    private val logger: Logger,
     initialFilter: BookFilter = BookFilter.All
 ) : ViewModel() {
 
@@ -41,7 +43,7 @@ class BookListViewModel(
         // combine emission uses the correct filter — no double-emission flash.
         // Skip if already present (process restoration via SavedStateHandle).
         if (!savedStateHandle.contains(KEY_FILTER)) {
-            println("--- BOOKLISTVIEWMODEL--- Setting filter to $initialFilter")
+            logger.log("--- BOOKLISTVIEWMODEL--- Setting filter to $initialFilter")
             savedStateHandle[KEY_FILTER] = initialFilter
         }
 

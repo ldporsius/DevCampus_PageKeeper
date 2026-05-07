@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
+import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.InnerSection
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.Section
@@ -28,6 +29,7 @@ class ChaptersViewModel(
     private val bookPager: BookPager,
     private val bookRepository: BookRepository,
     private val applicationScope: CoroutineScope,
+    private val logger: Logger,
 ) : ViewModel() {
 
     private data class SectionData(
@@ -64,7 +66,7 @@ class ChaptersViewModel(
             chapters = resultChapters,
         )
     }.combine(_currentSectionIndex){ state, index ->
-        println("--- ChaptersViewModel --- currentElementIndex = $index")
+        logger.log("--- ChaptersViewModel --- currentElementIndex = $index")
 
         state.copy(
             currentItemIndex = index
@@ -138,7 +140,7 @@ class ChaptersViewModel(
         val titleElement = section.elements.filterIsInstance<Title>().firstOrNull()
 
         if (titleElement == null) {
-            println("--- ChaptersViewModel --- no title found for section ${section.id}")
+            logger.log("--- ChaptersViewModel --- no title found for section ${section.id}")
             val inner = createInnerSection(section)
             return parseInnerSection(inner)
         }
@@ -155,7 +157,7 @@ class ChaptersViewModel(
 
 
     fun loadChapters(firstIndex: Int, lastIndex: Int) = viewModelScope.launch {
-        println("--- ChaptersViewModel --- loading chapters from $firstIndex to $lastIndex")
+        logger.log("--- ChaptersViewModel --- loading chapters from $firstIndex to $lastIndex")
         val total = bookPager.countPages(isbn)
 
         val first = (firstIndex - 10).coerceAtLeast(0)

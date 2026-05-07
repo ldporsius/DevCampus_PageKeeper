@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
+import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettings
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.ReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.reading_controls.interaction.ReadingControlAction
@@ -15,6 +16,7 @@ import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentatio
 class ReadingControlsViewModel(
     private val readingSettingsRepository: ReadingSettingsRepository,
     private val bookRepository: BookRepository,
+    private val logger: Logger,
 ): ViewModel() {
 
     val state = readingSettingsRepository.settings.stateIn(
@@ -47,10 +49,10 @@ class ReadingControlsViewModel(
                 }
             }
             is ReadingControlAction.ToggleFavorite -> {
-                println("--- READING CONTROLS VIEWMODEL --- TOGGLE FAVORITE ISBN ${action.isbn}")
+                logger.log("--- READING CONTROLS VIEWMODEL --- TOGGLE FAVORITE ISBN ${action.isbn}")
                 viewModelScope.launch {
                     bookRepository.getBookByISBN(action.isbn)?.let { book ->
-                        println("--- READING CONTROLS VIEWMODEL --- TOGGLE FAVORITE BOOK ${book.title}, favorite = /eff${book.isFavorite}")
+                        logger.log("--- READING CONTROLS VIEWMODEL --- TOGGLE FAVORITE BOOK ${book.title}, favorite = /eff${book.isFavorite}")
                         bookRepository.upsertBook(book.copy(isFavorite = !book.isFavorite))
                     }
                 }

@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.debounce
+import nl.codingwithlinda.pagekeeper.core.data.util.SimpleLogger
+import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.core.presentation.util.ObserveAsEvents
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailImmersiveScreen
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.presentation.components.BookDetailScaffold
@@ -34,6 +36,7 @@ fun BookDetailRoot(
     navToChapters: () -> Unit,
     viewModel: BookDetailViewModel = koinViewModel(key = isbn) { parametersOf(isbn) },
     readingControlsViewModel: ReadingControlsViewModel = koinViewModel(),
+    logger: Logger = SimpleLogger(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -60,7 +63,7 @@ fun BookDetailRoot(
             .flatMap { it.elements }
             .indexOfFirst { it.element.id == state.currentElementId }
         if (targetIndex < 0) return@LaunchedEffect
-        println("--- BOOK DETAIL --- SCROLLING TO ELEMENT ${state.currentElementId} at index $targetIndex")
+        logger.log("--- BOOK DETAIL --- SCROLLING TO ELEMENT ${state.currentElementId} at index $targetIndex")
         listState.scrollToItem(index = targetIndex)
         scrollSettled = true
     }
@@ -76,7 +79,7 @@ fun BookDetailRoot(
             (firstItem?.key as? String)?.toIntOrNull() ?: -1
         }.debounce(500)
             .collect { elementId ->
-                println("--- BOOK DETAIL --- firstItem. elementId = $elementId")
+                logger.log("--- BOOK DETAIL --- firstItem. elementId = $elementId")
 
                 if (elementId != -1) {
                     val orientation = configuration.orientation

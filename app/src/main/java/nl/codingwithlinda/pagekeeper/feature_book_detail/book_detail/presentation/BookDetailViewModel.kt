@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.model.Book
+import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.core.domain.util.map
 import nl.codingwithlinda.pagekeeper.core.domain.util.onFailure
@@ -37,6 +38,7 @@ class BookDetailViewModel(
     private val isbn: String,
     private val bookRepository: BookRepository,
     private val bookPager: BookPager,
+    private val logger: Logger,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookDetailState())
@@ -45,7 +47,7 @@ class BookDetailViewModel(
             viewModelScope.launch {
                 val pageIndices =
                     it.pages.values.filter { it !is Page.Loading }.map { it.sectionId }
-                println("---BOOK DETAIL VIEW MODEL --- PAGES loaded: ${pageIndices.joinToString()}. Total: ${it.pages.count { (_, p) -> p !is Page.Loading }} / ${it.pages.size}")
+                logger.log("---BOOK DETAIL VIEW MODEL --- PAGES loaded: ${pageIndices.joinToString()}. Total: ${it.pages.count { (_, p) -> p !is Page.Loading }} / ${it.pages.size}")
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
@@ -118,7 +120,7 @@ class BookDetailViewModel(
                     val sectionId = state.value.elementPages.firstOrNull { page ->
                         page.elements.any { it.element.id == action.elementId }
                     }?.sectionId ?: return@launch
-                    println("---BOOK DETAIL VIEW MODEL --- BOOKMARKED elementId ${action.elementId} in section $sectionId, orientation ${action.orientation}")
+                    logger.log("---BOOK DETAIL VIEW MODEL --- BOOKMARKED elementId ${action.elementId} in section $sectionId, orientation ${action.orientation}")
                     _state.update { it.copy(currentSection = sectionId, currentElementId = action.elementId) }
                     loadSections(sectionId)
                     bookRepository.upsertBook(book.copy(currentSection = sectionId, currentElementId = action.elementId))
@@ -164,7 +166,7 @@ class BookDetailViewModel(
         val first = (anchorSection - evictionWindow).coerceAtLeast(0)
         val last = (state.value.elementPages.last().sectionId + evictionWindow).coerceAtMost(total)
         val range = first until last
-        println("--- LOAD SECTIONS --- range: $range, total: $total")
+        logger.log("--- LOAD SECTIONS --- range: $range, total: $total")
         for (i in range) {
             if (i in state.value.elementPages.map { it.sectionId }) continue
             bookPager.loadSection(isbn, i).collect { section ->

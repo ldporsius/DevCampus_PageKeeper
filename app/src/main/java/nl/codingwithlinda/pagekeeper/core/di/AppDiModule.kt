@@ -13,12 +13,14 @@ import kotlinx.coroutines.SupervisorJob
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.PageKeeperDatabase
 import nl.codingwithlinda.pagekeeper.core.data.local_cache.room_database.RoomBookRepository
 import nl.codingwithlinda.pagekeeper.core.data.remote.ContentResolverBookFormatValidator
+import nl.codingwithlinda.pagekeeper.core.data.util.SimpleLogger
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.DataStoreReadingSettingsRepository
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.data.FB2BookPager
 import nl.codingwithlinda.pagekeeper.core.data.remote.FB2BookParser
 import nl.codingwithlinda.pagekeeper.core.domain.local_cache.BookRepository
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookFormatValidator
 import nl.codingwithlinda.pagekeeper.core.domain.remote.BookParser
+import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.core.navigation.DefaultMenuActionController
 import nl.codingwithlinda.pagekeeper.core.navigation.MenuActionController
 import nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.BookPager
@@ -55,9 +57,10 @@ val appDataModule = module {
             "pagekeeper.db"
         ).addMigrations(MIGRATION_2_3, PageKeeperDatabase.MIGRATION_3_4, PageKeeperDatabase.MIGRATION_4_5, PageKeeperDatabase.MIGRATION_5_6, PageKeeperDatabase.MIGRATION_6_7).fallbackToDestructiveMigration(false).build()
     }
+    single { SimpleLogger() } bind Logger::class
     single { RoomBookRepository(get<PageKeeperDatabase>().bookDao(), androidContext().filesDir) } bind BookRepository::class
-    single { FB2BookParser(androidContext()) } bind BookParser::class
-    single { FB2BookPager(androidContext()) } bind BookPager::class
+    single { FB2BookParser(androidContext(), get()) } bind BookParser::class
+    single { FB2BookPager(androidContext(), get()) } bind BookPager::class
     single { ContentResolverBookFormatValidator(androidContext()) } bind BookFormatValidator::class
     single<MenuActionController> { DefaultMenuActionController() }
 
@@ -70,14 +73,14 @@ val appDataModule = module {
 }
 
 val appPresentationModule = module {
-    viewModel(qualifier = named("all")) { BookListViewModel(get(), get(), get(), get(),BookFilter.All) }
-    viewModel(qualifier = named("favorites")) { BookListViewModel(get(), get(), get(), get(),BookFilter.Favorites) }
-    viewModel(qualifier = named("finished")) { BookListViewModel(get(), get(), get(), get(),BookFilter.Finished) }
-    viewModel(qualifier = named("search")) { BookListViewModel(get(), get(), get(), get(),BookFilter.All) }
+    viewModel(qualifier = named("all")) { BookListViewModel(get(), get(), get(), get(), get(), BookFilter.All) }
+    viewModel(qualifier = named("favorites")) { BookListViewModel(get(), get(), get(), get(), get(), BookFilter.Favorites) }
+    viewModel(qualifier = named("finished")) { BookListViewModel(get(), get(), get(), get(), get(), BookFilter.Finished) }
+    viewModel(qualifier = named("search")) { BookListViewModel(get(), get(), get(), get(), get(), BookFilter.All) }
     viewModel { LibraryViewModel(get(), get(), get()) }
     viewModelOf(::SearchViewModel)
     viewModelOf(::MultiSelectViewModel)
     viewModelOf(::ReadingControlsViewModel)
-    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get()) }
-    viewModel { (isbn: String) -> ChaptersViewModel(isbn, get(), get(), get()) }
+    viewModel { (isbn: String) -> BookDetailViewModel(isbn, get(), get(), get()) }
+    viewModel { (isbn: String) -> ChaptersViewModel(isbn, get(), get(), get(), get()) }
 }

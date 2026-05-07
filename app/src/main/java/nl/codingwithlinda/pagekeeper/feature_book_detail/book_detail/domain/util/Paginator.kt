@@ -2,6 +2,7 @@ package nl.codingwithlinda.pagekeeper.feature_book_detail.book_detail.domain.uti
 
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import nl.codingwithlinda.pagekeeper.core.domain.util.Logger
 import nl.codingwithlinda.pagekeeper.core.domain.util.Result
 import nl.codingwithlinda.pagekeeper.core.domain.util.RootError
 import nl.codingwithlinda.pagekeeper.core.domain.util.onFailure
@@ -14,7 +15,8 @@ class Paginator<KEY, ITEM>(
     private val onRequest: suspend (nextKey: KEY) -> Result<List<ITEM>, BookParseError>,
     private val getNextKey: suspend (List<ITEM>) -> KEY,
     private val onError: suspend (BookParseError?) -> Unit,
-    private val onSuccess: suspend (items: List<ITEM>, newKey: KEY) -> Unit
+    private val onSuccess: suspend (items: List<ITEM>, newKey: KEY) -> Unit,
+    private val logger: Logger,
 ) {
     private var currentKey : KEY? = initialKey
     private var isMakingRequest = false
@@ -26,7 +28,7 @@ class Paginator<KEY, ITEM>(
     }
     suspend fun loadNextItems() {
         if (isMakingRequest) {
-            println("--- PAGINATOR EARLY RETURN --- isMakingRequest")
+            logger.log("--- PAGINATOR EARLY RETURN --- isMakingRequest")
             return
         }
 
@@ -35,7 +37,7 @@ class Paginator<KEY, ITEM>(
         }
 
         if (currentKey != null && lastRequestKey == currentKey) {
-            println("--- PAGINATOR EARLY RETURN --- currentKey == lastRequestKey. currentKey = $currentKey, lastRequestKey = $lastRequestKey")
+            logger.log("--- PAGINATOR EARLY RETURN --- currentKey == lastRequestKey. currentKey = $currentKey, lastRequestKey = $lastRequestKey")
             return
         }
 
